@@ -20,7 +20,7 @@ const STATS = [
 
 export function LoginPage() {
   const { t } = useTranslation()
-  const { loginWebApp, isLoading } = useAuthStore()
+  const { loginWebApp, isLoading, loginError } = useAuthStore()
   const { isInsideTelegram, initData } = useTelegram()
 
   useEffect(() => {
@@ -117,10 +117,23 @@ export function LoginPage() {
         {/* CTA */}
         {isInsideTelegram ? (
           <div className="flex flex-col items-center gap-3 w-full">
-            <div className="flex gap-2 items-center">
-              <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-              <span className="text-white/50 text-sm">Connecting to Telegram...</span>
-            </div>
+            {loginError ? (
+              <>
+                <p className="text-danger text-sm text-center">{loginError}</p>
+                <button
+                  type="button"
+                  onClick={() => loginWebApp(initData).catch(() => {})}
+                  className="text-primary text-sm font-semibold"
+                >
+                  Qayta urinish
+                </button>
+              </>
+            ) : (
+              <div className="flex gap-2 items-center">
+                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <span className="text-white/50 text-sm">Connecting to Telegram...</span>
+              </div>
+            )}
           </div>
         ) : (
           <motion.button

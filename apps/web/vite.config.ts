@@ -31,5 +31,17 @@ export default defineConfig({
       },
     }),
   ],
-  server: { port: 5173 },
+  server: {
+    port: 5173,
+    host: true,
+    // ngrok / Cloudflare tunnel — URL har safar o'zgarishi mumkin
+    allowedHosts: ['.ngrok-free.app', '.ngrok.io', '.trycloudflare.com'],
+    // Telegram uchun bitta ngrok (5173) yetadi — API localhost:3000 ga proxy
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+    },
+  },
 })

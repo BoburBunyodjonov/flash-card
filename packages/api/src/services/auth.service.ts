@@ -1,5 +1,10 @@
 import { prisma } from '../lib/prisma'
-import { validateTelegramAuth, validateWebAppInitData, parseWebAppUser } from '../utils/telegram'
+import {
+  validateTelegramAuth,
+  validateWebAppInitData,
+  parseWebAppUser,
+  getInitDataDebug,
+} from '../utils/telegram'
 import { config } from '../config'
 import type { FastifyInstance } from 'fastify'
 
@@ -40,8 +45,14 @@ export async function loginWithTelegramWidget(
 }
 
 export async function loginWithWebApp(initData: string, fastify: FastifyInstance) {
-  if (!validateWebAppInitData(initData, config.telegram.botToken)) {
-    throw new Error('Invalid Telegram Web App init data')
+  const botToken = config.telegram.botToken.trim()
+  if (!(await validateWebAppInitData(initData, botToken))) {
+    if (config.isDev) {
+      console.warn('[auth/webapp] validation failed', getInitDataDebug(initData))
+    }
+    const err = new Error('Invalid Telegram Web App init data') as Error & { statusCode?: number }
+    err.statusCode = 401
+    throw err
   }
 
   const telegramUser = parseWebAppUser(initData)

@@ -20,7 +20,7 @@ export const config = {
   },
 
   telegram: {
-    botToken: process.env.TELEGRAM_BOT_TOKEN ?? '',
+    botToken: (process.env.TELEGRAM_BOT_TOKEN ?? '').trim(),
     webhookUrl: process.env.TELEGRAM_WEBHOOK_URL ?? '',
   },
 

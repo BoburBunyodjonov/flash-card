@@ -1,10 +1,15 @@
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
+// Bo'sh = same-origin (/api vite proxy orqali localhost:3000 ga boradi)
+const API_URL = import.meta.env.VITE_API_URL || ''
 
 export const api = axios.create({
   baseURL: API_URL,
-  headers: { 'Content-Type': 'application/json' },
+  headers: {
+    'Content-Type': 'application/json',
+    // ngrok bepul rejim — API HTML warning sahifasini o'tkazib yuborish
+    'ngrok-skip-browser-warning': 'true',
+  },
 })
 
 api.interceptors.request.use((config) => {
