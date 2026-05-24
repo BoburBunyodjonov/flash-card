@@ -79,7 +79,16 @@ export async function validateWebAppInitData(
   botToken: string,
 ): Promise<boolean> {
   const token = botToken.trim()
-  if (!initData?.trim() || !token) return false
+  if (!initData?.trim()) return false
+
+  // Dev mode: bot token yo'q bo'lsa, initData formatini tekshirib o'tkazib yuboramiz
+  if (!token) {
+    if (process.env.NODE_ENV !== 'production') {
+      const params = new URLSearchParams(initData)
+      return params.has('user') || params.has('auth_date')
+    }
+    return false
+  }
 
   const botId = parseInt(token.split(':')[0] ?? '', 10)
 
