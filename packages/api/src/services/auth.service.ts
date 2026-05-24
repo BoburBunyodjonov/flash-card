@@ -112,5 +112,21 @@ async function upsertUser(
     { expiresIn: config.jwt.refreshExpiresIn },
   )
 
-  return { user, accessToken, refreshToken }
+  const safeUser = {
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    username: user.username,
+    avatarUrl: user.avatarUrl,
+    language: user.language,
+    isPremium: user.isPremium,
+    premiumUntil: user.premiumUntil?.toISOString() ?? null,
+    isAdmin: user.isAdmin,
+    streak: user.streak,
+    xp: user.xp,
+    notifyAt: user.notifyAt,
+    telegramId: user.telegramId.toString(),
+  }
+
+  return { user: safeUser, accessToken, refreshToken }
 }
