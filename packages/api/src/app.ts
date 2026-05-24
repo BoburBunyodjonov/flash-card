@@ -19,8 +19,19 @@ export async function buildApp() {
       : true,
   })
 
+  const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:5174',
+    ...(process.env.ALLOWED_ORIGINS?.split(',').map((o) => o.trim()).filter(Boolean) ?? []),
+  ]
+
   await fastify.register(cors, {
-    origin: config.isDev ? true : ['https://yourdomain.com'],
+    origin: config.isDev ? true : (origin, cb) => {
+      if (!origin || allowedOrigins.includes(origin)) return cb(null, true)
+      cb(new Error('Not allowed by CORS'), false)
+    },
     credentials: true,
   })
 
