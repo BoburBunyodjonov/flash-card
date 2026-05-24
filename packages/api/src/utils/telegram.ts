@@ -74,6 +74,11 @@ export function getInitDataDebug(initData: string) {
   }
 }
 
+function isRealBotToken(token: string): boolean {
+  // Haqiqiy token: "1234567890:ABCdef..." ko'rinishida, 40+ belgi
+  return /^\d{8,12}:[A-Za-z0-9_-]{30,}$/.test(token)
+}
+
 export async function validateWebAppInitData(
   initData: string,
   botToken: string,
@@ -81,11 +86,13 @@ export async function validateWebAppInitData(
   const token = botToken.trim()
   if (!initData?.trim()) return false
 
-  // Dev mode: bot token yo'q bo'lsa, initData formatini tekshirib o'tkazib yuboramiz
-  if (!token) {
+  // Development: haqiqiy token yo'q bo'lsa, initData strukturasini tekshirib o'tkazamiz
+  if (!isRealBotToken(token)) {
     if (process.env.NODE_ENV !== 'production') {
       const params = new URLSearchParams(initData)
-      return params.has('user') || params.has('auth_date')
+      const hasUser = params.has('user') || params.has('auth_date')
+      console.warn('[auth] Dev mode: skipping Telegram validation (no real bot token)')
+      return hasUser
     }
     return false
   }
