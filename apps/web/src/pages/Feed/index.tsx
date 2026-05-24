@@ -29,7 +29,7 @@ function useCountdownToMidnight() {
 
 export function FeedPage() {
   const { t } = useTranslation()
-  const { words, currentIndex, stats, isLoading, isLimitReached, loadFeed, swipe, nextCard } = useFeedStore()
+  const { words, currentIndex, stats, isLoading, isLimitReached, isEmpty, loadFeed, swipe, nextCard } = useFeedStore()
   const { user } = useAuthStore()
   const { haptic } = useTelegram()
   const { hoursLeft, minutesLeft } = useCountdownToMidnight()
@@ -80,7 +80,36 @@ export function FeedPage() {
 
   const progressPct = stats ? Math.min(100, (stats.usedToday / stats.dailyLimit) * 100) : 0
 
-  if (isLimitReached || !currentWord) {
+  if (isEmpty) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center animated-gradient px-6 text-center gap-4">
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: 'spring', stiffness: 200 }}
+          className="text-7xl"
+        >
+          📚
+        </motion.div>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+          <h2 className="text-2xl font-black text-white">So'zlar topilmadi</h2>
+          <p className="text-white/40 text-sm mt-2">Hozircha o'rganadigan so'z yo'q</p>
+        </motion.div>
+        <motion.button
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          whileTap={{ scale: 0.96 }}
+          onClick={() => loadFeed()}
+          className="glass rounded-2xl px-6 py-3 text-white/70 font-semibold text-sm"
+        >
+          🔄 Qayta yuklash
+        </motion.button>
+      </div>
+    )
+  }
+
+  if (isLimitReached) {
     return (
       <div className="h-full flex flex-col items-center justify-center animated-gradient px-6 text-center gap-5 overflow-y-auto no-scrollbar pb-24">
 
@@ -132,7 +161,7 @@ export function FeedPage() {
           <div>
             <p className="text-white/40 text-xs">Yangi so'zlar ochilishiga</p>
             <p className="font-black text-white text-lg">
-              {hoursLeft}s {minutesLeft}d qoldi
+              {hoursLeft} soat {minutesLeft} daqiqa qoldi
             </p>
           </div>
         </motion.div>

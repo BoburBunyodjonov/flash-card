@@ -14,7 +14,7 @@ function todayKey() {
 
 export async function getDailyFeed(userId: string, isPremium: boolean, language: Language) {
   const limits = await getFreeLimits()
-  const dailyLimit = isPremium ? 999999 : limits.dailySwipeLimit
+  const dailyLimit = isPremium ? 999999 : (limits.dailySwipeLimit || 20)
 
   const usedToday = parseInt((await redis.get(DAILY_COUNT_KEY(userId))) ?? '0')
   const remaining = dailyLimit - usedToday
@@ -165,7 +165,7 @@ async function updateStreak(userId: string) {
 
 export async function getTodayStats(userId: string, isPremium: boolean) {
   const limits = await getFreeLimits()
-  const dailyLimit = isPremium ? 999999 : limits.dailySwipeLimit
+  const dailyLimit = isPremium ? 999999 : (limits.dailySwipeLimit || 20)
   const usedToday = parseInt((await redis.get(DAILY_COUNT_KEY(userId))) ?? '0')
 
   const learnedToday = await prisma.userWordProgress.count({
