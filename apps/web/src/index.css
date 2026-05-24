@@ -1,0 +1,103 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+  background-color: #0a0a0a;
+  color: #ffffff;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Glassmorphism card */
+.glass {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Glow effects */
+.glow-green  { box-shadow: 0 0 30px rgba(16, 185, 129, 0.4); }
+.glow-red    { box-shadow: 0 0 30px rgba(239, 68, 68, 0.4); }
+.glow-yellow { box-shadow: 0 0 30px rgba(245, 158, 11, 0.4); }
+.glow-purple { box-shadow: 0 0 40px rgba(99, 102, 241, 0.35); }
+
+/* Text glow */
+.text-glow {
+  text-shadow: 0 0 40px currentColor;
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #a78bfa, #6366f1, #38bdf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Animated gradient background */
+@keyframes gradient-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animated-gradient {
+  background: linear-gradient(-45deg, #0d0d1a, #0a0a14, #10001a, #000d1a);
+  background-size: 400% 400%;
+  animation: gradient-shift 12s ease infinite;
+}
+
+/* Card float animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(-2deg); }
+  50%       { transform: translateY(-12px) rotate(-2deg); }
+}
+@keyframes float2 {
+  0%, 100% { transform: translateY(0px) rotate(3deg); }
+  50%       { transform: translateY(-8px) rotate(3deg); }
+}
+.float-1 { animation: float 4s ease-in-out infinite; }
+.float-2 { animation: float2 5s ease-in-out infinite 0.5s; }
+.float-3 { animation: float 3.5s ease-in-out infinite 1s; }
+
+/* Stamp effect for swipe labels */
+.stamp {
+  font-family: 'Inter', sans-serif;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-width: 3px;
+  border-style: solid;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 1.1rem;
+}
+
+/* Shimmer loading */
+@keyframes shimmer {
+  0%   { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, #1a1a2e 25%, #252540 50%, #1a1a2e 75%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Nav blur */
+.nav-blur {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}

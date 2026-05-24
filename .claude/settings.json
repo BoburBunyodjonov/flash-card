@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm *)",
+      "Bash(docker compose *)",
+      "Bash(docker exec *)",
+      "Bash(git *)",
+      "Bash(npx prisma *)",
+      "Bash(find /home/kahero/bobur/flash-card *)",
+      "Bash(grep *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(curl -s http://localhost:*)"
+    ]
+  }
+}

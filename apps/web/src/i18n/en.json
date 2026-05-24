@@ -1,0 +1,63 @@
+{
+  "login": {
+    "title": "WordSwipe",
+    "subtitle": "Turn vocabulary learning into a game",
+    "button": "Login with Telegram"
+  },
+  "nav": {
+    "feed": "Learn",
+    "dictionary": "Dictionary",
+    "decks": "Decks",
+    "progress": "Progress",
+    "leaderboard": "Ranking"
+  },
+  "feed": {
+    "know": "I Know",
+    "dontKnow": "Don't Know",
+    "saved": "Saved",
+    "tapToReveal": "Tap to reveal translation",
+    "limitReached": "Daily limit reached",
+    "limitMsg": "Come back tomorrow or get Premium",
+    "getPremium": "Get Premium",
+    "wordsLeft": "words left",
+    "streak": "day streak"
+  },
+  "difficulty": {
+    "A1": "Beginner",
+    "A2": "Elementary",
+    "B1": "Intermediate",
+    "B2": "Upper-Intermediate",
+    "C1": "Advanced",
+    "C2": "Mastery"
+  },
+  "progress": {
+    "title": "My Progress",
+    "streak": "Day Streak",
+    "xp": "XP Points",
+    "total": "Total Words",
+    "learned": "Learned",
+    "learning": "Learning",
+    "mastered": "Mastered",
+    "weakWords": "Weak Words",
+    "history": "History",
+    "week": "Week",
+    "month": "Month"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "notifications": "Notifications",
+    "notifyTime": "Reminder time",
+    "premium": "Premium",
+    "logout": "Logout",
+    "getPremium": "Get Premium",
+    "premiumActive": "Premium Active"
+  },
+  "premium": {
+    "title": "WordSwipe Premium",
+    "monthly": "Monthly",
+    "annual": "Annual",
+    "lifetime": "Lifetime",
+    "features": ["Unlimited swipes", "All categories", "No ads", "Offline mode", "Friends leaderboard"]
+  }
+}

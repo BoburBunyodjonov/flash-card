@@ -1,0 +1,230 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Language {
+  uz
+  en
+  ru
+}
+
+enum Difficulty {
+  A1
+  A2
+  B1
+  B2
+  C1
+  C2
+}
+
+enum WordStatus {
+  new
+  learning
+  learned
+  mastered
+}
+
+enum PaymentProvider {
+  telegram_stars
+  payme
+  click
+  stripe
+}
+
+enum PlanType {
+  monthly
+  annual
+  lifetime
+}
+
+enum PaymentStatus {
+  pending
+  success
+  failed
+}
+
+model User {
+  id           String    @id @default(uuid())
+  telegramId   BigInt    @unique @map("telegram_id")
+  username     String?
+  firstName    String    @map("first_name")
+  lastName     String?   @map("last_name")
+  avatarUrl    String?   @map("avatar_url")
+  language     Language  @default(uz)
+  isAdmin      Boolean   @default(false) @map("is_admin")
+  isPremium    Boolean   @default(false) @map("is_premium")
+  premiumUntil DateTime? @map("premium_until")
+  streak       Int       @default(0)
+  lastActive   DateTime? @map("last_active")
+  xp           Int       @default(0)
+  referredById String?   @map("referred_by")
+  notifyAt     String    @default("20:00") @map("notify_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  referredBy   User?              @relation("Referrals", fields: [referredById], references: [id])
+  referrals    User[]             @relation("Referrals")
+  wordProgress UserWordProgress[]
+  decks        UserDeck[]
+  followers    Follow[]           @relation("Following")
+  following    Follow[]           @relation("Follower")
+  payments     Payment[]
+  createdWords Word[]
+  updatedSettings PlanSetting[]
+
+  @@map("users")
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  nameUz    String   @map("name_uz")
+  nameEn    String   @map("name_en")
+  nameRu    String   @map("name_ru")
+  icon      String?
+  color     String   @default("#6366f1")
+  isPremium Boolean  @default(false) @map("is_premium")
+  order     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  words Word[]
+
+  @@map("categories")
+}
+
+model Word {
+  id           String     @id @default(uuid())
+  word         String     @unique
+  pronunciation String?
+  audioUrl     String?    @map("audio_url")
+  imageUrl     String?    @map("image_url")
+  videoUrl     String?    @map("video_url")
+  partOfSpeech String?    @map("part_of_speech")
+  difficulty   Difficulty @default(A1)
+  categoryId   String     @map("category_id")
+  createdById  String?    @map("created_by")
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  category     Category          @relation(fields: [categoryId], references: [id])
+  createdBy    User?             @relation(fields: [createdById], references: [id])
+  translations WordTranslation[]
+  userProgress UserWordProgress[]
+  deckWords    DeckWord[]
+
+  @@map("words")
+}
+
+model WordTranslation {
+  id                String   @id @default(uuid())
+  wordId            String   @map("word_id")
+  language          Language
+  translation       String?
+  definitionEn      String?  @map("definition_en")
+  exampleEn         String?  @map("example_en")
+  exampleTranslated String?  @map("example_translated")
+
+  word Word @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([wordId, language])
+  @@map("word_translations")
+}
+
+model UserWordProgress {
+  id           String     @id @default(uuid())
+  userId       String     @map("user_id")
+  wordId       String     @map("word_id")
+  status       WordStatus @default(new)
+  strength     Int        @default(0)
+  nextReview   DateTime?  @map("next_review")
+  reviewCount  Int        @default(0) @map("review_count")
+  lastReviewed DateTime?  @map("last_reviewed")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  word Word @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, wordId])
+  @@map("user_word_progress")
+}
+
+model UserDeck {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  name        String
+  description String?
+  isDefault   Boolean  @default(false) @map("is_default")
+  isPublic    Boolean  @default(false) @map("is_public")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  words DeckWord[]
+
+  @@map("user_decks")
+}
+
+model DeckWord {
+  id      String   @id @default(uuid())
+  deckId  String   @map("deck_id")
+  wordId  String   @map("word_id")
+  addedAt DateTime @default(now()) @map("added_at")
+
+  deck UserDeck @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  word Word     @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([deckId, wordId])
+  @@map("deck_words")
+}
+
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String   @map("follower_id")
+  followingId String   @map("following_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  follower  User @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
+
+model PlanSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       Json
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  updatedById String?  @map("updated_by")
+
+  updatedBy User? @relation(fields: [updatedById], references: [id])
+
+  @@map("plan_settings")
+}
+
+model Payment {
+  id        String          @id @default(uuid())
+  userId    String          @map("user_id")
+  amount    Decimal
+  currency  String
+  provider  PaymentProvider
+  planType  PlanType        @map("plan_type")
+  status    PaymentStatus   @default(pending)
+  meta      Json?
+  createdAt DateTime        @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("payments")
+}
+
+model LanguagePair {
+  id        String   @id @default(uuid())
+  fromLang  String   @map("from_lang")
+  toLang    String   @map("to_lang")
+  isActive  Boolean  @default(false) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([fromLang, toLang])
+  @@map("language_pairs")
+}

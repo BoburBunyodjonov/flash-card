@@ -1,0 +1,41 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { ThemeProvider, CssBaseline } from '@mui/material'
+import { theme } from './theme'
+import { useAuthStore } from './store/auth.store'
+import { Layout } from './components/Layout'
+import { LoginPage } from './pages/Login'
+import { DashboardPage } from './pages/Dashboard'
+import { WordsPage } from './pages/Words'
+import { CategoriesPage } from './pages/Categories'
+import { UsersPage } from './pages/Users'
+import { PlanSettingsPage } from './pages/PlanSettings'
+import { AnalyticsPage } from './pages/Analytics'
+import { NotificationsPage } from './pages/Notifications'
+
+function RequireAdmin({ children }: { children: React.ReactNode }) {
+  const { user } = useAuthStore()
+  if (!user) return <Navigate to="/login" replace />
+  if (!user.isAdmin) return <Navigate to="/login" replace />
+  return <Layout>{children}</Layout>
+}
+
+export default function App() {
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/" element={<RequireAdmin><DashboardPage /></RequireAdmin>} />
+          <Route path="/words" element={<RequireAdmin><WordsPage /></RequireAdmin>} />
+          <Route path="/categories" element={<RequireAdmin><CategoriesPage /></RequireAdmin>} />
+          <Route path="/users" element={<RequireAdmin><UsersPage /></RequireAdmin>} />
+          <Route path="/settings" element={<RequireAdmin><PlanSettingsPage /></RequireAdmin>} />
+          <Route path="/analytics" element={<RequireAdmin><AnalyticsPage /></RequireAdmin>} />
+          <Route path="/notifications" element={<RequireAdmin><NotificationsPage /></RequireAdmin>} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
+  )
+}

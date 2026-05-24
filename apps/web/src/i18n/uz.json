@@ -1,0 +1,63 @@
+{
+  "login": {
+    "title": "WordSwipe",
+    "subtitle": "So'z yodlashni o'yinga aylantir",
+    "button": "Telegram bilan kirish"
+  },
+  "nav": {
+    "feed": "O'rgan",
+    "dictionary": "Lug'at",
+    "decks": "To'plamlar",
+    "progress": "Natija",
+    "leaderboard": "Reyting"
+  },
+  "feed": {
+    "know": "Bilaman",
+    "dontKnow": "Bilmayman",
+    "saved": "Saqlandi",
+    "tapToReveal": "Tarjimani ko'rish uchun bosing",
+    "limitReached": "Bugunlik limit tugadi",
+    "limitMsg": "Ertaga qaytib keling yoki Premium oling",
+    "getPremium": "Premium olish",
+    "wordsLeft": "so'z qoldi",
+    "streak": "kun ketma-ket"
+  },
+  "difficulty": {
+    "A1": "Boshlang'ich",
+    "A2": "Quyi",
+    "B1": "O'rta",
+    "B2": "O'rta-yuqori",
+    "C1": "Ilg'or",
+    "C2": "Mukammal"
+  },
+  "progress": {
+    "title": "Natijam",
+    "streak": "Kun ketma-ket",
+    "xp": "Ball",
+    "total": "Jami so'zlar",
+    "learned": "Yodlandim",
+    "learning": "O'rganilmoqda",
+    "mastered": "Puxta",
+    "weakWords": "Kuchsiz so'zlar",
+    "history": "Tarix",
+    "week": "Hafta",
+    "month": "Oy"
+  },
+  "settings": {
+    "title": "Sozlamalar",
+    "language": "Til",
+    "notifications": "Bildirishnomalar",
+    "notifyTime": "Eslatma vaqti",
+    "premium": "Premium",
+    "logout": "Chiqish",
+    "getPremium": "Premium olish",
+    "premiumActive": "Premium faol"
+  },
+  "premium": {
+    "title": "WordSwipe Premium",
+    "monthly": "Oylik",
+    "annual": "Yillik",
+    "lifetime": "Umrbod",
+    "features": ["Cheksiz swipe", "Barcha kategoriyalar", "Reklamasiz", "Offline rejim", "Do'stlar reytingi"]
+  }
+}

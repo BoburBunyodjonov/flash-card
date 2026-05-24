@@ -1,0 +1,36 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "db:migrate": "prisma migrate dev",
+    "db:generate": "prisma generate",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@fastify/cors": "^8.5.0",
+    "@fastify/jwt": "^7.2.0",
+    "@fastify/multipart": "^8.3.0",
+    "@fastify/rate-limit": "^9.1.0",
+    "@fastify/swagger": "^8.14.0",
+    "@fastify/swagger-ui": "^4.0.1",
+    "@prisma/client": "^5.19.0",
+    "@wordswipe/shared": "workspace:*",
+    "axios": "^1.7.0",
+    "bullmq": "^5.13.0",
+    "dotenv": "^16.4.5",
+    "fastify": "^4.28.0",
+    "ioredis": "^5.4.1",
+    "telegraf": "^4.16.3",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "prisma": "^5.19.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

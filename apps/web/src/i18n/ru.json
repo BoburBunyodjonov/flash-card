@@ -1,0 +1,63 @@
+{
+  "login": {
+    "title": "WordSwipe",
+    "subtitle": "Превратите изучение слов в игру",
+    "button": "Войти через Telegram"
+  },
+  "nav": {
+    "feed": "Учить",
+    "dictionary": "Словарь",
+    "decks": "Колоды",
+    "progress": "Прогресс",
+    "leaderboard": "Рейтинг"
+  },
+  "feed": {
+    "know": "Знаю",
+    "dontKnow": "Не знаю",
+    "saved": "Сохранено",
+    "tapToReveal": "Нажмите для перевода",
+    "limitReached": "Дневной лимит исчерпан",
+    "limitMsg": "Возвращайтесь завтра или купите Premium",
+    "getPremium": "Купить Premium",
+    "wordsLeft": "слов осталось",
+    "streak": "дней подряд"
+  },
+  "difficulty": {
+    "A1": "Начальный",
+    "A2": "Элементарный",
+    "B1": "Средний",
+    "B2": "Выше среднего",
+    "C1": "Продвинутый",
+    "C2": "Мастерство"
+  },
+  "progress": {
+    "title": "Мой прогресс",
+    "streak": "Дней подряд",
+    "xp": "Очки XP",
+    "total": "Всего слов",
+    "learned": "Выучено",
+    "learning": "Изучается",
+    "mastered": "Освоено",
+    "weakWords": "Слабые слова",
+    "history": "История",
+    "week": "Неделя",
+    "month": "Месяц"
+  },
+  "settings": {
+    "title": "Настройки",
+    "language": "Язык",
+    "notifications": "Уведомления",
+    "notifyTime": "Время напоминания",
+    "premium": "Premium",
+    "logout": "Выйти",
+    "getPremium": "Купить Premium",
+    "premiumActive": "Premium активен"
+  },
+  "premium": {
+    "title": "WordSwipe Premium",
+    "monthly": "Ежемесячно",
+    "annual": "Ежегодно",
+    "lifetime": "Навсегда",
+    "features": ["Безлимитные свайпы", "Все категории", "Без рекламы", "Офлайн режим", "Рейтинг друзей"]
+  }
+}
