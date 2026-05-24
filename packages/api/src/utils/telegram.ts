@@ -19,16 +19,24 @@ function isAuthFresh(authDate: number, expiresIn = 86400): boolean {
 
 /** Telegram docs: hash hisobida signature maydoni bo'lmasin */
 function validateWebAppHash(initData: string, botToken: string): boolean {
-  const params = new URLSearchParams(initData)
-  const hash = params.get('hash')
-  const authDate = parseInt(params.get('auth_date') ?? '', 10)
-  if (!hash || !isAuthFresh(authDate)) return false
-
-  params.delete('hash')
-  params.delete('signature')
-
+  // Raw string bilan ishlash — URLSearchParams decode qiladi, bu hash mos kelmasligiga olib keladi
+  const rawParts = initData.split('&')
+  let hash = ''
+  let authDate = 0
   const pairs: string[] = []
-  params.forEach((value, key) => pairs.push(`${key}=${value}`))
+
+  for (const part of rawParts) {
+    const eqIdx = part.indexOf('=')
+    if (eqIdx === -1) continue
+    const key = part.slice(0, eqIdx)
+    const value = decodeURIComponent(part.slice(eqIdx + 1))
+    if (key === 'hash') { hash = value; continue }
+    if (key === 'signature') continue
+    if (key === 'auth_date') authDate = parseInt(value, 10)
+    pairs.push(`${key}=${value}`)
+  }
+
+  if (!hash || !isAuthFresh(authDate)) return false
   pairs.sort()
 
   const secretKey = crypto.createHmac('sha256', 'WebAppData').update(botToken).digest()

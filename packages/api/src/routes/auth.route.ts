@@ -30,8 +30,14 @@ export async function authRoutes(fastify: FastifyInstance) {
     const body = webAppSchema.safeParse(req.body)
     if (!body.success) return reply.code(400).send({ success: false, error: 'Invalid body' })
 
-    const result = await loginWithWebApp(body.data.initData, fastify)
-    return reply.send({ success: true, data: result })
+    try {
+      const result = await loginWithWebApp(body.data.initData, fastify)
+      return reply.send({ success: true, data: result })
+    } catch (err: unknown) {
+      const e = err as Error & { statusCode?: number }
+      fastify.log.error({ msg: 'webapp auth failed', error: e.message })
+      return reply.code(e.statusCode ?? 401).send({ success: false, error: e.message })
+    }
   })
 
   fastify.post('/admin-login', async (req, reply) => {
