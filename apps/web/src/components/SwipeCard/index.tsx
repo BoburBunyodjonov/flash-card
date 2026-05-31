@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, useMotionValue, useTransform, useAnimation, type PanInfo } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import type { FeedWord } from '@wordswipe/shared'
@@ -9,15 +9,15 @@ interface Props {
   onSwipe: (direction: 'left' | 'right' | 'up' | 'down') => void
 }
 
-const SWIPE_THRESHOLD = 90
+const SWIPE_THRESHOLD = 80
 
 const DIFFICULTY_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  A1: { label: 'A1', color: '#34d399', bg: 'rgba(52,211,153,0.15)' },
-  A2: { label: 'A2', color: '#6ee7b7', bg: 'rgba(110,231,183,0.15)' },
-  B1: { label: 'B1', color: '#fbbf24', bg: 'rgba(251,191,36,0.15)' },
-  B2: { label: 'B2', color: '#f97316', bg: 'rgba(249,115,22,0.15)' },
-  C1: { label: 'C1', color: '#f87171', bg: 'rgba(248,113,113,0.15)' },
-  C2: { label: 'C2', color: '#c084fc', bg: 'rgba(192,132,252,0.15)' },
+  A1: { label: 'A1', color: '#34d399', bg: 'rgba(52,211,153,0.13)' },
+  A2: { label: 'A2', color: '#6ee7b7', bg: 'rgba(110,231,183,0.13)' },
+  B1: { label: 'B1', color: '#fbbf24', bg: 'rgba(251,191,36,0.13)' },
+  B2: { label: 'B2', color: '#f97316', bg: 'rgba(249,115,22,0.13)' },
+  C1: { label: 'C1', color: '#f87171', bg: 'rgba(248,113,113,0.13)' },
+  C2: { label: 'C2', color: '#c084fc', bg: 'rgba(192,132,252,0.13)' },
 }
 
 export function SwipeCard({ word, isTop, onSwipe }: Props) {
@@ -29,26 +29,34 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
 
   const x = useMotionValue(0)
   const y = useMotionValue(0)
-  const rotate = useTransform(x, [-220, 220], [-20, 20])
+  const rotate = useTransform(x, [-220, 220], [-22, 22])
 
   const rightOpacity = useTransform(x, [0, SWIPE_THRESHOLD], [0, 1])
   const leftOpacity  = useTransform(x, [-SWIPE_THRESHOLD, 0], [1, 0])
   const upOpacity    = useTransform(y, [-SWIPE_THRESHOLD, 0], [1, 0])
 
-  const cardGlow = useTransform(x, [-150, 0, 150], [
-    'rgba(239,68,68,0.3)', 'rgba(0,0,0,0)', 'rgba(16,185,129,0.3)',
-  ])
+  // Entrance: start from background card position, spring to full
+  useEffect(() => {
+    if (isTop) {
+      controls.start({
+        scale: 1, y: 0, opacity: 1,
+        transition: { type: 'spring', stiffness: 380, damping: 30, delay: 0.02 },
+      })
+    }
+  }, [controls, isTop])
 
   if (!isTop) {
     return (
       <motion.div
         className="absolute inset-0 rounded-3xl"
+        initial={{ scale: 0.93, y: 20 }}
+        animate={{ scale: 0.93, y: 20 }}
+        exit={{ scale: 1.04, y: 0, opacity: 0, transition: { duration: 0.15 } }}
         style={{
-          scale: 0.93,
-          y: 20,
           zIndex: 0,
-          background: 'linear-gradient(145deg, #1a1a2e, #16213e)',
+          background: 'linear-gradient(145deg, #15152a, #10101f)',
           border: '1px solid rgba(255,255,255,0.05)',
+          boxShadow: '0 12px 48px rgba(0,0,0,0.6)',
         }}
       />
     )
@@ -65,176 +73,202 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
     const overThreshold = absX > SWIPE_THRESHOLD || absY > SWIPE_THRESHOLD || speed > 500
 
     if (!overThreshold) {
-      await controls.start({ x: 0, y: 0, rotate: 0, transition: { type: 'spring', stiffness: 400, damping: 28 } })
+      await controls.start({ x: 0, y: 0, rotate: 0, transition: { type: 'spring', stiffness: 520, damping: 32 } })
       return
     }
 
-    if (absY > absX) {
-      if (offset.y > SWIPE_THRESHOLD) {
-        await controls.start({ y: 700, opacity: 0, transition: { duration: 0.28 } })
+    // Vertical swipe only when card is not flipped
+    if (!isFlipped && absY > absX) {
+      if (offset.y > 0) {
+        await controls.start({ y: 900, opacity: 0, transition: { duration: 0.2, ease: 'easeIn' } })
         onSwipe('down')
       } else {
-        await controls.start({ y: -700, opacity: 0, transition: { duration: 0.28 } })
+        await controls.start({ y: -900, opacity: 0, transition: { duration: 0.2, ease: 'easeIn' } })
         onSwipe('up')
       }
     } else {
-      if (offset.x > SWIPE_THRESHOLD) {
-        await controls.start({ x: 700, rotate: 22, opacity: 0, transition: { duration: 0.28 } })
+      if (offset.x > 0) {
+        await controls.start({ x: 900, rotate: 25, opacity: 0, transition: { duration: 0.18, ease: 'easeIn' } })
         onSwipe('right')
       } else {
-        await controls.start({ x: -700, rotate: -22, opacity: 0, transition: { duration: 0.28 } })
+        await controls.start({ x: -900, rotate: -25, opacity: 0, transition: { duration: 0.18, ease: 'easeIn' } })
         onSwipe('left')
       }
     }
   }
 
-  const handleTap = () => { if (!isDragging.current) setIsFlipped((f) => !f) }
+  const handleTap = () => { if (!isDragging.current) setIsFlipped(f => !f) }
 
   return (
     <motion.div
       animate={controls}
-      style={{ x, y, rotate, zIndex: 1, touchAction: 'none', boxShadow: cardGlow as any }}
-      drag
-      dragConstraints={{ top: 0, bottom: 0, left: 0, right: 0 }}
-      dragElastic={0.6}
+      // Start from background card visual state → spring to full size
+      initial={{ scale: 0.93, y: 20, opacity: 0.7 }}
+      style={{
+        x, y, rotate,
+        zIndex: 1,
+        // When flipped: allow vertical scroll inside, horizontal drag still active
+        touchAction: isFlipped ? 'pan-y' : 'none',
+      }}
+      // Free drag: card fully follows finger, no rubber-band
+      drag={isFlipped ? 'x' : true}
+      dragMomentum={false}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onTap={handleTap}
       className="absolute inset-0 rounded-3xl overflow-hidden cursor-grab active:cursor-grabbing select-none"
-      initial={{ scale: 0.9, opacity: 0 }}
-      whileInView={{ scale: 1, opacity: 1 }}
     >
-      {/* Card background */}
+      {/* ── BACKGROUND LAYERS ── */}
       <div className="absolute inset-0" style={{
-        background: `linear-gradient(160deg, #12121f 0%, #0d0d1a 50%, #10001a 100%)`,
+        background: 'linear-gradient(160deg, #13132a 0%, #0c0c1c 55%, #0f0019 100%)',
       }} />
 
-      {/* Category color glow orb */}
+      {/* Difficulty-colored ambient top glow */}
       <div className="absolute inset-0 pointer-events-none" style={{
-        background: `radial-gradient(ellipse at 50% 30%, ${word.category?.isPremium ? 'rgba(251,191,36,0.08)' : 'rgba(99,102,241,0.08)'} 0%, transparent 65%)`,
+        background: `radial-gradient(ellipse at 50% -5%, ${diff.color}1a 0%, transparent 55%)`,
       }} />
 
-      {/* Border */}
+      {/* Category bottom glow */}
+      <div className="absolute inset-0 pointer-events-none" style={{
+        background: `radial-gradient(ellipse at 50% 108%, ${word.category?.isPremium ? 'rgba(251,191,36,0.08)' : 'rgba(99,102,241,0.09)'} 0%, transparent 55%)`,
+      }} />
+
+      {/* Subtle inner border */}
       <div className="absolute inset-0 rounded-3xl pointer-events-none" style={{
         border: '1px solid rgba(255,255,255,0.07)',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
       }} />
 
-      {/* KNOW indicator */}
+      {/* ── DRAG COLOR OVERLAYS ── */}
       <motion.div
-        style={{ opacity: rightOpacity }}
-        className="absolute top-10 left-6 z-20 stamp text-success border-success rotate-[-18deg]"
-      >
+        className="absolute inset-0 rounded-3xl pointer-events-none"
+        style={{ opacity: rightOpacity, background: 'linear-gradient(125deg, rgba(16,185,129,0.22) 0%, transparent 55%)', zIndex: 5 }}
+      />
+      <motion.div
+        className="absolute inset-0 rounded-3xl pointer-events-none"
+        style={{ opacity: leftOpacity, background: 'linear-gradient(235deg, rgba(239,68,68,0.22) 0%, transparent 55%)', zIndex: 5 }}
+      />
+      <motion.div
+        className="absolute inset-0 rounded-3xl pointer-events-none"
+        style={{ opacity: upOpacity, background: 'linear-gradient(0deg, rgba(245,158,11,0.2) 0%, transparent 50%)', zIndex: 5 }}
+      />
+
+      {/* ── SWIPE STAMPS ── */}
+      <motion.div style={{ opacity: rightOpacity }} className="absolute top-8 left-5 z-20 stamp text-success border-success rotate-[-20deg]">
         ✓ {t('feed.know')}
       </motion.div>
-
-      {/* DON'T KNOW indicator */}
-      <motion.div
-        style={{ opacity: leftOpacity }}
-        className="absolute top-10 right-6 z-20 stamp text-danger border-danger rotate-[18deg]"
-      >
+      <motion.div style={{ opacity: leftOpacity }} className="absolute top-8 right-5 z-20 stamp text-danger border-danger rotate-[20deg]">
         ✗ {t('feed.dontKnow')}
       </motion.div>
-
-      {/* SAVE indicator */}
-      <motion.div
-        style={{ opacity: upOpacity }}
-        className="absolute bottom-32 left-1/2 -translate-x-1/2 z-20 stamp text-warning border-warning"
-      >
+      <motion.div style={{ opacity: upOpacity }} className="absolute bottom-28 left-1/2 -translate-x-1/2 z-20 stamp text-warning border-warning">
         ★ {t('feed.saved')}
       </motion.div>
 
-      {/* Content */}
+      {/* ── CONTENT ── */}
       <div className="relative h-full flex flex-col z-10">
 
-        {/* Top row */}
-        <div className="flex items-center justify-between px-6 pt-6">
-          <span className="text-xs font-bold px-3 py-1.5 rounded-full" style={{ color: diff.color, background: diff.bg }}>
+        {/* Top row: difficulty · category · audio */}
+        <div className="flex items-center justify-between px-5 pt-5 shrink-0">
+          <span className="text-xs font-black px-3 py-1 rounded-full tracking-wider" style={{ color: diff.color, background: diff.bg }}>
             {diff.label}
           </span>
-          <span className="text-xs font-semibold text-white/30 max-w-[150px] truncate">
-            {word.category?.name}
-          </span>
+          <span className="text-xs font-medium text-white/30 max-w-[130px] truncate">{word.category?.name}</span>
           {word.audioUrl ? (
             <motion.button
-              whileTap={{ scale: 0.85 }}
+              whileTap={{ scale: 0.8 }}
               onClick={(e) => { e.stopPropagation(); new Audio(word.audioUrl!).play() }}
-              className="w-9 h-9 rounded-full flex items-center justify-center"
-              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-sm"
+              style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
             >
               🔊
             </motion.button>
-          ) : <div className="w-9" />}
+          ) : <div className="w-8" />}
         </div>
 
-        {/* Main word area */}
-        <div className="flex-1 flex flex-col items-center justify-center px-7 text-center gap-5">
+        {/* Main area — front/back */}
+        <div className="flex-1 flex flex-col overflow-hidden">
           {!isFlipped ? (
-            <motion.div
-              key="front"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="flex flex-col items-center gap-4"
-            >
-              {/* Word */}
-              <h1 className="font-black text-white leading-none tracking-tight"
-                style={{ fontSize: 'clamp(2.5rem, 12vw, 4.5rem)', textShadow: '0 0 60px rgba(255,255,255,0.1)' }}>
-                {word.word}
-              </h1>
-
-              {word.pronunciation && (
-                <p className="text-white/40 text-lg font-mono tracking-wide">{word.pronunciation}</p>
-              )}
-
-              {word.partOfSpeech && (
-                <span className="text-xs font-bold px-4 py-1.5 rounded-full"
-                  style={{ background: 'rgba(99,102,241,0.15)', color: '#a78bfa', border: '1px solid rgba(99,102,241,0.25)' }}>
-                  {word.partOfSpeech}
-                </span>
-              )}
-
-              {/* Tap hint */}
+            // ── FRONT FACE ──
+            <div className="flex-1 flex flex-col items-center justify-center px-7 text-center">
               <motion.div
-                animate={{ opacity: [0.3, 0.7, 0.3] }}
-                transition={{ repeat: Infinity, duration: 2.5 }}
-                className="flex items-center gap-2 mt-2"
+                key="front"
+                initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+                className="flex flex-col items-center gap-4"
               >
-                <div className="w-8 h-8 rounded-full flex items-center justify-center"
-                  style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                  👆
-                </div>
-                <p className="text-white/30 text-sm">{t('feed.tapToReveal')}</p>
+                <h1
+                  className="font-black text-white leading-none tracking-tight"
+                  style={{
+                    fontSize: 'clamp(2.8rem, 13vw, 5rem)',
+                    textShadow: '0 0 60px rgba(255,255,255,0.1), 0 4px 24px rgba(0,0,0,0.5)',
+                  }}
+                >
+                  {word.word}
+                </h1>
+
+                {word.pronunciation && (
+                  <p className="text-white/35 text-base font-mono tracking-widest">{word.pronunciation}</p>
+                )}
+
+                {word.partOfSpeech && (
+                  <span className="text-xs font-bold px-4 py-1.5 rounded-full"
+                    style={{ background: 'rgba(99,102,241,0.12)', color: '#a78bfa', border: '1px solid rgba(99,102,241,0.2)' }}>
+                    {word.partOfSpeech}
+                  </span>
+                )}
+
+                <motion.div
+                  animate={{ opacity: [0.25, 0.55, 0.25] }}
+                  transition={{ repeat: Infinity, duration: 3 }}
+                  className="flex items-center gap-2 mt-1"
+                >
+                  <span className="text-xl">👆</span>
+                  <p className="text-white/30 text-sm">{t('feed.tapToReveal')}</p>
+                </motion.div>
               </motion.div>
-            </motion.div>
+            </div>
           ) : (
+            // ── BACK FACE (scrollable) ──
+            // touchAction: pan-y on parent card + overflow-y-auto here = native scroll within card
             <motion.div
               key="back"
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
-              className="w-full flex flex-col gap-4"
+              transition={{ duration: 0.22 }}
+              className="flex-1 overflow-y-auto no-scrollbar px-6 py-3 flex flex-col gap-3"
             >
               {word.translation?.translation && (
-                <div>
-                  <p className="text-white/30 text-xs font-bold uppercase tracking-widest mb-2">Translation</p>
-                  <h2 className="font-black text-4xl" style={{ color: diff.color }}>
+                <div className="text-center py-2">
+                  <p className="text-white/30 text-[10px] font-black uppercase tracking-[0.15em] mb-2">Translation</p>
+                  <h2
+                    className="font-black leading-tight"
+                    style={{
+                      fontSize: 'clamp(2rem, 10vw, 3.5rem)',
+                      color: diff.color,
+                      textShadow: `0 0 30px ${diff.color}50`,
+                    }}
+                  >
                     {word.translation.translation}
                   </h2>
                 </div>
               )}
 
               {word.translation?.definitionEn && (
-                <div className="rounded-2xl p-4 text-left" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                  <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1.5">Definition</p>
-                  <p className="text-white/75 text-sm leading-relaxed">{word.translation.definitionEn}</p>
+                <div className="rounded-2xl p-4"
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                  <p className="text-white/30 text-[10px] font-black uppercase tracking-[0.12em] mb-2">Definition</p>
+                  <p className="text-white/70 text-sm leading-relaxed">{word.translation.definitionEn}</p>
                 </div>
               )}
 
               {word.translation?.exampleEn && (
-                <div className="rounded-2xl p-4 text-left" style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)' }}>
-                  <p className="text-primary/60 text-[10px] font-bold uppercase tracking-widest mb-1.5">Example</p>
+                <div className="rounded-2xl p-4"
+                  style={{ background: 'rgba(99,102,241,0.07)', border: '1px solid rgba(99,102,241,0.18)' }}>
+                  <p className="text-primary/50 text-[10px] font-black uppercase tracking-[0.12em] mb-2">Example</p>
                   <p className="text-white/65 text-sm italic leading-relaxed">"{word.translation.exampleEn}"</p>
                   {word.translation.exampleTranslated && (
-                    <p className="text-white/35 text-xs italic mt-1">{word.translation.exampleTranslated}</p>
+                    <p className="text-white/30 text-xs italic mt-1.5">{word.translation.exampleTranslated}</p>
                   )}
                 </div>
               )}
@@ -243,24 +277,29 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
         </div>
 
         {/* Bottom swipe hints */}
-        <div className="flex items-center justify-between px-7 pb-7">
+        <div className="flex items-center justify-between px-6 pb-5 shrink-0">
           <div className="flex items-center gap-1.5">
-            <div className="w-6 h-6 rounded-full flex items-center justify-center bg-danger/20">
+            <div className="w-6 h-6 rounded-full flex items-center justify-center"
+              style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.18)' }}>
               <span className="text-danger text-xs font-black">✗</span>
             </div>
-            <span className="text-white/25 text-xs">{t('feed.dontKnow')}</span>
+            <span className="text-white/20 text-xs font-medium">{t('feed.dontKnow')}</span>
           </div>
-          <div className="flex flex-col items-center gap-0.5">
-            <span className="text-white/20 text-xs">↑ save</span>
-            <span className="text-white/20 text-xs">↓ skip</span>
+
+          <div className="flex flex-col items-center gap-0.5" style={{ opacity: 0.22 }}>
+            <span className="text-white text-[11px]">↑ save</span>
+            <span className="text-white text-[11px]">↓ skip</span>
           </div>
+
           <div className="flex items-center gap-1.5">
-            <span className="text-white/25 text-xs">{t('feed.know')}</span>
-            <div className="w-6 h-6 rounded-full flex items-center justify-center bg-success/20">
+            <span className="text-white/20 text-xs font-medium">{t('feed.know')}</span>
+            <div className="w-6 h-6 rounded-full flex items-center justify-center"
+              style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.18)' }}>
               <span className="text-success text-xs font-black">✓</span>
             </div>
           </div>
         </div>
+
       </div>
     </motion.div>
   )
