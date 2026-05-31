@@ -22,7 +22,10 @@ api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const original = error.config
-    if (error.response?.status === 401 && !original._retry) {
+    const url = original?.url ?? ''
+    const isAuthRoute = url.includes('/api/auth/')
+
+    if (error.response?.status === 401 && original && !original._retry && !isAuthRoute) {
       original._retry = true
       const refresh = localStorage.getItem('refreshToken')
       if (refresh) {
@@ -33,10 +36,12 @@ api.interceptors.response.use(
           original.headers.Authorization = `Bearer ${accessToken}`
           return api(original)
         } catch {
-          localStorage.removeItem('accessToken')
-          localStorage.removeItem('refreshToken')
-          window.location.reload()
+          const { useAuthStore } = await import('../store/auth.store')
+          useAuthStore.getState().logout()
         }
+      } else {
+        const { useAuthStore } = await import('../store/auth.store')
+        useAuthStore.getState().logout()
       }
     }
     return Promise.reject(error)

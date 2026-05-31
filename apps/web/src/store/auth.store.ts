@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { authApi } from '../api/auth.api'
+import { clearAuthSession } from '../lib/session'
 
 interface User {
   id: string
@@ -70,9 +71,8 @@ export const useAuthStore = create<AuthStore>()(
       setUser: (user) => set({ user }),
 
       logout: () => {
-        localStorage.removeItem('accessToken')
-        localStorage.removeItem('refreshToken')
-        set({ user: null, accessToken: null, refreshToken: null })
+        clearAuthSession()
+        set({ user: null, accessToken: null, refreshToken: null, loginError: null })
       },
     }),
     { name: 'auth', partialize: (s) => ({ user: s.user, accessToken: s.accessToken, refreshToken: s.refreshToken }) },

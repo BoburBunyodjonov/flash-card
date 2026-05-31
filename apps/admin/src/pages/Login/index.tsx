@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box, Paper, Typography, TextField, Button,
@@ -8,15 +8,25 @@ import { useAuthStore } from '../../store/auth.store'
 
 export function LoginPage() {
   const navigate = useNavigate()
-  const { loginWithPassword, user } = useAuthStore()
+  const { loginWithPassword, user, token, logout } = useAuthStore()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPwd, setShowPwd] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  if (user?.isAdmin) {
-    navigate('/')
+  useEffect(() => {
+    const storedToken = token ?? localStorage.getItem('admin_token')
+    if (user?.isAdmin && storedToken) {
+      navigate('/', { replace: true })
+      return
+    }
+    if (user?.isAdmin && !storedToken) {
+      logout()
+    }
+  }, [user, token, navigate, logout])
+
+  if (user?.isAdmin && (token ?? localStorage.getItem('admin_token'))) {
     return null
   }
 

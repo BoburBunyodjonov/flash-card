@@ -36,7 +36,11 @@ export async function authRoutes(fastify: FastifyInstance) {
     } catch (err: unknown) {
       const e = err as Error & { statusCode?: number }
       fastify.log.error({ msg: 'webapp auth failed', error: e.message })
-      return reply.code(e.statusCode ?? 401).send({ success: false, error: e.message })
+      const clientMessage =
+        e.statusCode === 401 || e.message.includes('Invalid Telegram')
+          ? e.message
+          : 'Login failed. Please try again.'
+      return reply.code(e.statusCode ?? 500).send({ success: false, error: clientMessage })
     }
   })
 

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { api } from '../api/client'
+import { clearAdminSession } from '../lib/session'
 
 interface AdminUser {
   id: string
@@ -29,7 +30,7 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       logout: () => {
-        localStorage.removeItem('admin_token')
+        clearAdminSession()
         set({ user: null, token: null })
       },
     }),

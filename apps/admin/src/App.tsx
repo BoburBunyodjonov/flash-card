@@ -13,9 +13,9 @@ import { AnalyticsPage } from './pages/Analytics'
 import { NotificationsPage } from './pages/Notifications'
 
 function RequireAdmin({ children }: { children: React.ReactNode }) {
-  const { user } = useAuthStore()
-  if (!user) return <Navigate to="/login" replace />
-  if (!user.isAdmin) return <Navigate to="/login" replace />
+  const { user, token } = useAuthStore()
+  const hasToken = Boolean(token ?? localStorage.getItem('admin_token'))
+  if (!user?.isAdmin || !hasToken) return <Navigate to="/login" replace />
   return <Layout>{children}</Layout>
 }
 

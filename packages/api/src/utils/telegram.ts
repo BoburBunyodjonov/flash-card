@@ -1,17 +1,6 @@
 import crypto from 'crypto'
 import { isValid, isValid3rd, parse } from '@telegram-apps/init-data-node'
 
-const TG_ED25519_PUBLIC_KEY = Buffer.from(
-  'e7bf03a2fa4602af4580703d88dda5bb59f32ed8b02a56c187fe7d34caed242d',
-  'hex',
-)
-
-function base64urlToBuffer(value: string): Buffer {
-  const b64 = value.replace(/-/g, '+').replace(/_/g, '/')
-  const pad = b64.length % 4 === 0 ? '' : '='.repeat(4 - (b64.length % 4))
-  return Buffer.from(b64 + pad, 'base64')
-}
-
 function isAuthFresh(authDate: number, expiresIn = 86400): boolean {
   if (!authDate || Number.isNaN(authDate)) return false
   return Date.now() / 1000 - authDate <= expiresIn
@@ -19,24 +8,18 @@ function isAuthFresh(authDate: number, expiresIn = 86400): boolean {
 
 /** Telegram docs: hash hisobida signature maydoni bo'lmasin */
 function validateWebAppHash(initData: string, botToken: string): boolean {
-  // Raw string bilan ishlash — URLSearchParams decode qiladi, bu hash mos kelmasligiga olib keladi
-  const rawParts = initData.split('&')
-  let hash = ''
-  let authDate = 0
+  const params = new URLSearchParams(initData)
+  const hash = params.get('hash')
+  if (!hash) return false
+
+  const authDate = parseInt(params.get('auth_date') ?? '', 10)
+  if (!isAuthFresh(authDate)) return false
+
   const pairs: string[] = []
-
-  for (const part of rawParts) {
-    const eqIdx = part.indexOf('=')
-    if (eqIdx === -1) continue
-    const key = part.slice(0, eqIdx)
-    const value = decodeURIComponent(part.slice(eqIdx + 1))
-    if (key === 'hash') { hash = value; continue }
-    if (key === 'signature') continue
-    if (key === 'auth_date') authDate = parseInt(value, 10)
+  params.forEach((value, key) => {
+    if (key === 'hash' || key === 'signature') return
     pairs.push(`${key}=${value}`)
-  }
-
-  if (!hash || !isAuthFresh(authDate)) return false
+  })
   pairs.sort()
 
   const secretKey = crypto.createHmac('sha256', 'WebAppData').update(botToken).digest()
@@ -46,26 +29,6 @@ function validateWebAppHash(initData: string, botToken: string): boolean {
     .digest('hex')
 
   return computed === hash
-}
-
-/** Telegram 8+ Ed25519 signature (base64url) */
-async function validateWebAppEd25519(initData: string, botId: number): Promise<boolean> {
-  const params = new URLSearchParams(initData)
-  const signature = params.get('signature')
-  const authDate = parseInt(params.get('auth_date') ?? '', 10)
-  if (!signature || !isAuthFresh(authDate)) return false
-
-  const pairs: string[] = []
-  params.forEach((value, key) => {
-    if (key === 'hash' || key === 'signature') return
-    pairs.push(`${key}=${value}`)
-  })
-  pairs.sort()
-
-  const dataCheckString = `${botId}:WebAppData\n${pairs.join('\n')}`
-  const sigBuffer = base64urlToBuffer(signature)
-
-  return crypto.verify(null, Buffer.from(dataCheckString), TG_ED25519_PUBLIC_KEY, sigBuffer)
 }
 
 export function getInitDataDebug(initData: string) {
@@ -91,39 +54,36 @@ export async function validateWebAppInitData(
   initData: string,
   botToken: string,
 ): Promise<boolean> {
-  const token = botToken.trim()
-  if (!initData?.trim()) return false
+  try {
+    const token = botToken.trim()
+    if (!initData?.trim()) return false
 
-  // Development: haqiqiy token yo'q bo'lsa, initData strukturasini tekshirib o'tkazamiz
-  if (!isRealBotToken(token)) {
-    if (process.env.NODE_ENV !== 'production') {
-      const params = new URLSearchParams(initData)
-      const hasUser = params.has('user') || params.has('auth_date')
-      console.warn('[auth] Dev mode: skipping Telegram validation (no real bot token)')
-      return hasUser
+    // Development: haqiqiy token yo'q bo'lsa, initData strukturasini tekshirib o'tkazamiz
+    if (!isRealBotToken(token)) {
+      if (process.env.NODE_ENV !== 'production') {
+        const params = new URLSearchParams(initData)
+        const hasUser = params.has('user') || params.has('auth_date')
+        console.warn('[auth] Dev mode: skipping Telegram validation (no real bot token)')
+        return hasUser
+      }
+      return false
     }
+
+    const botId = parseInt(token.split(':')[0] ?? '', 10)
+    const options = { expiresIn: 86400 as const }
+
+    // 1) HMAC hash (klassik WebApp)
+    if (validateWebAppHash(initData, token)) return true
+
+    // 2) @telegram-apps/init-data-node (HMAC + Ed25519 — crypto.subtle, xavfsiz)
+    if (isValid(initData, token, options)) return true
+    if (botId && (await isValid3rd(initData, botId, options))) return true
+
+    return false
+  } catch (err) {
+    console.warn('[auth] validateWebAppInitData error:', (err as Error).message)
     return false
   }
-
-  const botId = parseInt(token.split(':')[0] ?? '', 10)
-
-  // 1) Yangi Telegram (hash, signature alohida)
-  if (validateWebAppHash(initData, token)) return true
-
-  // 2) Ed25519 signature
-  if (botId && (await validateWebAppEd25519(initData, botId))) return true
-
-  // 3) Kutubxona fallback
-  if (isValid(initData, token, { expiresIn: 86400 })) return true
-  if (botId) {
-    try {
-      if (await isValid3rd(initData, botId, { expiresIn: 86400 })) return true
-    } catch {
-      /* ignore */
-    }
-  }
-
-  return false
 }
 
 export function validateTelegramAuth(
@@ -163,6 +123,22 @@ export function parseWebAppUser(initData: string): {
       photo_url: user.photo_url,
     }
   } catch {
-    return null
+    // Fallback: kutubxonasiz JSON parse
+    try {
+      const params = new URLSearchParams(initData)
+      const raw = params.get('user')
+      if (!raw) return null
+      const user = JSON.parse(raw) as {
+        id: number
+        first_name: string
+        last_name?: string
+        username?: string
+        photo_url?: string
+      }
+      if (!user?.id || !user.first_name) return null
+      return user
+    } catch {
+      return null
+    }
   }
 }

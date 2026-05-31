@@ -12,10 +12,11 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
   (r) => r,
-  (err) => {
-    if (err.response?.status === 401) {
-      localStorage.removeItem('admin_token')
-      window.location.href = '/login'
+  async (err) => {
+    const url = err.config?.url ?? ''
+    if (err.response?.status === 401 && !url.includes('/api/auth/admin-login')) {
+      const { useAuthStore } = await import('../store/auth.store')
+      useAuthStore.getState().logout()
     }
     return Promise.reject(err)
   },
