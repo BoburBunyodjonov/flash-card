@@ -90,7 +90,7 @@ export async function getDeckWords(userId: string, deckId: string) {
       word: {
         include: {
           translations: { take: 1 },
-          category: { select: { name: true, isPremium: true } },
+          category: { select: { nameUz: true, nameEn: true, isPremium: true } },
         },
       },
     },
@@ -106,7 +106,9 @@ export async function getDeckWords(userId: string, deckId: string) {
       partOfSpeech: r.word.partOfSpeech,
       difficulty: r.word.difficulty,
       addedAt: r.addedAt,
-      category: r.word.category,
+      category: r.word.category
+        ? { name: r.word.category.nameUz || r.word.category.nameEn, isPremium: r.word.category.isPremium }
+        : null,
       translation: r.word.translations[0] ?? null,
     })),
   }
