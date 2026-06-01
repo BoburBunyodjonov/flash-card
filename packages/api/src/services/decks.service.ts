@@ -79,3 +79,35 @@ export async function removeWordFromDeck(deckId: string, userId: string, wordId:
 
   await prisma.deckWord.deleteMany({ where: { deckId, wordId } })
 }
+
+export async function getDeckWords(userId: string, deckId: string) {
+  const deck = await prisma.userDeck.findFirst({ where: { id: deckId, userId } })
+  if (!deck) throw new Error('Deck not found')
+
+  const rows = await prisma.deckWord.findMany({
+    where: { deckId },
+    include: {
+      word: {
+        include: {
+          translations: { take: 1 },
+          category: { select: { name: true, isPremium: true } },
+        },
+      },
+    },
+    orderBy: { addedAt: 'desc' },
+  })
+
+  return {
+    deck,
+    words: (rows as any[]).map((r: any) => ({
+      id: r.word.id,
+      word: r.word.word,
+      pronunciation: r.word.pronunciation,
+      partOfSpeech: r.word.partOfSpeech,
+      difficulty: r.word.difficulty,
+      addedAt: r.addedAt,
+      category: r.word.category,
+      translation: r.word.translations[0] ?? null,
+    })),
+  }
+}

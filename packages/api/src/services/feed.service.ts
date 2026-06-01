@@ -12,7 +12,7 @@ function todayKey() {
   return new Date().toISOString().split('T')[0]
 }
 
-export async function getDailyFeed(userId: string, isPremium: boolean, language: Language) {
+export async function getDailyFeed(userId: string, isPremium: boolean, language: Language, categoryId?: string) {
   const limits = await getFreeLimits()
   const dailyLimit = isPremium ? 999999 : (limits.dailySwipeLimit || 20)
 
@@ -23,7 +23,9 @@ export async function getDailyFeed(userId: string, isPremium: boolean, language:
     return { words: [], remaining: 0, dailyLimit, usedToday }
   }
 
-  const cachedQueue = await redis.get(FEED_QUEUE_KEY(userId))
+  const queueKey = `feed:queue:${userId}:${todayKey()}:${categoryId || 'all'}`
+
+  const cachedQueue = await redis.get(queueKey)
   if (cachedQueue) {
     const queue = JSON.parse(cachedQueue)
     return { words: queue.slice(0, remaining), remaining, dailyLimit, usedToday }
@@ -38,6 +40,7 @@ export async function getDailyFeed(userId: string, isPremium: boolean, language:
       userId,
       nextReview: { lte: new Date() },
       status: { not: 'mastered' },
+      ...(categoryId ? { word: { categoryId } } : {}),
     },
     take: reviewCount,
     orderBy: { nextReview: 'asc' },
@@ -51,7 +54,10 @@ export async function getDailyFeed(userId: string, isPremium: boolean, language:
   const seenIds = seenWordIds.map((r: { wordId: string }) => r.wordId)
 
   const newWords = await prisma.word.findMany({
-    where: { id: { notIn: seenIds } },
+    where: {
+      id: { notIn: seenIds },
+      ...(categoryId ? { categoryId } : {}),
+    },
     take: newCount,
     orderBy: [{ category: { order: 'asc' } }, { difficulty: 'asc' }],
     include: { translations: { where: { language } }, category: true },
@@ -62,7 +68,7 @@ export async function getDailyFeed(userId: string, isPremium: boolean, language:
 
   const queue = shuffle([...reviewFormatted, ...newFormatted])
 
-  await redis.setex(FEED_QUEUE_KEY(userId), 86400, JSON.stringify(queue))
+  await redis.setex(queueKey, 86400, JSON.stringify(queue))
 
   return {
     words: queue.slice(0, remaining),

@@ -5,6 +5,7 @@ import { useFeedStore } from '../../store/feed.store'
 import { useAuthStore } from '../../store/auth.store'
 import { SwipeCard } from '../../components/SwipeCard'
 import { useTelegram } from '../../hooks/useTelegram'
+import { categoriesApi, type Category } from '../../api/categories.api'
 
 function useCountdownToMidnight() {
   const [hoursLeft, setHoursLeft]     = useState(0)
@@ -27,13 +28,18 @@ function useCountdownToMidnight() {
   return { hoursLeft, minutesLeft }
 }
 
-export function FeedPage() {
+export function FeedPage({ onChallenge }: { onChallenge?: () => void }) {
   const { t } = useTranslation()
-  const { words, currentIndex, stats, isLoading, isLimitReached, isEmpty, loadFeed, swipe, nextCard } = useFeedStore()
+  const { words, currentIndex, stats, isLoading, isLimitReached, isEmpty, loadFeed, swipe, nextCard, selectedCategoryId, setCategory } = useFeedStore()
   const { user } = useAuthStore()
   const { haptic } = useTelegram()
   const { hoursLeft, minutesLeft } = useCountdownToMidnight()
   const [shared, setShared] = useState(false)
+  const [categories, setCategories] = useState<Category[]>([])
+
+  useEffect(() => {
+    categoriesApi.getAll().then(setCategories).catch(() => {})
+  }, [])
 
   useEffect(() => { loadFeed() }, [])
 
@@ -157,6 +163,18 @@ export function FeedPage() {
         </motion.div>
 
         <motion.button
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.28 }}
+          whileTap={{ scale: 0.96 }}
+          onClick={onChallenge}
+          className="w-full max-w-xs py-4 rounded-2xl font-black text-base flex items-center justify-center gap-2"
+          style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)', boxShadow: '0 8px 32px rgba(245,158,11,0.3)', color: '#fff' }}
+        >
+          🎯 Kunlik Challeng
+        </motion.button>
+
+        <motion.button
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
           whileTap={{ scale: 0.96 }}
           onClick={handleShare}
@@ -225,6 +243,39 @@ export function FeedPage() {
           </div>
         )}
       </div>
+
+      {/* Category chips */}
+      {categories.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto no-scrollbar px-4 pb-2 shrink-0" style={{ touchAction: 'pan-x' }}>
+          {/* "All" chip */}
+          <motion.button
+            whileTap={{ scale: 0.93 }}
+            onClick={() => !selectedCategoryId || setCategory(null)}
+            className="shrink-0 px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap"
+            style={!selectedCategoryId
+              ? { background: '#6366f1', color: '#fff' }
+              : { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)' }
+            }
+          >
+            Barchasi
+          </motion.button>
+          {categories.map(cat => (
+            <motion.button
+              key={cat.id}
+              whileTap={{ scale: 0.93 }}
+              onClick={() => selectedCategoryId !== cat.id && setCategory(cat.id)}
+              className="shrink-0 px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1.5"
+              style={selectedCategoryId === cat.id
+                ? { background: cat.color, color: '#fff' }
+                : { background: 'rgba(255,255,255,0.06)', border: `1px solid ${cat.color}40`, color: 'rgba(255,255,255,0.5)' }
+              }
+            >
+              {cat.icon && <span>{cat.icon}</span>}
+              {cat.nameUz}
+            </motion.button>
+          ))}
+        </div>
+      )}
 
       {/* Card stack */}
       <div className="flex-1 relative mx-4 mb-24">

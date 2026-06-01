@@ -13,6 +13,9 @@ import { adminUsersRoutes } from './admin/users.route'
 import { adminSettingsRoutes } from './admin/settings.route'
 import { adminAnalyticsRoutes } from './admin/analytics.route'
 import { adminNotificationsRoutes } from './admin/notifications.route'
+import { challengeRoutes } from './challenge.route'
+import { categoriesRoutes } from './categories.route'
+import { onboardingRoutes } from './onboarding.route'
 
 export async function registerRoutes(fastify: FastifyInstance) {
   fastify.register(authRoutes, { prefix: '/api/auth' })
@@ -22,6 +25,9 @@ export async function registerRoutes(fastify: FastifyInstance) {
   fastify.register(progressRoutes, { prefix: '/api/progress' })
   fastify.register(leaderboardRoutes, { prefix: '/api/leaderboard' })
   fastify.register(profileRoutes, { prefix: '/api' })
+  fastify.register(challengeRoutes, { prefix: '/api/challenge' })
+  fastify.register(categoriesRoutes, { prefix: '/api/categories' })
+  fastify.register(onboardingRoutes, { prefix: '/api/onboarding' })
 
   fastify.register(
     async (adminApp) => {

@@ -17,9 +17,11 @@ interface FeedStore {
   isLimitReached: boolean
   isEmpty: boolean
   lastSwipeDir: 'left' | 'right' | 'up' | null
+  selectedCategoryId: string | null
   loadFeed: () => Promise<void>
   swipe: (wordId: string, direction: 'left' | 'right' | 'up') => Promise<void>
   nextCard: () => void
+  setCategory: (id: string | null) => void
 }
 
 export const useFeedStore = create<FeedStore>((set, get) => ({
@@ -30,11 +32,13 @@ export const useFeedStore = create<FeedStore>((set, get) => ({
   isLimitReached: false,
   isEmpty: false,
   lastSwipeDir: null,
+  selectedCategoryId: null,
 
   loadFeed: async () => {
+    const { selectedCategoryId } = get()
     set({ isLoading: true })
     try {
-      const data = await feedApi.getFeed()
+      const data = await feedApi.getFeed(selectedCategoryId ?? undefined)
       const stats = await feedApi.getStats()
       const limitReached = data.remaining === 0 && stats.dailyLimit > 0
       const empty = data.words.length === 0 && !limitReached
@@ -73,5 +77,10 @@ export const useFeedStore = create<FeedStore>((set, get) => ({
     } else {
       get().loadFeed()
     }
+  },
+
+  setCategory: (id) => {
+    set({ selectedCategoryId: id, words: [], currentIndex: 0, isLimitReached: false, isEmpty: false })
+    get().loadFeed()
   },
 }))

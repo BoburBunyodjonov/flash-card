@@ -18,6 +18,12 @@ export async function getOverallProgress(userId: string) {
     (byStatus as Array<{ status: string; _count: number }>).map((s) => [s.status, s._count]),
   )
 
+  const savedDeck = await prisma.userDeck.findFirst({
+    where: { userId, isDefault: true },
+    include: { _count: { select: { words: true } } },
+  })
+  const savedWords = savedDeck?._count?.words ?? 0
+
   return {
     totalWordsEncountered: total,
     new: statusMap['new'] ?? 0,
@@ -26,6 +32,7 @@ export async function getOverallProgress(userId: string) {
     mastered: statusMap['mastered'] ?? 0,
     streak: user?.streak ?? 0,
     xp: user?.xp ?? 0,
+    savedWords,
   }
 }
 
@@ -42,8 +49,8 @@ export async function getWeakWords(userId: string, limit = 20) {
   })
 }
 
-export async function getHistory(userId: string, period: 'week' | 'month') {
-  const days = period === 'week' ? 7 : 30
+export async function getHistory(userId: string, period: 'week' | 'month' | '3months') {
+  const days = period === 'week' ? 7 : period === 'month' ? 30 : 90
   const since = new Date()
   since.setDate(since.getDate() - days)
 

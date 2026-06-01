@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { motion, useMotionValue, useTransform, useAnimation, type PanInfo } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import type { FeedWord } from '@wordswipe/shared'
+import { useTelegram } from '../../hooks/useTelegram'
 
 interface Props {
   word: FeedWord
@@ -22,10 +23,36 @@ const DIFFICULTY_CONFIG: Record<string, { label: string; color: string; bg: stri
 
 export function SwipeCard({ word, isTop, onSwipe }: Props) {
   const { t } = useTranslation()
+  const { haptic } = useTelegram()
   const [isFlipped, setIsFlipped] = useState(false)
   const controls = useAnimation()
   const isDragging = useRef(false)
   const diff = DIFFICULTY_CONFIG[word.difficulty] ?? DIFFICULTY_CONFIG.A1
+
+  const handleShare = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    haptic.impact('light')
+
+    const lines: string[] = []
+    lines.push(`📖 ${word.word}${word.pronunciation ? '  ' + word.pronunciation : ''}`)
+    if (word.partOfSpeech) lines.push(`(${word.partOfSpeech})  •  ${word.difficulty}`)
+    lines.push('─────────────────')
+    if (word.translation?.translation) lines.push(`🇺🇿  ${word.translation.translation}`)
+    if (word.translation?.definitionEn) lines.push(`\n📝  ${word.translation.definitionEn}`)
+    if (word.translation?.exampleEn) lines.push(`\n💬  "${word.translation.exampleEn}"`)
+    lines.push('\n─────────────────')
+    lines.push("🔥  WordSwipe da o'rganing → @WordSwipeBot")
+
+    const text = lines.join('\n')
+
+    if (window.Telegram?.WebApp) {
+      window.Telegram.WebApp.openTelegramLink(
+        `https://t.me/share/url?url=${encodeURIComponent('https://t.me/WordSwipeBot')}&text=${encodeURIComponent(text)}`
+      )
+    } else {
+      navigator.clipboard?.writeText(text).catch(() => {})
+    }
+  }
 
   const x = useMotionValue(0)
   const y = useMotionValue(0)
@@ -173,16 +200,26 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
             {diff.label}
           </span>
           <span className="text-xs font-medium text-white/30 max-w-[130px] truncate">{word.category?.name}</span>
-          {word.audioUrl ? (
+          <div className="flex items-center gap-1.5">
+            {word.audioUrl && (
+              <motion.button
+                whileTap={{ scale: 0.8 }}
+                onClick={(e) => { e.stopPropagation(); new Audio(word.audioUrl!).play() }}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-sm"
+                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
+              >
+                🔊
+              </motion.button>
+            )}
             <motion.button
               whileTap={{ scale: 0.8 }}
-              onClick={(e) => { e.stopPropagation(); new Audio(word.audioUrl!).play() }}
+              onClick={handleShare}
               className="w-8 h-8 rounded-full flex items-center justify-center text-sm"
               style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
             >
-              🔊
+              📤
             </motion.button>
-          ) : <div className="w-8" />}
+          </div>
         </div>
 
         {/* Main area — front/back */}

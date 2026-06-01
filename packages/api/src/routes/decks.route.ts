@@ -55,4 +55,11 @@ export async function decksRoutes(fastify: FastifyInstance) {
     await decksService.removeWordFromDeck(id, user.userId, wordId)
     return reply.send({ success: true })
   })
+
+  fastify.get('/:id/words', async (req, reply) => {
+    const user = req.user as JwtPayload
+    const { id } = req.params as { id: string }
+    const data = await decksService.getDeckWords(user.userId, id)
+    return reply.send({ success: true, data })
+  })
 }

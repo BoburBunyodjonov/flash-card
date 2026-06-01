@@ -14,7 +14,8 @@ export async function feedRoutes(fastify: FastifyInstance) {
 
   fastify.get('/', async (req, reply) => {
     const user = req.user as JwtPayload & { isPremium: boolean; language: string }
-    const feed = await getDailyFeed(user.userId, user.isPremium, (user as any).language ?? 'uz')
+    const { categoryId } = req.query as { categoryId?: string }
+    const feed = await getDailyFeed(user.userId, user.isPremium, (user as any).language ?? 'uz', categoryId)
     return reply.send({ success: true, data: feed })
   })
 

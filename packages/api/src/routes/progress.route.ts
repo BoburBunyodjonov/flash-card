@@ -29,7 +29,7 @@ export async function progressRoutes(fastify: FastifyInstance) {
   })
 
   fastify.get('/history', async (req, reply) => {
-    const query = z.object({ period: z.enum(['week', 'month']).default('week') }).parse(req.query)
+    const query = z.object({ period: z.enum(['week', 'month', '3months']).default('week') }).parse(req.query)
     const user = req.user as JwtPayload
     const data = await progressService.getHistory(user.userId, query.period)
     return reply.send({ success: true, data })
