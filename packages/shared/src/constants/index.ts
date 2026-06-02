@@ -53,3 +53,9 @@ export const SPACED_REPETITION_INTERVALS = [1, 3, 7, 14, 30, 60]
 
 export const XP_PER_WORD = 10
 export const XP_STREAK_MULTIPLIER = 2
+
+// Referral rewards
+export const REFERRAL_REFERRER_XP = 50
+export const REFERRAL_NEW_USER_XP = 25
+export const REFERRAL_BONUS_WORDS = 10
+export const REFERRAL_PREFIX = 'ref_'

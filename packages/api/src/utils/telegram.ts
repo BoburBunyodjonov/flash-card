@@ -104,6 +104,20 @@ export function validateTelegramAuth(
   return hmac === hash
 }
 
+/** Extracts the `start_param` from Web App initData (set via `?startapp=...` deep links). */
+export function parseStartParam(initData: string): string | null {
+  try {
+    const sp = (parse(initData) as { startParam?: unknown }).startParam
+    return typeof sp === 'string' ? sp : null
+  } catch {
+    try {
+      return new URLSearchParams(initData).get('start_param')
+    } catch {
+      return null
+    }
+  }
+}
+
 export function parseWebAppUser(initData: string): {
   id: number
   first_name: string

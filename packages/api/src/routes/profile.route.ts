@@ -3,6 +3,8 @@ import { z } from 'zod'
 import { requireAuth } from '../middlewares/auth.middleware'
 import { prisma } from '../lib/prisma'
 import { getPremiumPrices, getFreeLimits } from '../services/plan-settings.service'
+import { config } from '../config'
+import { REFERRAL_PREFIX } from '@wordswipe/shared'
 import type { JwtPayload } from '@wordswipe/shared'
 
 export async function profileRoutes(fastify: FastifyInstance) {
@@ -34,6 +36,25 @@ export async function profileRoutes(fastify: FastifyInstance) {
       },
     })
     return reply.send({ success: true, data })
+  })
+
+  fastify.get('/referral', async (req, reply) => {
+    const user = req.user as JwtPayload
+    const startParam = `${REFERRAL_PREFIX}${user.userId}`
+    const [count, referrals] = await Promise.all([
+      prisma.user.count({ where: { referredById: user.userId } }),
+      prisma.user.findMany({
+        where: { referredById: user.userId },
+        select: { firstName: true, avatarUrl: true, createdAt: true },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+      }),
+    ])
+    // Deep link that opens the Mini App with the referral param attached.
+    const link = config.telegram.webAppUrl
+      ? `${config.telegram.webAppUrl}?startapp=${startParam}`
+      : null
+    return reply.send({ success: true, data: { startParam, link, count, referrals } })
   })
 
   fastify.put('/', async (req, reply) => {

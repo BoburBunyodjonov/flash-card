@@ -22,6 +22,8 @@ export const config = {
   telegram: {
     botToken: (process.env.TELEGRAM_BOT_TOKEN ?? '').trim(),
     webhookUrl: process.env.TELEGRAM_WEBHOOK_URL ?? '',
+    // Mini App URL (e.g. https://t.me/YourBot/app) used for the "Open" button in reminders
+    webAppUrl: process.env.WEB_APP_URL ?? '',
   },
 
   admin: {

@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { DEFAULT_PLAN_SETTINGS } from '@wordswipe/shared'
+import { SEED_WORDS } from './seed-words'
 
 const prisma = new PrismaClient()
 
@@ -40,16 +41,62 @@ async function main() {
     { nameUz: 'Texnologiya', nameEn: 'Technology', nameRu: 'Технологии', icon: '💻', color: '#8b5cf6', isPremium: false, order: 6 },
   ]
 
+  const categoryByName: Record<string, string> = {}
   for (const cat of categories) {
     const existing = await prisma.category.findFirst({ where: { nameEn: cat.nameEn } })
-    if (existing) {
-      await prisma.category.update({ where: { id: existing.id }, data: cat })
-    } else {
-      await prisma.category.create({ data: cat })
-    }
+    const saved = existing
+      ? await prisma.category.update({ where: { id: existing.id }, data: cat })
+      : await prisma.category.create({ data: cat })
+    categoryByName[saved.nameEn] = saved.id
   }
 
-  console.log('✅ Seed completed')
+  // Seed words + Uzbek translations (idempotent: upsert by unique word / [wordId, language])
+  let seededWords = 0
+  for (const w of SEED_WORDS) {
+    const categoryId = categoryByName[w.category]
+    if (!categoryId) {
+      console.warn(`⚠️  Skipping "${w.word}": unknown category "${w.category}"`)
+      continue
+    }
+
+    const word = await prisma.word.upsert({
+      where: { word: w.word },
+      update: {
+        pronunciation: w.pronunciation ?? null,
+        partOfSpeech: w.partOfSpeech ?? null,
+        difficulty: w.difficulty,
+        categoryId,
+      },
+      create: {
+        word: w.word,
+        pronunciation: w.pronunciation ?? null,
+        partOfSpeech: w.partOfSpeech ?? null,
+        difficulty: w.difficulty,
+        categoryId,
+      },
+    })
+
+    await prisma.wordTranslation.upsert({
+      where: { wordId_language: { wordId: word.id, language: 'uz' } },
+      update: {
+        translation: w.uz.translation,
+        definitionEn: w.uz.definitionEn ?? null,
+        exampleEn: w.uz.exampleEn ?? null,
+        exampleTranslated: w.uz.exampleTranslated ?? null,
+      },
+      create: {
+        wordId: word.id,
+        language: 'uz',
+        translation: w.uz.translation,
+        definitionEn: w.uz.definitionEn ?? null,
+        exampleEn: w.uz.exampleEn ?? null,
+        exampleTranslated: w.uz.exampleTranslated ?? null,
+      },
+    })
+    seededWords++
+  }
+
+  console.log(`✅ Seed completed (${seededWords} words)`)
 }
 
 main()

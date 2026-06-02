@@ -3,8 +3,10 @@ import {
   validateTelegramAuth,
   validateWebAppInitData,
   parseWebAppUser,
+  parseStartParam,
   getInitDataDebug,
 } from '../utils/telegram'
+import { resolveReferrer, grantReferralRewards } from './referral.service'
 import { config } from '../config'
 import type { FastifyInstance } from 'fastify'
 
@@ -67,6 +69,7 @@ export async function loginWithWebApp(initData: string, fastify: FastifyInstance
       avatarUrl: telegramUser.photo_url,
     },
     fastify,
+    parseStartParam(initData),
   )
 }
 
@@ -79,24 +82,46 @@ async function upsertUser(
     avatarUrl?: string
   },
   fastify: FastifyInstance,
+  startParam?: string | null,
 ) {
-  const user = await prisma.user.upsert({
+  const existing = await prisma.user.findUnique({
     where: { telegramId: data.telegramId },
-    update: {
-      firstName: data.firstName,
-      lastName: data.lastName ?? null,
-      username: data.username ?? null,
-      avatarUrl: data.avatarUrl ?? null,
-      lastActive: new Date(),
-    },
-    create: {
-      telegramId: data.telegramId,
-      firstName: data.firstName,
-      lastName: data.lastName ?? null,
-      username: data.username ?? null,
-      avatarUrl: data.avatarUrl ?? null,
-    },
+    select: { id: true },
   })
+
+  let user
+  if (existing) {
+    user = await prisma.user.update({
+      where: { telegramId: data.telegramId },
+      data: {
+        firstName: data.firstName,
+        lastName: data.lastName ?? null,
+        username: data.username ?? null,
+        avatarUrl: data.avatarUrl ?? null,
+        lastActive: new Date(),
+      },
+    })
+  } else {
+    // New user — attribute the referral (if any) atomically at creation.
+    const referredById = await resolveReferrer(startParam, data.telegramId)
+    user = await prisma.user.create({
+      data: {
+        telegramId: data.telegramId,
+        firstName: data.firstName,
+        lastName: data.lastName ?? null,
+        username: data.username ?? null,
+        avatarUrl: data.avatarUrl ?? null,
+        referredById,
+      },
+    })
+
+    if (referredById) {
+      // Rewards are best-effort — a failure here must not block login.
+      await grantReferralRewards(referredById, user.id).catch((err) =>
+        fastify.log.error({ msg: 'referral reward failed', error: (err as Error).message }),
+      )
+    }
+  }
 
   const payload = {
     userId: user.id,

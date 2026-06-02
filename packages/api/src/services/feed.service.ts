@@ -7,14 +7,26 @@ import type { Language } from '@wordswipe/shared'
 
 const DAILY_COUNT_KEY = (userId: string) => `feed:daily:${userId}:${todayKey()}`
 const FEED_QUEUE_KEY = (userId: string) => `feed:queue:${userId}:${todayKey()}`
+const BONUS_KEY = (userId: string) => `feed:bonus:${userId}:${todayKey()}`
 
 function todayKey() {
   return new Date().toISOString().split('T')[0]
 }
 
+/** Adds extra swipe capacity for today (e.g. referral rewards). Expires at day end. */
+export async function grantBonusWords(userId: string, count: number) {
+  await redis.incrby(BONUS_KEY(userId), count)
+  await redis.expire(BONUS_KEY(userId), 86400)
+}
+
+async function getBonusWords(userId: string): Promise<number> {
+  return parseInt((await redis.get(BONUS_KEY(userId))) ?? '0')
+}
+
 export async function getDailyFeed(userId: string, isPremium: boolean, language: Language, categoryId?: string) {
   const limits = await getFreeLimits()
-  const dailyLimit = isPremium ? 999999 : (limits.dailySwipeLimit || 20)
+  const bonus = isPremium ? 0 : await getBonusWords(userId)
+  const dailyLimit = isPremium ? 999999 : (limits.dailySwipeLimit || 20) + bonus
 
   const usedToday = parseInt((await redis.get(DAILY_COUNT_KEY(userId))) ?? '0')
   const remaining = dailyLimit - usedToday
@@ -171,7 +183,8 @@ async function updateStreak(userId: string) {
 
 export async function getTodayStats(userId: string, isPremium: boolean) {
   const limits = await getFreeLimits()
-  const dailyLimit = isPremium ? 999999 : (limits.dailySwipeLimit || 20)
+  const bonus = isPremium ? 0 : await getBonusWords(userId)
+  const dailyLimit = isPremium ? 999999 : (limits.dailySwipeLimit || 20) + bonus
   const usedToday = parseInt((await redis.get(DAILY_COUNT_KEY(userId))) ?? '0')
 
   const learnedToday = await prisma.userWordProgress.count({
