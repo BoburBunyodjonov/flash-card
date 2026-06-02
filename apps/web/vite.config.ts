@@ -39,7 +39,9 @@ export default defineConfig({
     // Telegram uchun bitta ngrok (5173) yetadi — API localhost:3000 ga proxy
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        // 127.0.0.1 (not localhost): the API binds IPv4 only; on Node 18+ `localhost`
+        // can resolve to ::1 first and Vite's proxy won't fall back → ECONNREFUSED.
+        target: 'http://127.0.0.1:3000',
         changeOrigin: true,
       },
     },
