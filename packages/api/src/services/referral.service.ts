@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma'
 import { grantBonusWords } from './feed.service'
+import { mutualFollow } from './follow.service'
 import {
   REFERRAL_PREFIX,
   REFERRAL_REFERRER_XP,
@@ -45,4 +46,6 @@ export async function grantReferralRewards(referrerId: string, newUserId: string
     grantBonusWords(referrerId, REFERRAL_BONUS_WORDS),
     grantBonusWords(newUserId, REFERRAL_BONUS_WORDS),
   ])
+  // Friends from day one: referrer and invitee see each other on the friends leaderboard
+  await mutualFollow(referrerId, newUserId)
 }

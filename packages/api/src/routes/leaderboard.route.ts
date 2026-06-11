@@ -8,20 +8,29 @@ export async function leaderboardRoutes(fastify: FastifyInstance) {
   fastify.addHook('onRequest', requireAuth)
 
   fastify.get('/global', async (req, reply) => {
-    const top = await prisma.user.findMany({
-      orderBy: { xp: 'desc' },
-      take: 100,
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        username: true,
-        avatarUrl: true,
-        xp: true,
-        streak: true,
-      },
-    })
-    return reply.send({ success: true, data: top })
+    const user = req.user as JwtPayload
+    const [top, following] = await Promise.all([
+      prisma.user.findMany({
+        orderBy: { xp: 'desc' },
+        take: 100,
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          username: true,
+          avatarUrl: true,
+          xp: true,
+          streak: true,
+        },
+      }),
+      prisma.follow.findMany({
+        where: { followerId: user.userId },
+        select: { followingId: true },
+      }),
+    ])
+    const followingIds = new Set(following.map((f: { followingId: string }) => f.followingId))
+    const data = top.map((u: { id: string }) => ({ ...u, isFollowing: followingIds.has(u.id) }))
+    return reply.send({ success: true, data })
   })
 
   fastify.get('/friends', async (req, reply) => {

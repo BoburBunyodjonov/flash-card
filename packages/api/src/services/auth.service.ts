@@ -150,6 +150,7 @@ async function upsertUser(
     streak: user.streak,
     xp: user.xp,
     notifyAt: user.notifyAt,
+    notifyEnabled: user.notifyEnabled,
     telegramId: user.telegramId.toString(),
   }
 

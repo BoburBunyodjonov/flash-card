@@ -48,6 +48,13 @@ enum PaymentStatus {
   failed
 }
 
+enum DuelStatus {
+  pending
+  active
+  completed
+  expired
+}
+
 model User {
   id           String    @id @default(uuid())
   telegramId   BigInt    @unique @map("telegram_id")
@@ -62,8 +69,11 @@ model User {
   streak       Int       @default(0)
   lastActive   DateTime? @map("last_active")
   xp           Int       @default(0)
+  cefrLevel    Difficulty? @map("cefr_level")
+  leagueTier   Int       @default(0) @map("league_tier")
   referredById String?   @map("referred_by")
-  notifyAt     String    @default("20:00") @map("notify_at")
+  notifyAt      String   @default("20:00") @map("notify_at")
+  notifyEnabled Boolean  @default(true) @map("notify_enabled")
   createdAt    DateTime  @default(now()) @map("created_at")
 
   referredBy   User?              @relation("Referrals", fields: [referredById], references: [id])
@@ -75,8 +85,51 @@ model User {
   payments     Payment[]
   createdWords Word[]
   updatedSettings PlanSetting[]
+  duelsCreated   Duel[]           @relation("DuelChallenger")
+  duelsReceived  Duel[]           @relation("DuelOpponent")
+  leagueEntries  LeagueMember[]
 
   @@map("users")
+}
+
+model Duel {
+  id              String     @id @default(uuid())
+  challengerId    String     @map("challenger_id")
+  opponentId      String?    @map("opponent_id")
+  status          DuelStatus @default(pending)
+  questions       Json
+  challengerScore Int?       @map("challenger_score")
+  opponentScore   Int?       @map("opponent_score")
+  challengerTime  Int?       @map("challenger_time")
+  opponentTime    Int?       @map("opponent_time")
+  winnerId        String?    @map("winner_id")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  completedAt     DateTime?  @map("completed_at")
+
+  challenger User  @relation("DuelChallenger", fields: [challengerId], references: [id], onDelete: Cascade)
+  opponent   User? @relation("DuelOpponent", fields: [opponentId], references: [id], onDelete: Cascade)
+
+  @@index([challengerId])
+  @@index([opponentId])
+  @@map("duels")
+}
+
+model LeagueMember {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  weekStart DateTime @map("week_start")
+  groupId   String   @map("group_id")
+  tier      Int      @default(0)
+  weeklyXp  Int      @default(0) @map("weekly_xp")
+  finalRank Int?     @map("final_rank")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, weekStart])
+  @@index([groupId])
+  @@index([weekStart])
+  @@map("league_members")
 }
 
 model Category {

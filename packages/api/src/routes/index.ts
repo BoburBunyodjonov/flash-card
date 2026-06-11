@@ -16,6 +16,9 @@ import { adminNotificationsRoutes } from './admin/notifications.route'
 import { challengeRoutes } from './challenge.route'
 import { categoriesRoutes } from './categories.route'
 import { onboardingRoutes } from './onboarding.route'
+import { quizRoutes } from './quiz.route'
+import { duelRoutes } from './duel.route'
+import { leagueRoutes } from './league.route'
 
 export async function registerRoutes(fastify: FastifyInstance) {
   fastify.register(authRoutes, { prefix: '/api/auth' })
@@ -28,6 +31,9 @@ export async function registerRoutes(fastify: FastifyInstance) {
   fastify.register(challengeRoutes, { prefix: '/api/challenge' })
   fastify.register(categoriesRoutes, { prefix: '/api/categories' })
   fastify.register(onboardingRoutes, { prefix: '/api/onboarding' })
+  fastify.register(quizRoutes, { prefix: '/api/quiz' })
+  fastify.register(duelRoutes, { prefix: '/api/duel' })
+  fastify.register(leagueRoutes, { prefix: '/api/league' })
 
   fastify.register(
     async (adminApp) => {

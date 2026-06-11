@@ -2,16 +2,24 @@ import { useEffect, useState, useCallback } from 'react'
 import {
   Box, Typography, Button, Paper, Dialog, DialogTitle, DialogContent,
   DialogActions, TextField, MenuItem, Chip, CircularProgress, Alert,
-  IconButton, Tooltip,
+  IconButton, Tooltip, InputAdornment, Divider,
 } from '@mui/material'
 import { DataGrid, type GridColDef } from '@mui/x-data-grid'
+import AddRoundedIcon from '@mui/icons-material/AddRounded'
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
+import EditRoundedIcon from '@mui/icons-material/EditRounded'
+import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded'
+import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded'
+import AutoFixHighRoundedIcon from '@mui/icons-material/AutoFixHighRounded'
+import { PageHeader } from '../../components/PageHeader'
 import { wordsApi } from '../../api/words.api'
 import { categoriesApi } from '../../api/categories.api'
 
 interface Word {
   id: string; word: string; pronunciation: string | null; partOfSpeech: string | null
+  audioUrl: string | null; imageUrl: string | null
   difficulty: string; category: { id: string; nameEn: string }
-  translations: { translation: string | null }[]
+  translations: { translation: string | null; definitionEn: string | null; exampleEn: string | null }[]
   _count: { userProgress: number }
 }
 interface Category { id: string; nameEn: string }
@@ -21,7 +29,17 @@ const DIFFICULTY_COLORS: Record<string, 'success' | 'warning' | 'error' | 'defau
   A1: 'success', A2: 'success', B1: 'warning', B2: 'warning', C1: 'error', C2: 'error',
 }
 
-const emptyForm = { word: '', pronunciation: '', partOfSpeech: '', difficulty: 'A1', categoryId: '', translation: '', definitionEn: '', exampleEn: '' }
+const emptyForm = { word: '', pronunciation: '', partOfSpeech: '', difficulty: 'A1', categoryId: '', translation: '', definitionEn: '', exampleEn: '', audioUrl: '', imageUrl: '' }
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <Divider textAlign="left" sx={{ '&::before, &::after': { borderColor: 'divider' } }}>
+      <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'text.secondary' }}>
+        {children}
+      </Typography>
+    </Divider>
+  )
+}
 
 export function WordsPage() {
   const [rows, setRows] = useState<Word[]>([])
@@ -54,7 +72,10 @@ export function WordsPage() {
     setForm({
       word: word.word, pronunciation: word.pronunciation ?? '', partOfSpeech: word.partOfSpeech ?? '',
       difficulty: word.difficulty, categoryId: word.category.id,
-      translation: word.translations[0]?.translation ?? '', definitionEn: '', exampleEn: '',
+      translation: word.translations[0]?.translation ?? '',
+      definitionEn: word.translations[0]?.definitionEn ?? '',
+      exampleEn: word.translations[0]?.exampleEn ?? '',
+      audioUrl: word.audioUrl ?? '', imageUrl: word.imageUrl ?? '',
     })
     setError(''); setDialog('edit')
   }
@@ -71,6 +92,7 @@ export function WordsPage() {
           partOfSpeech: data.partOfSpeech ?? f.partOfSpeech,
           definitionEn: data.definition ?? f.definitionEn,
           exampleEn: data.example ?? f.exampleEn,
+          audioUrl: data.audioUrl ?? f.audioUrl,
         }))
       }
     } finally { setFetchingDict(false) }
@@ -83,6 +105,7 @@ export function WordsPage() {
         word: form.word, pronunciation: form.pronunciation || undefined,
         partOfSpeech: form.partOfSpeech || undefined, difficulty: form.difficulty,
         categoryId: form.categoryId,
+        audioUrl: form.audioUrl || undefined, imageUrl: form.imageUrl || undefined,
         translation: form.translation || form.definitionEn ? {
           language: 'uz', translation: form.translation || undefined,
           definitionEn: form.definitionEn || undefined, exampleEn: form.exampleEn || undefined,
@@ -102,7 +125,12 @@ export function WordsPage() {
   }
 
   const columns: GridColDef[] = [
-    { field: 'word', headerName: 'Word', flex: 1, minWidth: 120 },
+    {
+      field: 'word', headerName: 'Word', flex: 1, minWidth: 120,
+      renderCell: ({ value }) => (
+        <Typography variant="body2" sx={{ fontWeight: 700 }}>{value}</Typography>
+      ),
+    },
     { field: 'pronunciation', headerName: 'Pronunciation', flex: 1, minWidth: 120, valueGetter: (_, row) => row.pronunciation ?? '—' },
     { field: 'partOfSpeech', headerName: 'POS', width: 100, valueGetter: (_, row) => row.partOfSpeech ?? '—' },
     {
@@ -111,16 +139,29 @@ export function WordsPage() {
     },
     { field: 'category', headerName: 'Category', flex: 1, minWidth: 120, valueGetter: (_, row) => row.category?.nameEn ?? '—' },
     { field: 'translation', headerName: 'Translation (UZ)', flex: 1, minWidth: 130, valueGetter: (_, row) => row.translations?.[0]?.translation ?? '—' },
-    { field: '_count', headerName: 'Learners', width: 90, valueGetter: (_, row) => row._count?.userProgress ?? 0 },
     {
-      field: 'actions', headerName: '', width: 120, sortable: false,
+      field: '_count', headerName: 'Learners', width: 110,
+      valueGetter: (_, row) => row._count?.userProgress ?? 0,
+      renderCell: ({ value }) => (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, color: 'text.secondary' }}>
+          <PeopleAltRoundedIcon sx={{ fontSize: 15 }} />
+          <Typography variant="body2">{value}</Typography>
+        </Box>
+      ),
+    },
+    {
+      field: 'actions', headerName: '', width: 100, sortable: false,
       renderCell: ({ row }) => (
         <Box>
-          <Tooltip title="Edit">
-            <IconButton size="small" onClick={() => openEdit(row)}>✏️</IconButton>
+          <Tooltip title="Edit" arrow>
+            <IconButton size="small" onClick={() => openEdit(row)} sx={{ color: 'text.secondary', '&:hover': { color: 'primary.light' } }}>
+              <EditRoundedIcon fontSize="small" />
+            </IconButton>
           </Tooltip>
-          <Tooltip title="Delete">
-            <IconButton size="small" onClick={() => deleteWord(row.id)}>🗑</IconButton>
+          <Tooltip title="Delete" arrow>
+            <IconButton size="small" onClick={() => deleteWord(row.id)} sx={{ color: 'text.secondary', '&:hover': { color: 'error.main' } }}>
+              <DeleteRoundedIcon fontSize="small" />
+            </IconButton>
           </Tooltip>
         </Box>
       ),
@@ -129,14 +170,31 @@ export function WordsPage() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">Words</Typography>
-        <Button variant="contained" onClick={openCreate}>+ Add Word</Button>
-      </Box>
+      <PageHeader
+        title="Words"
+        subtitle={`${total.toLocaleString()} words in the vocabulary database`}
+        action={
+          <Button variant="contained" startIcon={<AddRoundedIcon />} onClick={openCreate}>
+            Add Word
+          </Button>
+        }
+      />
 
       <Paper sx={{ mb: 2, p: 2 }}>
-        <TextField size="small" placeholder="Search words…" value={search}
-          onChange={(e) => setSearch(e.target.value)} sx={{ width: 300 }} />
+        <TextField
+          size="small"
+          placeholder="Search words…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          sx={{ width: 320 }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchRoundedIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
+              </InputAdornment>
+            ),
+          }}
+        />
       </Paper>
 
       <Paper sx={{ height: 600 }}>
@@ -154,10 +212,18 @@ export function WordsPage() {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
             {error && <Alert severity="error">{error}</Alert>}
 
+            <SectionLabel>Word info</SectionLabel>
+
             <Box sx={{ display: 'flex', gap: 1 }}>
               <TextField label="Word *" value={form.word} onChange={(e) => setForm({ ...form, word: e.target.value })} fullWidth />
-              <Button variant="outlined" onClick={fetchDict} disabled={fetchingDict || !form.word} sx={{ minWidth: 120 }}>
-                {fetchingDict ? <CircularProgress size={18} /> : '📖 Auto-fill'}
+              <Button
+                variant="outlined"
+                onClick={fetchDict}
+                disabled={fetchingDict || !form.word}
+                startIcon={fetchingDict ? <CircularProgress size={16} /> : <AutoFixHighRoundedIcon />}
+                sx={{ minWidth: 130, flexShrink: 0 }}
+              >
+                Auto-fill
               </Button>
             </Box>
 
@@ -175,15 +241,31 @@ export function WordsPage() {
               </TextField>
             </Box>
 
+            <SectionLabel>Translation</SectionLabel>
+
             <TextField label="Uzbek Translation" value={form.translation} onChange={(e) => setForm({ ...form, translation: e.target.value })} fullWidth />
             <TextField label="English Definition" value={form.definitionEn} onChange={(e) => setForm({ ...form, definitionEn: e.target.value })} multiline rows={2} fullWidth />
             <TextField label="Example sentence" value={form.exampleEn} onChange={(e) => setForm({ ...form, exampleEn: e.target.value })} fullWidth />
+
+            <SectionLabel>Media</SectionLabel>
+
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <TextField label="Audio URL" value={form.audioUrl} onChange={(e) => setForm({ ...form, audioUrl: e.target.value })} fullWidth
+                helperText="Auto-filled from dictionary when available" />
+              <TextField label="Image URL" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} fullWidth
+                helperText="Shown on the flashcard" />
+            </Box>
+            {form.imageUrl && (
+              <Box component="img" src={form.imageUrl} alt="preview"
+                sx={{ maxHeight: 120, borderRadius: 2, objectFit: 'cover', alignSelf: 'flex-start', border: '1px solid', borderColor: 'divider' }}
+                onError={(e: any) => { e.currentTarget.style.display = 'none' }} />
+            )}
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialog(null)}>Cancel</Button>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button onClick={() => setDialog(null)} color="inherit">Cancel</Button>
           <Button variant="contained" onClick={save} disabled={saving || !form.word || !form.categoryId}>
-            {saving ? <CircularProgress size={18} /> : 'Save'}
+            {saving ? <CircularProgress size={18} color="inherit" /> : 'Save'}
           </Button>
         </DialogActions>
       </Dialog>

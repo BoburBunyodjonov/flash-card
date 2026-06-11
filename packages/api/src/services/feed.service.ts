@@ -2,8 +2,17 @@ import { prisma } from '../lib/prisma'
 import { redis } from '../lib/redis'
 import { getFreeLimits } from './plan-settings.service'
 import { calculateNextReview } from '../utils/spaced-repetition'
-import { XP_PER_WORD, XP_STREAK_MULTIPLIER } from '@wordswipe/shared'
-import type { Language } from '@wordswipe/shared'
+import { addLeagueXp } from './league.service'
+import { XP_PER_WORD, XP_STREAK_MULTIPLIER, DIFFICULTIES } from '@wordswipe/shared'
+import type { Language, Difficulty } from '@wordswipe/shared'
+
+/** CEFR window: words up to one level above the user's own level. */
+function allowedDifficulties(level: Difficulty | null): Difficulty[] | null {
+  if (!level) return null
+  const idx = DIFFICULTIES.indexOf(level)
+  if (idx === -1) return null
+  return DIFFICULTIES.slice(0, Math.min(idx + 2, DIFFICULTIES.length)) as Difficulty[]
+}
 
 const DAILY_COUNT_KEY = (userId: string) => `feed:daily:${userId}:${todayKey()}`
 const FEED_QUEUE_KEY = (userId: string) => `feed:queue:${userId}:${todayKey()}`
@@ -65,10 +74,14 @@ export async function getDailyFeed(userId: string, isPremium: boolean, language:
   })
   const seenIds = seenWordIds.map((r: { wordId: string }) => r.wordId)
 
+  const userRow = await prisma.user.findUnique({ where: { id: userId }, select: { cefrLevel: true } })
+  const levels = allowedDifficulties((userRow?.cefrLevel as Difficulty | null) ?? null)
+
   const newWords = await prisma.word.findMany({
     where: {
       id: { notIn: seenIds },
       ...(categoryId ? { categoryId } : {}),
+      ...(levels ? { difficulty: { in: levels } } : {}),
     },
     take: newCount,
     orderBy: [{ category: { order: 'asc' } }, { difficulty: 'asc' }],
@@ -127,6 +140,7 @@ export async function recordSwipe(
       where: { id: userId },
       data: { xp: { increment: xpEarned } },
     })
+    await addLeagueXp(userId, xpEarned)
   }
 
   await redis.incr(DAILY_COUNT_KEY(userId))

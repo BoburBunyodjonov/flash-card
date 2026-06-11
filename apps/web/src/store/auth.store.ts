@@ -15,6 +15,7 @@ interface User {
   streak: number
   xp: number
   notifyAt?: string
+  notifyEnabled?: boolean
 }
 
 interface AuthStore {

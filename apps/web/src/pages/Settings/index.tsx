@@ -1,14 +1,24 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../../store/auth.store'
-import { profileApi } from '../../api/profile.api'
+import { profileApi, type ReferralInfo } from '../../api/profile.api'
+import { useTelegram } from '../../hooks/useTelegram'
 import i18n from '../../i18n'
 
 const LANGUAGES = [
   { code: 'uz', label: "O'zbek", flag: '🇺🇿' },
   { code: 'en', label: 'English', flag: '🇬🇧' },
   { code: 'ru', label: 'Русский', flag: '🇷🇺' },
+]
+
+const CEFR_LEVELS = [
+  { value: 'A1', label: 'A1 · Boshlang\'ich', color: '#34d399' },
+  { value: 'A2', label: 'A2 · Elementar', color: '#6ee7b7' },
+  { value: 'B1', label: 'B1 · O\'rta', color: '#fbbf24' },
+  { value: 'B2', label: 'B2 · O\'rtadan yuqori', color: '#f97316' },
+  { value: 'C1', label: 'C1 · Ilg\'or', color: '#f87171' },
+  { value: 'C2', label: 'C2 · Mukammal', color: '#c084fc' },
 ]
 
 const NOTIFY_TIMES = [
@@ -23,10 +33,35 @@ const NOTIFY_TIMES = [
 export function SettingsPage() {
   const { t } = useTranslation()
   const { user, logout } = useAuthStore()
+  const { twa, haptic } = useTelegram()
   const [lang, setLang] = useState(i18n.language)
-  const [notifyEnabled, setNotifyEnabled] = useState(true)
+  const [notifyEnabled, setNotifyEnabled] = useState(user?.notifyEnabled ?? true)
   const [notifyTime, setNotifyTime] = useState(user?.notifyAt ?? '20:00')
+  const [referral, setReferral] = useState<ReferralInfo | null>(null)
+
+  useEffect(() => {
+    profileApi.getReferral().then(setReferral).catch(() => {})
+  }, [])
+
+  const shareReferral = () => {
+    if (!referral) return
+    haptic.impact('light')
+    const url = referral.link ?? `https://t.me/WordSwipeBot?start=${referral.startParam}`
+    const text = "🎁 WordSwipe ga qo'shil — ikkalamiz ham +10 ta bonus so'z olamiz! Inglizcha so'zlarni TikTok kabi swipe qilib o'rgan 👇"
+    if (twa) {
+      twa.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`)
+    } else {
+      navigator.clipboard?.writeText(`${text}\n${url}`).catch(() => {})
+    }
+  }
   const [notifySaved, setNotifySaved] = useState(false)
+  const [level, setLevel] = useState(() => localStorage.getItem('ws_level') ?? 'A1')
+
+  const changeLevel = async (lvl: string) => {
+    setLevel(lvl)
+    localStorage.setItem('ws_level', lvl)
+    await profileApi.setLevel(lvl).catch(() => {})
+  }
 
   const changeLang = async (code: string) => {
     setLang(code)
@@ -44,11 +79,7 @@ export function SettingsPage() {
 
   const toggleNotify = async (enabled: boolean) => {
     setNotifyEnabled(enabled)
-    if (!enabled) {
-      await profileApi.setNotifyTime('00:00').catch(() => {})
-    } else {
-      await profileApi.setNotifyTime(notifyTime).catch(() => {})
-    }
+    await profileApi.setNotifyEnabled(enabled).catch(() => {})
   }
 
   return (
@@ -126,6 +157,59 @@ export function SettingsPage() {
             <span className="text-4xl">⚡</span>
           </motion.button>
         )}
+      </motion.div>
+
+      {/* Invite friends (referral) */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="mx-5 mb-4 rounded-2xl p-5"
+        style={{ background: 'rgba(52,211,153,0.06)', border: '1px solid rgba(52,211,153,0.18)' }}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <p className="text-white font-black text-base">🎁 Do'stlarni taklif qiling</p>
+            <p className="text-white/40 text-xs mt-0.5">
+              Har bir do'st uchun <span className="text-success font-bold">+50 XP</span> va{' '}
+              <span className="text-success font-bold">+10 bonus so'z</span>
+            </p>
+          </div>
+          {referral && referral.count > 0 && (
+            <div className="text-center shrink-0 ml-3">
+              <p className="text-success font-black text-2xl leading-none">{referral.count}</p>
+              <p className="text-white/30 text-[10px] mt-1">taklif qilingan</p>
+            </div>
+          )}
+        </div>
+
+        {referral && referral.referrals.length > 0 && (
+          <div className="flex items-center mb-3 pl-1">
+            {referral.referrals.slice(0, 6).map((r, i) => (
+              <div
+                key={i}
+                className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center text-sm -ml-1 first:ml-0"
+                style={{ background: '#1e1e30', border: '2px solid #0a0a14' }}
+                title={r.firstName}
+              >
+                {r.avatarUrl ? <img src={r.avatarUrl} className="w-full h-full object-cover" alt="" /> : '👤'}
+              </div>
+            ))}
+            {referral.count > 6 && (
+              <span className="text-white/35 text-xs font-bold ml-2">+{referral.count - 6}</span>
+            )}
+          </div>
+        )}
+
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={shareReferral}
+          disabled={!referral}
+          className="w-full py-3.5 rounded-xl font-black text-sm text-white disabled:opacity-50"
+          style={{ background: 'linear-gradient(135deg, #10b981, #059669)', boxShadow: '0 6px 20px rgba(16,185,129,0.22)' }}
+        >
+          📤 Taklif havolasini ulashish
+        </motion.button>
       </motion.div>
 
       {/* Notifications */}
@@ -235,6 +319,40 @@ export function SettingsPage() {
               {lang === l.code && (
                 <span className="text-sm font-black" style={{ color: '#6366f1' }}>✓</span>
               )}
+            </button>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* CEFR level */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.18 }}
+        className="mx-5 mb-4 rounded-2xl p-5"
+        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+      >
+        <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">
+          Ingliz tili darajasi
+        </p>
+        <p className="text-white/30 text-xs mb-3">Feed shu darajaga mos so'zlarni ko'rsatadi</p>
+        <div className="grid grid-cols-3 gap-2">
+          {CEFR_LEVELS.map((l) => (
+            <button
+              key={l.value}
+              onClick={() => changeLevel(l.value)}
+              className="flex flex-col items-center py-2.5 rounded-xl transition-all"
+              style={level === l.value
+                ? { background: `${l.color}20`, border: `1px solid ${l.color}55` }
+                : { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }
+              }
+            >
+              <span className="text-sm font-black" style={{ color: level === l.value ? l.color : 'rgba(255,255,255,0.45)' }}>
+                {l.value}
+              </span>
+              <span className="text-[9px] mt-0.5" style={{ color: level === l.value ? `${l.color}cc` : 'rgba(255,255,255,0.25)' }}>
+                {l.label.split('· ')[1]}
+              </span>
             </button>
           ))}
         </div>

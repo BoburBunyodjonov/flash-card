@@ -59,3 +59,26 @@ export const REFERRAL_REFERRER_XP = 50
 export const REFERRAL_NEW_USER_XP = 25
 export const REFERRAL_BONUS_WORDS = 10
 export const REFERRAL_PREFIX = 'ref_'
+
+// Quiz
+export const QUIZ_MODES = ['mixed', 'mcq', 'reverse', 'typing', 'listening', 'cloze'] as const
+export type QuizMode = (typeof QUIZ_MODES)[number]
+export const QUIZ_QUESTION_COUNT = 10
+export const XP_PER_QUIZ_CORRECT = 5
+
+// Duels
+export const DUEL_PREFIX = 'duel_'
+export const DUEL_QUESTION_COUNT = 5
+export const DUEL_WINNER_XP = 50
+export const DUEL_LOSER_XP = 15
+export const DUEL_DRAW_XP = 25
+export const DUEL_EXPIRE_HOURS = 48
+
+// Weekly leagues
+export const LEAGUE_TIERS = ['Bronze', 'Silver', 'Gold', 'Sapphire', 'Diamond'] as const
+export const LEAGUE_GROUP_SIZE = 30
+export const LEAGUE_PROMOTE_COUNT = 10
+export const LEAGUE_DEMOTE_COUNT = 5
+
+// Smart reminders
+export const REVIEW_REMINDER_THRESHOLD = 10

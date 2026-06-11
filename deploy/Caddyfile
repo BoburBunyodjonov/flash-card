@@ -1,0 +1,30 @@
+# WordSwipe site block for the HOST Caddy (/etc/caddy/Caddyfile).
+# This server's Caddy also hosts other projects — deploy.sh merges this block in.
+bunyodjonov.uz {
+	encode gzip
+
+	# API → Fastify container (published on localhost only)
+	handle /api/* {
+		reverse_proxy 127.0.0.1:3001
+	}
+
+	# Admin panel SPA at /admin (built with base '/admin/')
+	redir /admin /admin/ 308
+	handle_path /admin/* {
+		root * /opt/wordswipe/apps/admin/dist
+		try_files {path} /index.html
+		file_server
+	}
+
+	# Web app SPA (PWA) at the root
+	handle {
+		root * /opt/wordswipe/apps/web/dist
+		try_files {path} /index.html
+		file_server
+		header /sw.js Cache-Control "no-cache"
+	}
+}
+
+www.bunyodjonov.uz {
+	redir https://bunyodjonov.uz{uri} permanent
+}

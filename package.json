@@ -19,7 +19,18 @@
     "db:generate": "pnpm --filter api db:generate",
     "db:push": "pnpm --filter api db:push",
     "db:seed": "pnpm --filter api db:seed",
-    "db:studio": "pnpm --filter api db:studio"
+    "db:studio": "pnpm --filter api db:studio",
+    "----------- PRODUCTION -----------": "--- bunyodjonov.uz (Hetzner) ---",
+    "build:prod": "pnpm --filter @wordswipe/shared build && VITE_API_URL= pnpm --filter web build && VITE_API_URL= pnpm --filter admin build",
+    "copy:prod": "rsync -az --delete --exclude node_modules --exclude .git --exclude .env --exclude packages/api/dist --exclude packages/shared/dist --exclude backups ./ root@46.225.113.117:/opt/wordswipe/",
+    "api:prod": "ssh root@46.225.113.117 'cd /opt/wordswipe && docker compose -f docker-compose.prod.yml up -d --build'",
+    "db:push:prod": "ssh root@46.225.113.117 'cd /opt/wordswipe && docker compose -f docker-compose.prod.yml exec -T api npx prisma db push --skip-generate'",
+    "caddy:prod": "ssh root@46.225.113.117 'cp /opt/wordswipe/deploy/Caddyfile /etc/caddy/Caddyfile && caddy validate --config /etc/caddy/Caddyfile && systemctl reload caddy'",
+    "prod-server": "pnpm build:prod && pnpm copy:prod && pnpm api:prod && pnpm db:push:prod",
+    "logs:prod": "ssh -t root@46.225.113.117 'cd /opt/wordswipe && docker compose -f docker-compose.prod.yml logs -f --tail 100 api'",
+    "status:prod": "ssh root@46.225.113.117 'cd /opt/wordswipe && docker compose -f docker-compose.prod.yml ps && curl -s -o /dev/null -w \"API: HTTP %{http_code}\\n\" 127.0.0.1:3001/api/categories'",
+    "backup:prod": "ssh root@46.225.113.117 '/opt/wordswipe/deploy/backup.sh && ls -lh /opt/wordswipe/backups/ | tail -3'",
+    "ssh:prod": "ssh root@46.225.113.117"
   },
   "devDependencies": {
     "typescript": "^5.6.0"

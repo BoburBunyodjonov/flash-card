@@ -30,7 +30,10 @@ export async function profileRoutes(fastify: FastifyInstance) {
         premiumUntil: true,
         streak: true,
         xp: true,
+        cefrLevel: true,
+        leagueTier: true,
         notifyAt: true,
+        notifyEnabled: true,
         createdAt: true,
         _count: { select: { followers: true, following: true } },
       },
@@ -72,6 +75,15 @@ export async function profileRoutes(fastify: FastifyInstance) {
     return reply.send({ success: true, data: updated })
   })
 
+  fastify.put('/level', async (req, reply) => {
+    const body = z.object({ level: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']) }).safeParse(req.body)
+    if (!body.success) return reply.code(400).send({ success: false, error: 'Invalid body' })
+
+    const user = req.user as JwtPayload
+    await prisma.user.update({ where: { id: user.userId }, data: { cefrLevel: body.data.level } })
+    return reply.send({ success: true })
+  })
+
   fastify.put('/language', async (req, reply) => {
     const body = z.object({ language: z.enum(['uz', 'en', 'ru']) }).safeParse(req.body)
     if (!body.success) return reply.code(400).send({ success: false, error: 'Invalid body' })
@@ -82,11 +94,22 @@ export async function profileRoutes(fastify: FastifyInstance) {
   })
 
   fastify.put('/notifications', async (req, reply) => {
-    const body = z.object({ notifyAt: z.string().regex(/^\d{2}:\d{2}$/) }).safeParse(req.body)
-    if (!body.success) return reply.code(400).send({ success: false, error: 'Invalid body' })
+    const body = z.object({
+      notifyAt: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+      enabled: z.boolean().optional(),
+    }).safeParse(req.body)
+    if (!body.success || (body.data.notifyAt === undefined && body.data.enabled === undefined)) {
+      return reply.code(400).send({ success: false, error: 'Invalid body' })
+    }
 
     const user = req.user as JwtPayload
-    await prisma.user.update({ where: { id: user.userId }, data: { notifyAt: body.data.notifyAt } })
+    await prisma.user.update({
+      where: { id: user.userId },
+      data: {
+        ...(body.data.notifyAt !== undefined && { notifyAt: body.data.notifyAt }),
+        ...(body.data.enabled !== undefined && { notifyEnabled: body.data.enabled }),
+      },
+    })
     return reply.send({ success: true })
   })
 }

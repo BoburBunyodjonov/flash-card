@@ -4,6 +4,11 @@ import {
   Switch, IconButton, Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, Chip, Tooltip, CircularProgress,
 } from '@mui/material'
+import AddRoundedIcon from '@mui/icons-material/AddRounded'
+import EditRoundedIcon from '@mui/icons-material/EditRounded'
+import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded'
+import WorkspacePremiumRoundedIcon from '@mui/icons-material/WorkspacePremiumRounded'
+import { PageHeader } from '../../components/PageHeader'
 import { categoriesApi } from '../../api/categories.api'
 
 interface Category {
@@ -53,10 +58,15 @@ export function CategoriesPage() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">Categories</Typography>
-        <Button variant="contained" onClick={openCreate}>+ Add Category</Button>
-      </Box>
+      <PageHeader
+        title="Categories"
+        subtitle="Organize the vocabulary into themed groups"
+        action={
+          <Button variant="contained" startIcon={<AddRoundedIcon />} onClick={openCreate}>
+            Add Category
+          </Button>
+        }
+      />
 
       <Paper>
         <List disablePadding>
@@ -64,26 +74,42 @@ export function CategoriesPage() {
             <ListItem
               key={cat.id}
               divider={i < list.length - 1}
+              sx={{ py: 1.5, transition: 'background 0.15s ease', '&:hover': { bgcolor: 'rgba(255,255,255,0.025)' } }}
               secondaryAction={
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Chip label={`${cat._count.words} words`} size="small" variant="outlined" />
-                  <Tooltip title={cat.isPremium ? 'Premium (click to make free)' : 'Free (click to make premium)'}>
+                  <Tooltip title={cat.isPremium ? 'Premium (click to make free)' : 'Free (click to make premium)'} arrow>
                     <Switch checked={cat.isPremium} onChange={() => togglePremium(cat)} color="warning" size="small" />
                   </Tooltip>
-                  <IconButton size="small" onClick={() => openEdit(cat)}>✏️</IconButton>
-                  <IconButton size="small" onClick={() => deleteCategory(cat)}>🗑</IconButton>
+                  <Tooltip title="Edit" arrow>
+                    <IconButton size="small" onClick={() => openEdit(cat)} sx={{ color: 'text.secondary', '&:hover': { color: 'primary.light' } }}>
+                      <EditRoundedIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Delete" arrow>
+                    <IconButton size="small" onClick={() => deleteCategory(cat)} sx={{ color: 'text.secondary', '&:hover': { color: 'error.main' } }}>
+                      <DeleteRoundedIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
                 </Box>
               }
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mr: 2 }}>
-                <Box sx={{ width: 8, height: 40, borderRadius: 1, bgcolor: cat.color }} />
-                <Typography sx={{ fontSize: 24 }}>{cat.icon}</Typography>
+                <Box sx={{ width: 4, height: 40, borderRadius: 2, bgcolor: cat.color }} />
+                {cat.icon && <Typography sx={{ fontSize: 22 }}>{cat.icon}</Typography>}
                 <ListItemText
                   primary={cat.nameEn}
                   secondary={`${cat.nameUz} / ${cat.nameRu}`}
-                  primaryTypographyProps={{ fontWeight: 600 }}
+                  primaryTypographyProps={{ fontWeight: 700 }}
                 />
-                {cat.isPremium && <Chip label="Premium" size="small" color="warning" />}
+                {cat.isPremium && (
+                  <Chip
+                    icon={<WorkspacePremiumRoundedIcon sx={{ fontSize: 15 }} />}
+                    label="Premium"
+                    size="small"
+                    color="warning"
+                  />
+                )}
               </Box>
             </ListItem>
           ))}
@@ -96,24 +122,27 @@ export function CategoriesPage() {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
             <Box sx={{ display: 'flex', gap: 2 }}>
               <TextField label="English name *" value={form.nameEn} onChange={(e) => setForm({ ...form, nameEn: e.target.value })} fullWidth />
-              <TextField label="Icon (emoji)" value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })} sx={{ width: 120 }} />
+              <TextField label="Icon (emoji)" value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })} sx={{ width: 140 }} />
             </Box>
             <TextField label="Uzbek name *" value={form.nameUz} onChange={(e) => setForm({ ...form, nameUz: e.target.value })} fullWidth />
             <TextField label="Russian name *" value={form.nameRu} onChange={(e) => setForm({ ...form, nameRu: e.target.value })} fullWidth />
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
               <TextField label="Color" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} fullWidth />
-              <Box sx={{ width: 40, height: 40, borderRadius: 1, bgcolor: form.color, flexShrink: 0 }} />
+              <Box sx={{ width: 40, height: 40, borderRadius: 2, bgcolor: form.color, flexShrink: 0, border: '1px solid', borderColor: 'divider' }} />
             </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Typography>Premium only</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box>
+                <Typography variant="body2" fontWeight={600}>Premium only</Typography>
+                <Typography variant="caption" color="text.secondary">Restrict this category to premium users</Typography>
+              </Box>
               <Switch checked={form.isPremium} onChange={(e) => setForm({ ...form, isPremium: e.target.checked })} color="warning" />
             </Box>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialog(null)}>Cancel</Button>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button onClick={() => setDialog(null)} color="inherit">Cancel</Button>
           <Button variant="contained" onClick={save} disabled={saving || !form.nameEn}>
-            {saving ? <CircularProgress size={18} /> : 'Save'}
+            {saving ? <CircularProgress size={18} color="inherit" /> : 'Save'}
           </Button>
         </DialogActions>
       </Dialog>

@@ -6,6 +6,7 @@ import { useAuthStore } from '../../store/auth.store'
 import { SwipeCard } from '../../components/SwipeCard'
 import { useTelegram } from '../../hooks/useTelegram'
 import { categoriesApi, type Category } from '../../api/categories.api'
+import { profileApi } from '../../api/profile.api'
 
 function useCountdownToMidnight() {
   const [hoursLeft, setHoursLeft]     = useState(0)
@@ -28,7 +29,7 @@ function useCountdownToMidnight() {
   return { hoursLeft, minutesLeft }
 }
 
-export function FeedPage({ onChallenge }: { onChallenge?: () => void }) {
+export function FeedPage({ onChallenge, onQuiz, onDuel }: { onChallenge?: () => void; onQuiz?: () => void; onDuel?: () => void }) {
   const { t } = useTranslation()
   const { words, currentIndex, stats, isLoading, isLimitReached, isEmpty, loadFeed, swipe, nextCard, selectedCategoryId, setCategory } = useFeedStore()
   const { user } = useAuthStore()
@@ -57,12 +58,15 @@ export function FeedPage({ onChallenge }: { onChallenge?: () => void }) {
     nextCard()
   }
 
-  const handleShare = () => {
+  const handleShare = async () => {
     const streak  = user?.streak ?? 0
     const learned = stats?.learnedToday ?? 0
-    const msg = `🔥 Bugun WordSwipe da ${learned} ta yangi so'z o'rgandim!\n⚡ ${streak} kunlik streak\n\nSen ham sinab ko'r 👇\nt.me/WordSwipeBot`
+    // Personal referral link → both sides earn XP and bonus words from the share
+    const referral = await profileApi.getReferral().catch(() => null)
+    const link = referral?.link ?? `https://t.me/WordSwipeBot?start=${referral?.startParam ?? ''}`
+    const msg = `🔥 Bugun WordSwipe da ${learned} ta yangi so'z o'rgandim!\n⚡ ${streak} kunlik streak\n\n🎁 Shu havola orqali qo'shilsang, ikkalamiz ham +10 bonus so'z olamiz 👇\n${link}`
     if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=t.me/WordSwipeBot&text=${encodeURIComponent(msg)}`)
+      window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(msg)}`)
     } else {
       navigator.clipboard?.writeText(msg)
     }
@@ -229,7 +233,7 @@ export function FeedPage({ onChallenge }: { onChallenge?: () => void }) {
         {/* Progress */}
         {stats && (
           <div className="flex items-center gap-2.5">
-            <div className="relative h-1.5 w-24 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+            <div className="relative h-1.5 w-16 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
               <motion.div
                 className="absolute inset-y-0 left-0 rounded-full"
                 style={{ background: 'linear-gradient(90deg, #6366f1, #a78bfa, #38bdf8)' }}
@@ -242,6 +246,26 @@ export function FeedPage({ onChallenge }: { onChallenge?: () => void }) {
             </span>
           </div>
         )}
+
+        {/* Practice shortcuts */}
+        <div className="flex items-center gap-1.5">
+          <motion.button
+            whileTap={{ scale: 0.88 }}
+            onClick={onQuiz}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-base"
+            style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)' }}
+          >
+            🧠
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.88 }}
+            onClick={onDuel}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-base"
+            style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)' }}
+          >
+            ⚔️
+          </motion.button>
+        </div>
       </div>
 
       {/* Category chips */}

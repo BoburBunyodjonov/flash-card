@@ -4,7 +4,14 @@ import {
   Box, Paper, Typography, TextField, Button,
   Alert, CircularProgress, InputAdornment, IconButton,
 } from '@mui/material'
+import BoltRoundedIcon from '@mui/icons-material/BoltRounded'
+import PersonRoundedIcon from '@mui/icons-material/PersonRounded'
+import LockRoundedIcon from '@mui/icons-material/LockRounded'
+import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded'
+import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded'
 import { useAuthStore } from '../../store/auth.store'
+
+const GRADIENT = 'linear-gradient(135deg, #6366f1, #8b5cf6)'
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -51,13 +58,26 @@ export function LoginPage() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
+      px: 2,
       bgcolor: 'background.default',
-      backgroundImage: 'radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.12) 0%, transparent 60%)',
+      backgroundImage: `
+        radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.14) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 100%, rgba(139,92,246,0.08) 0%, transparent 50%)
+      `,
     }}>
       <Paper
         component="form"
         onSubmit={handleSubmit}
-        sx={{ p: 5, width: 380, display: 'flex', flexDirection: 'column', gap: 3 }}
+        sx={{
+          p: 5,
+          width: '100%',
+          maxWidth: 400,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 3,
+          borderRadius: 4,
+          borderColor: 'rgba(255,255,255,0.08)',
+        }}
       >
         {/* Logo */}
         <Box sx={{ textAlign: 'center', mb: 1 }}>
@@ -68,20 +88,31 @@ export function LoginPage() {
             width: 64,
             height: 64,
             borderRadius: 3,
-            background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-            fontSize: 32,
+            background: GRADIENT,
             mb: 2,
             boxShadow: '0 0 40px rgba(99,102,241,0.35)',
           }}>
-            ⚡
+            <BoltRoundedIcon sx={{ fontSize: 36, color: '#fff' }} />
           </Box>
-          <Typography variant="h5" fontWeight={800}>WordSwipe</Typography>
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: 800,
+              letterSpacing: '-0.02em',
+              background: GRADIENT,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
+          >
+            WordSwipe Admin
+          </Typography>
           <Typography variant="body2" color="text.secondary" mt={0.5}>
-            Admin Panel
+            Sign in to manage your app
           </Typography>
         </Box>
 
-        {error && <Alert severity="error" sx={{ borderRadius: 2 }}>{error}</Alert>}
+        {error && <Alert severity="error">{error}</Alert>}
 
         <TextField
           label="Username"
@@ -91,6 +122,13 @@ export function LoginPage() {
           autoFocus
           fullWidth
           disabled={loading}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <PersonRoundedIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
+              </InputAdornment>
+            ),
+          }}
         />
 
         <TextField
@@ -102,10 +140,15 @@ export function LoginPage() {
           fullWidth
           disabled={loading}
           InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <LockRoundedIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
+              </InputAdornment>
+            ),
             endAdornment: (
               <InputAdornment position="end">
-                <IconButton size="small" onClick={() => setShowPwd((v) => !v)} edge="end">
-                  {showPwd ? '🙈' : '👁'}
+                <IconButton size="small" onClick={() => setShowPwd((v) => !v)} edge="end" sx={{ color: 'text.secondary' }}>
+                  {showPwd ? <VisibilityOffRoundedIcon fontSize="small" /> : <VisibilityRoundedIcon fontSize="small" />}
                 </IconButton>
               </InputAdornment>
             ),
@@ -116,14 +159,9 @@ export function LoginPage() {
           type="submit"
           variant="contained"
           size="large"
+          fullWidth
           disabled={loading || !username || !password}
-          sx={{
-            py: 1.5,
-            fontWeight: 700,
-            fontSize: '1rem',
-            background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-            '&:hover': { background: 'linear-gradient(135deg, #4f46e5, #7c3aed)' },
-          }}
+          sx={{ py: 1.5, fontWeight: 700, fontSize: '1rem' }}
         >
           {loading ? <CircularProgress size={22} color="inherit" /> : 'Sign In'}
         </Button>

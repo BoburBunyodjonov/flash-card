@@ -1,10 +1,16 @@
 import { useEffect, useState, useCallback } from 'react'
 import {
   Box, Typography, Paper, Chip, IconButton, Dialog, DialogTitle,
-  DialogContent, DialogActions, Button, TextField, Switch, FormControlLabel,
-  Avatar, Tooltip, CircularProgress,
+  DialogContent, DialogActions, Button, TextField,
+  Avatar, Tooltip, CircularProgress, InputAdornment,
 } from '@mui/material'
 import { DataGrid, type GridColDef } from '@mui/x-data-grid'
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
+import ManageAccountsRoundedIcon from '@mui/icons-material/ManageAccountsRounded'
+import LocalFireDepartmentRoundedIcon from '@mui/icons-material/LocalFireDepartmentRounded'
+import BoltRoundedIcon from '@mui/icons-material/BoltRounded'
+import WorkspacePremiumRoundedIcon from '@mui/icons-material/WorkspacePremiumRounded'
+import { PageHeader } from '../../components/PageHeader'
 import { usersApi } from '../../api/users.api'
 
 interface User {
@@ -53,10 +59,10 @@ export function UsersPage() {
 
   const columns: GridColDef[] = [
     {
-      field: 'name', headerName: 'User', flex: 1, minWidth: 160,
+      field: 'name', headerName: 'User', flex: 1, minWidth: 180,
       renderCell: ({ row }) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Avatar sx={{ width: 28, height: 28, fontSize: 12, bgcolor: 'primary.main' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+          <Avatar sx={{ width: 30, height: 30, fontSize: 13, fontWeight: 700, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
             {row.firstName?.[0]}
           </Avatar>
           <Box>
@@ -67,9 +73,10 @@ export function UsersPage() {
       ),
     },
     {
-      field: 'isPremium', headerName: 'Plan', width: 110,
-      renderCell: ({ value, row }) => (
+      field: 'isPremium', headerName: 'Plan', width: 120,
+      renderCell: ({ value }) => (
         <Chip
+          icon={value ? <WorkspacePremiumRoundedIcon sx={{ fontSize: 14 }} /> : undefined}
           label={value ? 'Premium' : 'Free'}
           size="small"
           color={value ? 'warning' : 'default'}
@@ -77,8 +84,24 @@ export function UsersPage() {
         />
       ),
     },
-    { field: 'streak', headerName: '🔥 Streak', width: 90, type: 'number' },
-    { field: 'xp', headerName: '⚡ XP', width: 90, type: 'number' },
+    {
+      field: 'streak', headerName: 'Streak', width: 100, type: 'number',
+      renderCell: ({ value }) => (
+        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+          <LocalFireDepartmentRoundedIcon sx={{ fontSize: 15, color: '#f59e0b' }} />
+          <Typography variant="body2">{value}</Typography>
+        </Box>
+      ),
+    },
+    {
+      field: 'xp', headerName: 'XP', width: 100, type: 'number',
+      renderCell: ({ value }) => (
+        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+          <BoltRoundedIcon sx={{ fontSize: 15, color: '#818cf8' }} />
+          <Typography variant="body2">{value?.toLocaleString()}</Typography>
+        </Box>
+      ),
+    },
     { field: '_count', headerName: 'Words', width: 80, valueGetter: (_, row) => row._count?.wordProgress ?? 0 },
     {
       field: 'lastActive', headerName: 'Last Active', width: 120,
@@ -91,8 +114,10 @@ export function UsersPage() {
     {
       field: 'actions', headerName: '', width: 60, sortable: false,
       renderCell: ({ row }) => (
-        <Tooltip title="Manage">
-          <IconButton size="small" onClick={() => openUser(row)}>⚙️</IconButton>
+        <Tooltip title="Manage" arrow>
+          <IconButton size="small" onClick={() => openUser(row)} sx={{ color: 'text.secondary', '&:hover': { color: 'primary.light' } }}>
+            <ManageAccountsRoundedIcon fontSize="small" />
+          </IconButton>
         </Tooltip>
       ),
     },
@@ -100,11 +125,23 @@ export function UsersPage() {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>Users</Typography>
+      <PageHeader title="Users" subtitle={`${total.toLocaleString()} registered learners`} />
 
       <Paper sx={{ mb: 2, p: 2 }}>
-        <TextField size="small" placeholder="Search by name or username…" value={search}
-          onChange={(e) => setSearch(e.target.value)} sx={{ width: 320 }} />
+        <TextField
+          size="small"
+          placeholder="Search by name or username…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          sx={{ width: 340 }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchRoundedIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
+              </InputAdornment>
+            ),
+          }}
+        />
       </Paper>
 
       <Paper sx={{ height: 600 }}>
@@ -122,7 +159,7 @@ export function UsersPage() {
           {selected && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Avatar sx={{ width: 48, height: 48, bgcolor: 'primary.main', fontSize: 20 }}>
+                <Avatar sx={{ width: 48, height: 48, fontSize: 20, fontWeight: 700, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
                   {selected.firstName?.[0]}
                 </Avatar>
                 <Box>
@@ -131,19 +168,17 @@ export function UsersPage() {
                 </Box>
               </Box>
 
-              <Box sx={{ display: 'flex', gap: 3 }}>
-                <Box sx={{ textAlign: 'center' }}>
-                  <Typography variant="h5" color="warning.main">{selected.streak}</Typography>
-                  <Typography variant="caption" color="text.secondary">Streak</Typography>
-                </Box>
-                <Box sx={{ textAlign: 'center' }}>
-                  <Typography variant="h5" color="primary.main">{selected.xp.toLocaleString()}</Typography>
-                  <Typography variant="caption" color="text.secondary">XP</Typography>
-                </Box>
-                <Box sx={{ textAlign: 'center' }}>
-                  <Typography variant="h5">{selected._count.wordProgress}</Typography>
-                  <Typography variant="caption" color="text.secondary">Words</Typography>
-                </Box>
+              <Box sx={{ display: 'flex', gap: 1.5 }}>
+                {[
+                  { label: 'Streak', value: selected.streak, color: 'warning.main' },
+                  { label: 'XP', value: selected.xp.toLocaleString(), color: 'primary.light' },
+                  { label: 'Words', value: selected._count.wordProgress, color: 'text.primary' },
+                ].map((stat) => (
+                  <Paper key={stat.label} variant="outlined" sx={{ flex: 1, p: 1.5, textAlign: 'center', bgcolor: 'rgba(255,255,255,0.02)' }}>
+                    <Typography variant="h6" sx={{ color: stat.color, fontWeight: 800 }}>{stat.value}</Typography>
+                    <Typography variant="caption" color="text.secondary">{stat.label}</Typography>
+                  </Paper>
+                ))}
               </Box>
 
               <Box>
@@ -153,12 +188,12 @@ export function UsersPage() {
             </Box>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setSelected(null)}>Cancel</Button>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button onClick={() => setSelected(null)} color="inherit">Cancel</Button>
           {selected?.isPremium
             ? <Button color="error" onClick={() => savePremium(false)} disabled={saving}>Revoke Premium</Button>
             : <Button variant="contained" color="warning" onClick={() => savePremium(true)} disabled={saving}>
-                {saving ? <CircularProgress size={16} /> : 'Grant Premium'}
+                {saving ? <CircularProgress size={16} color="inherit" /> : 'Grant Premium'}
               </Button>
           }
         </DialogActions>

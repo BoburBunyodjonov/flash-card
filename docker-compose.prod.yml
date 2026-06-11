@@ -1,0 +1,56 @@
+# Production stack: Postgres/Redis internal-only + API on 127.0.0.1:3001.
+# HTTPS/static serving is handled by the HOST Caddy (/etc/caddy/Caddyfile) which
+# also serves other projects on this server — do not add a caddy container here.
+# Server usage: docker compose -f docker-compose.prod.yml up -d --build
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+      POSTGRES_DB: wordswipe
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d wordswipe']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    # No ports: — never exposed to the internet
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.api
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@postgres:5432/wordswipe
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: '3000'
+    ports:
+      - '127.0.0.1:3001:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  redisdata:

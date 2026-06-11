@@ -3,6 +3,7 @@ import { motion, useMotionValue, useTransform, useAnimation, type PanInfo } from
 import { useTranslation } from 'react-i18next'
 import type { FeedWord } from '@wordswipe/shared'
 import { useTelegram } from '../../hooks/useTelegram'
+import { playWordAudio } from '../../lib/tts'
 
 interface Props {
   word: FeedWord
@@ -201,16 +202,14 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
           </span>
           <span className="text-xs font-medium text-white/30 max-w-[130px] truncate">{word.category?.name}</span>
           <div className="flex items-center gap-1.5">
-            {word.audioUrl && (
-              <motion.button
-                whileTap={{ scale: 0.8 }}
-                onClick={(e) => { e.stopPropagation(); new Audio(word.audioUrl!).play() }}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-sm"
-                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
-              >
-                🔊
-              </motion.button>
-            )}
+            <motion.button
+              whileTap={{ scale: 0.8 }}
+              onClick={(e) => { e.stopPropagation(); playWordAudio(word.word, word.audioUrl) }}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-sm"
+              style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
+            >
+              🔊
+            </motion.button>
             <motion.button
               whileTap={{ scale: 0.8 }}
               onClick={handleShare}
@@ -234,6 +233,16 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
                 transition={{ duration: 0.2 }}
                 className="flex flex-col items-center gap-4"
               >
+                {word.imageUrl && (
+                  <img
+                    src={word.imageUrl}
+                    alt=""
+                    draggable={false}
+                    className="w-32 h-32 rounded-2xl object-cover pointer-events-none"
+                    style={{ border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
+                    onError={(e) => { e.currentTarget.style.display = 'none' }}
+                  />
+                )}
                 <h1
                   className="font-black text-white leading-none tracking-tight"
                   style={{

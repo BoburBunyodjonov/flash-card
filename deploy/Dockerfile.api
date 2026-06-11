@@ -1,0 +1,27 @@
+# API image for the pnpm monorepo (works on amd64 and arm64 — Hetzner CAX is ARM)
+FROM node:22-slim
+
+# openssl is required for Prisma engine detection on Debian
+RUN apt-get update -qq && apt-get install -y -qq openssl && rm -rf /var/lib/apt/lists/*
+RUN corepack enable
+WORKDIR /app
+
+# Install with the full workspace manifest first for layer caching
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY packages/shared/package.json packages/shared/
+COPY packages/api/package.json packages/api/
+RUN pnpm install --frozen-lockfile --filter api...
+
+COPY packages/shared packages/shared
+COPY packages/api packages/api
+
+RUN pnpm --filter @wordswipe/shared build \
+ # main points at TS source for dev (tsx); plain Node needs the built CJS output
+ && node -e "const f='packages/shared/package.json',p=require('./'+f);p.main='./dist/index.js';p.types='./dist/index.d.ts';require('fs').writeFileSync(f,JSON.stringify(p,null,2))" \
+ && cd packages/api \
+ && npx prisma generate \
+ && pnpm build
+
+ENV NODE_ENV=production
+EXPOSE 3000
+CMD ["node", "packages/api/dist/index.js"]

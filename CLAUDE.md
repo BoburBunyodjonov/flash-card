@@ -31,8 +31,8 @@ Vocabulary flashcard app with TikTok-style swipe mechanics. English → Uzbek wo
 
 Copy `.env.example` to `.env`. Minimum for local dev:
 ```
-DATABASE_URL=postgresql://postgres:password@localhost:5432/wordswipe
-REDIS_URL=redis://localhost:6379
+DATABASE_URL=postgresql://postgres:password@localhost:5434/wordswipe
+REDIS_URL=redis://localhost:6380
 JWT_SECRET=any-secret
 JWT_REFRESH_SECRET=another-secret
 TELEGRAM_BOT_TOKEN=from-botfather  # web app uchun
@@ -43,7 +43,7 @@ ADMIN_PASSWORD=yourpassword
 ## Database
 
 - Prisma schema: `packages/api/prisma/schema.prisma`
-- 12 tables: users, words, word_translations, categories, user_word_progress, user_decks, deck_words, follows, plan_settings, payments, language_pairs
+- Tables: users, words, word_translations, categories, user_word_progress, user_decks, deck_words, follows, plan_settings, payments, language_pairs, duels, league_members
 - Seed file: `packages/api/prisma/seed.ts` (run separately via `pnpm --filter api db:seed`)
 
 ## Key Domain Logic
@@ -62,6 +62,32 @@ ADMIN_PASSWORD=yourpassword
 - `packages/api/src/services/plan-settings.service.ts`
 - All limits stored in `plan_settings` DB table, cached in Redis 60s
 - Admin can change any limit without code changes
+
+**Quiz / Practice:**
+- `packages/api/src/services/quiz.service.ts` + `apps/web/src/pages/Quiz`
+- Modes: mcq, reverse, typing, listening, cloze, mixed — pulls due/weak words first
+- Correct answers apply SM-2 + award XP (`XP_PER_QUIZ_CORRECT`)
+
+**Friend Duels:**
+- `packages/api/src/services/duel.service.ts` + `apps/web/src/pages/Duel`
+- Shared question set stored in `duels.questions` JSON; deep link `?startapp=duel_<id>`
+- Winner +50 XP, loser +15, draw +25 (tie broken by time)
+
+**Weekly Leagues:**
+- `packages/api/src/services/league.service.ts` — lazy group assignment (30/group per tier)
+- Tiers: Bronze → Silver → Gold → Sapphire → Diamond; top 10 promote, bottom 5 demote
+- Finalized by BullMQ cron Monday 00:05; all XP awards also call `addLeagueXp`
+
+**Smart Reminders (BullMQ, `packages/api/src/jobs/index.ts`):**
+- Daily reminder at user's `notifyAt` (includes due-word count)
+- Hourly SM-2 dispatcher: notifies when ≥10 words are due (max 1×/day, quiet 22:00–08:00)
+
+**CEFR Levels:**
+- `users.cefr_level` set at onboarding / Settings; feed serves words up to level+1
+
+**Audio & Offline:**
+- Cards always show 🔊 — plays `audioUrl` or falls back to browser TTS (`apps/web/src/lib/tts.ts`)
+- Offline PWA: feed cached + swipes queued in localStorage, replayed on reconnect (`feed.store.ts`)
 
 **Auth:**
 - Web app: Telegram WebApp `initData` → `validateWebAppInitData` (HMAC-SHA256 "WebAppData")
@@ -86,6 +112,9 @@ pnpm --filter admin dev           # Start admin panel
 ```
 
 ## Important Notes
+
+- Docker ports moved to **5434 (Postgres) / 6380 (Redis)** because another project occupies 5432/6379 on this machine
+- `packages/api/.env` is a symlink to the root `.env` (dotenv loads from the package cwd)
 
 - `TELEGRAM_BOT_TOKEN` is NOT required for admin panel — only for web app Telegram auth
 - Admin panel has no Telegram dependency — purely browser-based with username/password

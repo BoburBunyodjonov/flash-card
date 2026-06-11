@@ -1,8 +1,14 @@
 import { useEffect, useState } from 'react'
 import {
-  Box, Typography, Paper, Grid, TextField, Switch, FormControlLabel,
-  Divider, Button, Alert, CircularProgress, Chip,
+  Box, Typography, Paper, Grid, TextField, Switch,
+  Divider, Button, CircularProgress, Chip, alpha,
 } from '@mui/material'
+import SaveRoundedIcon from '@mui/icons-material/SaveRounded'
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded'
+import LockOpenRoundedIcon from '@mui/icons-material/LockOpenRounded'
+import ToggleOnRoundedIcon from '@mui/icons-material/ToggleOnRounded'
+import WorkspacePremiumRoundedIcon from '@mui/icons-material/WorkspacePremiumRounded'
+import { PageHeader } from '../../components/PageHeader'
 import { settingsApi } from '../../api/settings.api'
 
 interface Settings { [key: string]: number | boolean }
@@ -38,6 +44,24 @@ const PRICES: FieldDef[] = [
   { key: 'premium_discount_percent', label: 'Discount %', type: 'number', unit: '%', description: 'Shown as "X% OFF" on pricing page' },
   { key: 'premium_trial_days', label: 'Trial days', type: 'number', unit: 'days', description: 'Free trial duration (0 = no trial)' },
 ]
+
+function SectionTitle({ icon, color, children }: { icon: React.ReactNode; color: string; children: React.ReactNode }) {
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 1 }}>
+      <Box
+        sx={{
+          width: 32, height: 32, borderRadius: 2, flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          bgcolor: alpha(color, 0.14), color,
+          '& .MuiSvgIcon-root': { fontSize: 18 },
+        }}
+      >
+        {icon}
+      </Box>
+      <Typography variant="h6">{children}</Typography>
+    </Box>
+  )
+}
 
 function SettingRow({ field, value, onChange }: { field: FieldDef; value: number | boolean; onChange: (key: string, v: number | boolean) => void }) {
   if (field.type === 'boolean') {
@@ -104,31 +128,31 @@ export function PlanSettingsPage() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box>
-          <Typography variant="h4">Plan Settings</Typography>
-          <Typography variant="body2" color="text.secondary">Changes take effect immediately for all users</Typography>
-        </Box>
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-          {saved && <Chip label="✓ Saved" color="success" size="small" />}
-          {dirty.size > 0 && <Chip label={`${dirty.size} unsaved`} color="warning" size="small" />}
-          <Button
-            variant="contained"
-            onClick={saveAll}
-            disabled={saving || dirty.size === 0}
-            startIcon={saving ? <CircularProgress size={16} /> : undefined}
-            size="large"
-          >
-            Save Changes
-          </Button>
-        </Box>
-      </Box>
+      <PageHeader
+        title="Plan Settings"
+        subtitle="Changes take effect immediately for all users"
+        action={
+          <>
+            {saved && <Chip icon={<CheckCircleRoundedIcon />} label="Saved" color="success" size="small" />}
+            {dirty.size > 0 && <Chip label={`${dirty.size} unsaved`} color="warning" size="small" />}
+            <Button
+              variant="contained"
+              onClick={saveAll}
+              disabled={saving || dirty.size === 0}
+              startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <SaveRoundedIcon />}
+              size="large"
+            >
+              Save Changes
+            </Button>
+          </>
+        }
+      />
 
       <Grid container spacing={3}>
         {/* Free plan limits */}
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>🆓 Free Plan — Limits</Typography>
+          <Paper sx={{ p: 3, height: '100%' }}>
+            <SectionTitle icon={<LockOpenRoundedIcon />} color="#10b981">Free Plan — Limits</SectionTitle>
             <Divider sx={{ mb: 2 }} />
             {FREE_LIMITS.map((f) => (
               <SettingRow key={f.key} field={f} value={settings[f.key] ?? 0} onChange={handleChange} />
@@ -138,8 +162,8 @@ export function PlanSettingsPage() {
 
         {/* Free plan features */}
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>🆓 Free Plan — Features</Typography>
+          <Paper sx={{ p: 3, height: '100%' }}>
+            <SectionTitle icon={<ToggleOnRoundedIcon />} color="#6366f1">Free Plan — Features</SectionTitle>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
               Toggle which features are available without Premium
             </Typography>
@@ -156,13 +180,13 @@ export function PlanSettingsPage() {
         {/* Premium pricing */}
         <Grid item xs={12}>
           <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>⭐ Premium Pricing</Typography>
+            <SectionTitle icon={<WorkspacePremiumRoundedIcon />} color="#f59e0b">Premium Pricing</SectionTitle>
             <Divider sx={{ mb: 2 }} />
             <Grid container spacing={2}>
               {PRICES.map((f) => (
                 <Grid item xs={12} sm={6} md={3} key={f.key}>
-                  <Paper variant="outlined" sx={{ p: 2 }}>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                  <Paper variant="outlined" sx={{ p: 2, height: '100%', bgcolor: 'rgba(255,255,255,0.02)' }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontWeight: 600 }}>
                       {f.label}
                     </Typography>
                     <TextField

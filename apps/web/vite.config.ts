@@ -11,9 +11,34 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/api\./,
+            // Same-origin API GETs (feed, categories, progress…) — fresh when online,
+            // cached fallback when offline
+            urlPattern: ({ url, request }) =>
+              url.pathname.startsWith('/api/') && request.method === 'GET',
             handler: 'NetworkFirst',
-            options: { cacheName: 'api-cache', networkTimeoutSeconds: 10 },
+            options: {
+              cacheName: 'api-cache',
+              networkTimeoutSeconds: 10,
+              expiration: { maxEntries: 100, maxAgeSeconds: 86400 },
+            },
+          },
+          {
+            // Word audio files — cache-first, they never change
+            urlPattern: ({ request }) => request.destination === 'audio',
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'audio-cache',
+              expiration: { maxEntries: 200, maxAgeSeconds: 30 * 86400 },
+            },
+          },
+          {
+            // Word images from any origin
+            urlPattern: ({ request }) => request.destination === 'image',
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'image-cache',
+              expiration: { maxEntries: 200, maxAgeSeconds: 30 * 86400 },
+            },
           },
         ],
       },

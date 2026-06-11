@@ -3,6 +3,8 @@ import type { Telegraf } from 'telegraf'
 import { redis } from '../lib/redis'
 import { config } from '../config'
 import { prisma } from '../lib/prisma'
+import { finalizeLastWeek } from '../services/league.service'
+import { REVIEW_REMINDER_THRESHOLD } from '@wordswipe/shared'
 
 const connection = { host: new URL(config.redis.url).hostname, port: parseInt(new URL(config.redis.url).port || '6379') }
 
@@ -13,12 +15,22 @@ const DISPATCH_JOB = 'daily-reminder-dispatch'
 const DISPATCH_PATTERN = '*/15 * * * *'
 const WINDOW_MINUTES = 15
 
+// SM-2 aware reminder: fires when enough words have come due for review.
+const DUE_DISPATCH_JOB = 'due-reminder-dispatch'
+const DUE_DISPATCH_PATTERN = '0 * * * *' // hourly
+const DUE_QUIET_START = 22 // no due-reminders between 22:00 and 08:00
+const DUE_QUIET_END = 8
+
+const LEAGUE_FINALIZE_JOB = 'league-finalize'
+const LEAGUE_FINALIZE_PATTERN = '5 0 * * 1' // Monday 00:05
+
 // Same UTC date key used by feed.service for the daily swipe counter.
 function todayKey() {
   return new Date().toISOString().split('T')[0]
 }
 const DAILY_COUNT_KEY = (userId: string) => `feed:daily:${userId}:${todayKey()}`
 const REMINDER_SENT_KEY = (userId: string) => `reminder:sent:${userId}:${todayKey()}`
+const DUE_REMINDER_SENT_KEY = (userId: string) => `reminder:due:${userId}:${todayKey()}`
 
 // Lazily-created shared bot instance (avoids re-instantiating per job).
 let botInstance: Telegraf | null = null
@@ -36,16 +48,25 @@ const reminderMessages: Record<string, (streak: number) => string> = {
   en: (s) => `📚 Did you learn words today? Streak: ${s} days 🔥`,
   ru: (s) => `📚 Вы учили слова сегодня? Серия: ${s} дней 🔥`,
 }
+// Variant used when the user has words due for spaced-repetition review.
+const dueReminderMessages: Record<string, (due: number, streak: number) => string> = {
+  uz: (d, s) => `🔔 ${d} ta so'z takrorlash vaqti keldi! Unutishdan oldin mustahkamlang. Streak: ${s} kun 🔥`,
+  en: (d, s) => `🔔 ${d} words are due for review! Reinforce them before you forget. Streak: ${s} days 🔥`,
+  ru: (d, s) => `🔔 ${d} слов пора повторить! Закрепите их, пока не забыли. Серия: ${s} дней 🔥`,
+}
 const openButtonText: Record<string, string> = {
   uz: '📖 Hozir o\'rganish',
   en: '📖 Learn now',
   ru: '📖 Учить сейчас',
 }
 
-async function sendReminder(telegramId: string, language: string, streak: number) {
+async function sendReminder(telegramId: string, language: string, streak: number, dueCount = 0) {
   const bot = await getBot()
   if (!bot) return
-  const text = (reminderMessages[language] ?? reminderMessages.en)(streak)
+  const text =
+    dueCount > 0
+      ? (dueReminderMessages[language] ?? dueReminderMessages.en)(dueCount, streak)
+      : (reminderMessages[language] ?? reminderMessages.en)(streak)
   const extra = config.telegram.webAppUrl
     ? {
         reply_markup: {
@@ -77,7 +98,7 @@ async function dispatchDailyReminders() {
   }
 
   const users = await prisma.user.findMany({
-    where: { notifyAt: { in: slots } },
+    where: { notifyAt: { in: slots }, notifyEnabled: true },
     select: { id: true, telegramId: true, language: true, streak: true },
   })
 
@@ -90,9 +111,57 @@ async function dispatchDailyReminders() {
     const studied = parseInt((await redis.get(DAILY_COUNT_KEY(user.id))) ?? '0')
     if (studied > 0) continue
 
+    // Personalize: tell the user how many words are waiting for review.
+    const dueCount = await prisma.userWordProgress.count({
+      where: { userId: user.id, nextReview: { lte: new Date() }, status: { not: 'mastered' } },
+    })
+
     await notificationQueue.add(
       'daily-reminder',
-      { telegramId: user.telegramId.toString(), language: user.language, streak: user.streak },
+      { telegramId: user.telegramId.toString(), language: user.language, streak: user.streak, dueCount },
+      { removeOnComplete: true, removeOnFail: 50, attempts: 2 },
+    )
+  }
+}
+
+/**
+ * SM-2 aware dispatcher: notifies users once enough words pile up for review,
+ * regardless of their fixed notifyAt time. At most once per day per user,
+ * skipped during night hours and for users who already studied today.
+ */
+async function dispatchDueReminders() {
+  const hour = new Date().getHours()
+  if (hour >= DUE_QUIET_START || hour < DUE_QUIET_END) return
+
+  const due = await prisma.userWordProgress.groupBy({
+    by: ['userId'],
+    where: { nextReview: { lte: new Date() }, status: { not: 'mastered' } },
+    _count: { _all: true },
+    having: { userId: { _count: { gte: REVIEW_REMINDER_THRESHOLD } } },
+  })
+  if (due.length === 0) return
+
+  const users = await prisma.user.findMany({
+    where: { id: { in: due.map((d) => d.userId) }, notifyEnabled: true },
+    select: { id: true, telegramId: true, language: true, streak: true },
+  })
+  const countByUser = new Map(due.map((d) => [d.userId, d._count._all]))
+
+  for (const user of users) {
+    const acquired = await redis.set(DUE_REMINDER_SENT_KEY(user.id), '1', 'EX', 90000, 'NX')
+    if (acquired !== 'OK') continue
+
+    const studied = parseInt((await redis.get(DAILY_COUNT_KEY(user.id))) ?? '0')
+    if (studied > 0) continue
+
+    await notificationQueue.add(
+      'daily-reminder',
+      {
+        telegramId: user.telegramId.toString(),
+        language: user.language,
+        streak: user.streak,
+        dueCount: countByUser.get(user.id) ?? 0,
+      },
       { removeOnComplete: true, removeOnFail: 50, attempts: 2 },
     )
   }
@@ -119,9 +188,17 @@ export function startWorkers() {
         await dispatchDailyReminders()
       }
 
+      if (job.name === DUE_DISPATCH_JOB) {
+        await dispatchDueReminders()
+      }
+
+      if (job.name === LEAGUE_FINALIZE_JOB) {
+        await finalizeLastWeek()
+      }
+
       if (job.name === 'daily-reminder') {
-        const { telegramId, language, streak } = job.data
-        await sendReminder(telegramId, language ?? 'en', streak ?? 0)
+        const { telegramId, language, streak, dueCount } = job.data
+        await sendReminder(telegramId, language ?? 'en', streak ?? 0, dueCount ?? 0)
       }
     },
     { connection },
@@ -144,5 +221,15 @@ export async function setupRecurringJobs() {
     { pattern: DISPATCH_PATTERN },
     { name: DISPATCH_JOB, data: {}, opts: { removeOnComplete: true, removeOnFail: 50 } },
   )
-  console.log('[Queue] Daily reminder dispatcher scheduled')
+  await notificationQueue.upsertJobScheduler(
+    DUE_DISPATCH_JOB,
+    { pattern: DUE_DISPATCH_PATTERN },
+    { name: DUE_DISPATCH_JOB, data: {}, opts: { removeOnComplete: true, removeOnFail: 50 } },
+  )
+  await notificationQueue.upsertJobScheduler(
+    LEAGUE_FINALIZE_JOB,
+    { pattern: LEAGUE_FINALIZE_PATTERN },
+    { name: LEAGUE_FINALIZE_JOB, data: {}, opts: { removeOnComplete: true, removeOnFail: 50 } },
+  )
+  console.log('[Queue] Schedulers ready: daily reminders, due-word reminders, league finalize')
 }

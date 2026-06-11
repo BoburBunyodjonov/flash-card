@@ -3,6 +3,11 @@ import {
   Box, Typography, Paper, TextField, Button, ToggleButtonGroup,
   ToggleButton, Alert, CircularProgress,
 } from '@mui/material'
+import SendRoundedIcon from '@mui/icons-material/SendRounded'
+import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded'
+import WorkspacePremiumRoundedIcon from '@mui/icons-material/WorkspacePremiumRounded'
+import LockOpenRoundedIcon from '@mui/icons-material/LockOpenRounded'
+import { PageHeader } from '../../components/PageHeader'
 import { settingsApi } from '../../api/settings.api'
 
 export function NotificationsPage() {
@@ -17,7 +22,7 @@ export function NotificationsPage() {
     setStatus(null)
     try {
       const result = await settingsApi.sendNotification(message, target)
-      setStatus({ type: 'success', msg: `✅ Queued for ${result.queued} users` })
+      setStatus({ type: 'success', msg: `Queued for ${result.queued} users` })
       setMessage('')
     } catch {
       setStatus({ type: 'error', msg: 'Failed to send notification' })
@@ -28,7 +33,7 @@ export function NotificationsPage() {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>Notifications</Typography>
+      <PageHeader title="Notifications" subtitle="Send broadcast messages to your users via the Telegram bot" />
 
       <Paper sx={{ p: 4, maxWidth: 600 }}>
         <Typography variant="h6" gutterBottom>Send Message</Typography>
@@ -44,9 +49,15 @@ export function NotificationsPage() {
               onChange={(_, v) => v && setTarget(v)}
               size="small"
             >
-              <ToggleButton value="all">👥 All users</ToggleButton>
-              <ToggleButton value="premium">⭐ Premium only</ToggleButton>
-              <ToggleButton value="free">🆓 Free only</ToggleButton>
+              <ToggleButton value="all" sx={{ gap: 0.75, px: 1.5 }}>
+                <PeopleAltRoundedIcon sx={{ fontSize: 16 }} /> All users
+              </ToggleButton>
+              <ToggleButton value="premium" sx={{ gap: 0.75, px: 1.5 }}>
+                <WorkspacePremiumRoundedIcon sx={{ fontSize: 16 }} /> Premium only
+              </ToggleButton>
+              <ToggleButton value="free" sx={{ gap: 0.75, px: 1.5 }}>
+                <LockOpenRoundedIcon sx={{ fontSize: 16 }} /> Free only
+              </ToggleButton>
             </ToggleButtonGroup>
           </Box>
 
@@ -56,7 +67,7 @@ export function NotificationsPage() {
             rows={4}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="📚 Don't forget to practice today!"
+            placeholder="Don't forget to practice today!"
             inputProps={{ maxLength: 500 }}
             helperText={`${message.length}/500`}
           />
@@ -66,7 +77,7 @@ export function NotificationsPage() {
             size="large"
             onClick={send}
             disabled={loading || !message.trim()}
-            startIcon={loading ? <CircularProgress size={18} /> : undefined}
+            startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <SendRoundedIcon />}
           >
             Send via Telegram Bot
           </Button>

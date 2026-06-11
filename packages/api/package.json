@@ -10,6 +10,7 @@
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
+    "db:enrich": "tsx scripts/enrich-words.ts",
     "db:studio": "prisma studio"
   },
   "dependencies": {
