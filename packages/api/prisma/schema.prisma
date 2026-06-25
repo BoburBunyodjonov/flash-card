@@ -102,8 +102,34 @@ model User {
   speakingAsA    SpeakingSession[] @relation("SpeakingUserA")
   speakingAsB    SpeakingSession[] @relation("SpeakingUserB")
   speakingReports SpeakingReport[]
+  userWords    UserWord[]
 
   @@map("users")
+}
+
+model UserWord {
+  id            String     @id @default(uuid())
+  userId        String     @map("user_id")
+  word          String                              // English word/phrase
+  translation   String                              // user's own Uzbek translation
+  pronunciation String?
+  audioUrl      String?    @map("audio_url")
+  partOfSpeech  String?    @map("part_of_speech")
+  definitionEn  String?    @map("definition_en")
+  exampleEn     String?    @map("example_en")
+  synonyms      String[]   @default([])
+  strength      Int        @default(0)
+  status        WordStatus @default(new)
+  nextReview    DateTime?  @map("next_review")
+  reviewCount   Int        @default(0) @map("review_count")
+  lastReviewed  DateTime?  @map("last_reviewed")
+  createdAt     DateTime   @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, word])
+  @@index([userId])
+  @@map("user_words")
 }
 
 model SpeakingSession {

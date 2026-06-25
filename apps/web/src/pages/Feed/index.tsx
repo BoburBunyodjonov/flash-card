@@ -30,7 +30,7 @@ function useCountdownToMidnight() {
   return { hoursLeft, minutesLeft }
 }
 
-export function FeedPage({ onChallenge, onQuiz, onDuel, onSpeaking }: { onChallenge?: () => void; onQuiz?: () => void; onDuel?: () => void; onSpeaking?: () => void }) {
+export function FeedPage({ onChallenge, onQuiz, onDuel, onSpeaking, onMyWords }: { onChallenge?: () => void; onQuiz?: () => void; onDuel?: () => void; onSpeaking?: () => void; onMyWords?: () => void }) {
   const { t } = useTranslation()
   const { words, currentIndex, stats, isLoading, isLimitReached, isEmpty, loadFeed, swipe, nextCard, selectedCategoryId, setCategory } = useFeedStore()
   const { user } = useAuthStore()
@@ -277,6 +277,15 @@ export function FeedPage({ onChallenge, onQuiz, onDuel, onSpeaking }: { onChalle
             style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.25)' }}
           >
             🎙️
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.88 }}
+            onClick={onMyWords}
+            aria-label={t('myWords.title')}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-base"
+            style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.25)' }}
+          >
+            📝
           </motion.button>
         </div>
       </div>

@@ -19,7 +19,10 @@ export function calculateNextReview(
 
   if (quality === 'left') {
     newStrength = Math.max(0, currentStrength - 20)
-    newReviewCount = Math.max(0, reviewCount - 1)
+    // A lapse resets the schedule so the word returns tomorrow (interval
+    // index 0 = 1 day). Decrementing by 1 left a failed mature word stuck on
+    // a ~30-day interval — the opposite of what review should do.
+    newReviewCount = 0
   } else {
     newStrength = Math.min(100, currentStrength + 15)
     newReviewCount = reviewCount + 1

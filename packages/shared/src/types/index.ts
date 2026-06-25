@@ -37,7 +37,7 @@ export interface FeedWord {
   audioUrl: string | null
   imageUrl: string | null
   partOfSpeech: string | null
-  difficulty: Difficulty
+  difficulty: Difficulty | null
   category: {
     id: string
     name: string
@@ -54,6 +54,8 @@ export interface FeedWord {
     strength: number
     reviewCount: number
   } | null
+  /** 'personal' = a word the user added themselves (My Words); 'global' = curated catalog. */
+  source?: 'global' | 'personal'
 }
 
 export interface PaginationQuery {

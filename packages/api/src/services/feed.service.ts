@@ -3,8 +3,16 @@ import { redis } from '../lib/redis'
 import { getFreeLimits } from './plan-settings.service'
 import { calculateNextReview } from '../utils/spaced-repetition'
 import { addLeagueXp } from './league.service'
+import { reviewUserWord } from './my-words.service'
 import { XP_PER_WORD, XP_STREAK_MULTIPLIER, DIFFICULTIES } from '@wordswipe/shared'
 import type { Language, Difficulty } from '@wordswipe/shared'
+
+// Label shown on the category chip for the user's own added words.
+const PERSONAL_CATEGORY_NAME: Record<Language, string> = {
+  uz: "Mening so'zlarim",
+  en: 'My Words',
+  ru: 'Мои слова',
+}
 
 /** CEFR window: words up to one level above the user's own level. */
 function allowedDifficulties(level: Difficulty | null): Difficulty[] | null {
@@ -91,7 +99,22 @@ export async function getDailyFeed(userId: string, isPremium: boolean, language:
   const reviewFormatted = (reviewWords as any[]).map((p) => formatWord(p.word, p, language))
   const newFormatted = (newWords as any[]).map((w) => formatWord(w, null, language))
 
-  const queue = shuffle([...reviewFormatted, ...newFormatted])
+  // The user's own added words (My Words) join the same feed — but only on the
+  // unfiltered "all" feed, since they don't belong to a global category.
+  let personalFormatted: any[] = []
+  if (!categoryId) {
+    const personalWords = await prisma.userWord.findMany({
+      where: {
+        userId,
+        OR: [{ status: 'new' }, { nextReview: { lte: new Date() } }],
+      },
+      orderBy: { nextReview: 'asc' },
+      take: 20,
+    })
+    personalFormatted = (personalWords as any[]).map((w) => formatPersonalWord(w, language))
+  }
+
+  const queue = shuffle([...reviewFormatted, ...newFormatted, ...personalFormatted])
 
   await redis.setex(queueKey, 86400, JSON.stringify(queue))
 
@@ -109,6 +132,21 @@ export async function recordSwipe(
   direction: 'left' | 'right' | 'up',
   isPremium: boolean,
 ) {
+  // Personal "My Words" entries share the feed but live in their own table —
+  // route their swipes to the personal SM-2 path (own daily XP cap, no league).
+  const personal = await prisma.userWord.findFirst({
+    where: { id: wordId, userId },
+    select: { id: true },
+  })
+  if (personal) {
+    if (direction === 'up') return { xpEarned: 0 } // bookmark n/a — already the user's word
+    const result = await reviewUserWord(userId, wordId, direction)
+    await redis.incr(DAILY_COUNT_KEY(userId))
+    await redis.expire(DAILY_COUNT_KEY(userId), 86400)
+    await updateStreak(userId)
+    return { xpEarned: result.xpEarned, status: result.status }
+  }
+
   if (direction === 'up') {
     await bookmarkWord(userId, wordId)
     return { xpEarned: 0 }
@@ -238,6 +276,29 @@ function formatWord(word: any, progress: any, language: Language) {
     progress: progress
       ? { status: progress.status, strength: progress.strength, reviewCount: progress.reviewCount }
       : null,
+    source: 'global' as const,
+  }
+}
+
+/** Maps a personal UserWord row into the same shape the feed/SwipeCard expects. */
+function formatPersonalWord(uw: any, language: Language) {
+  return {
+    id: uw.id,
+    word: uw.word,
+    pronunciation: uw.pronunciation,
+    audioUrl: uw.audioUrl,
+    imageUrl: null,
+    partOfSpeech: uw.partOfSpeech,
+    difficulty: null,
+    category: { id: 'personal', name: PERSONAL_CATEGORY_NAME[language] ?? 'My Words', isPremium: false },
+    translation: {
+      translation: uw.translation,
+      definitionEn: uw.definitionEn,
+      exampleEn: uw.exampleEn,
+      exampleTranslated: null,
+    },
+    progress: { status: uw.status, strength: uw.strength, reviewCount: uw.reviewCount },
+    source: 'personal' as const,
   }
 }
 

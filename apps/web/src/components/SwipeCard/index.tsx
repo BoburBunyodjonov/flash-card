@@ -28,7 +28,7 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
   const [isFlipped, setIsFlipped] = useState(false)
   const controls = useAnimation()
   const isDragging = useRef(false)
-  const diff = DIFFICULTY_CONFIG[word.difficulty] ?? DIFFICULTY_CONFIG.A1
+  const diff = (word.difficulty && DIFFICULTY_CONFIG[word.difficulty]) ?? DIFFICULTY_CONFIG.A1
 
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -36,7 +36,7 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
 
     const lines: string[] = []
     lines.push(`📖 ${word.word}${word.pronunciation ? '  ' + word.pronunciation : ''}`)
-    if (word.partOfSpeech) lines.push(`(${word.partOfSpeech})  •  ${word.difficulty}`)
+    if (word.partOfSpeech) lines.push(`(${word.partOfSpeech})${word.difficulty ? '  •  ' + word.difficulty : ''}`)
     lines.push('─────────────────')
     if (word.translation?.translation) lines.push(`🇺🇿  ${word.translation.translation}`)
     if (word.translation?.definitionEn) lines.push(`\n📝  ${word.translation.definitionEn}`)
@@ -197,9 +197,16 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
 
         {/* Top row: difficulty · category · audio */}
         <div className="flex items-center justify-between px-5 pt-5 shrink-0">
-          <span className="text-xs font-black px-3 py-1 rounded-full tracking-wider" style={{ color: diff.color, background: diff.bg }}>
-            {diff.label}
-          </span>
+          {word.difficulty ? (
+            <span className="text-xs font-black px-3 py-1 rounded-full tracking-wider" style={{ color: diff.color, background: diff.bg }}>
+              {diff.label}
+            </span>
+          ) : (
+            // Personal "My Words" entries have no CEFR level — show an own-word marker instead
+            <span className="text-xs font-black px-3 py-1 rounded-full tracking-wider" style={{ color: '#818cf8', background: 'rgba(99,102,241,0.14)' }}>
+              📝
+            </span>
+          )}
           <span className="text-xs font-medium text-white/30 max-w-[130px] truncate">{word.category?.name}</span>
           <div className="flex items-center gap-1.5">
             <motion.button

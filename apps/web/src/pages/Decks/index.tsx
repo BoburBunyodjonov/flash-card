@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { decksApi, getApiErrorMessage } from '../../api/decks.api'
 import { wordsApi } from '../../api/words.api'
+import { feedApi } from '../../api/feed.api'
 import { useTelegram } from '../../hooks/useTelegram'
 
 interface Deck {
@@ -105,6 +106,12 @@ function DeckQuiz({ words, onExit }: { words: DeckWord[]; onExit: () => void }) 
 
   const advance = useCallback(
     (knew: boolean) => {
+      // Persist real spaced-repetition progress via the existing feed swipe
+      // endpoint. DeckWord.id is the GLOBAL Word.id (same id used to add/remove
+      // deck words). Fire-and-forget so a network blip never breaks the quiz.
+      if (current) {
+        feedApi.swipe(current.id, knew ? 'right' : 'left').catch(() => {})
+      }
       setScore(s =>
         knew ? { ...s, know: s.know + 1 } : { ...s, dontKnow: s.dontKnow + 1 },
       )
@@ -115,7 +122,7 @@ function DeckQuiz({ words, onExit }: { words: DeckWord[]; onExit: () => void }) 
         setFlipped(false)
       }
     },
-    [index, words.length],
+    [index, words.length, current],
   )
 
   const restart = () => {

@@ -19,7 +19,23 @@
       "Bash(break)",
       "Bash(node -e ' *)",
       "Bash(ssh root@46.225.113.117 \"cd /opt/wordswipe && docker compose -f docker-compose.prod.yml exec -T postgres psql -U postgres -d wordswipe -tAc \\\\\"select tablename from pg_tables where tablename like 'speaking%'; select column_name from information_schema.columns where table_name='users' and column_name='gender'\\\\\"\")",
-      "Bash(ssh root@46.225.113.117 'curl -s -o /dev/null -w \"API: %{http_code}\\\\n\" 127.0.0.1:3001/api/categories && cd /opt/wordswipe && docker compose -f docker-compose.prod.yml logs --tail 8 api 2>&1 | grep -iE \"listening|Bot|speaking|error\"')"
+      "Bash(ssh root@46.225.113.117 'curl -s -o /dev/null -w \"API: %{http_code}\\\\n\" 127.0.0.1:3001/api/categories && cd /opt/wordswipe && docker compose -f docker-compose.prod.yml logs --tail 8 api 2>&1 | grep -iE \"listening|Bot|speaking|error\"')",
+      "Bash(node -e \"console.log\\('node:', process.version, '— global fetch:', typeof fetch\\)\")",
+      "Bash(curl -s http://localhost:3000/api/my-words/lookup?word=hello -H 'Authorization: Bearer __TRACKED_VAR__')",
+      "Bash(curl -s http://localhost:3000/api/my-words/lookup?word=zxqwvtnonsenseword -H 'Authorization: Bearer __TRACKED_VAR__')",
+      "Bash(curl -s \"http://localhost:3000/api/my-words/lookup?word=hello\" -o /dev/null -w \"%{http_code}\\\\n\")",
+      "Bash(curl -s http://localhost:3000/api/my-words/ -H 'Authorization: Bearer __TRACKED_VAR__')",
+      "Bash(curl -s http://localhost:3000/api/my-words/study?limit=5 -H 'Authorization: Bearer __TRACKED_VAR__')",
+      "Bash(pkill -9 -f \"tsx watch.*src/index.ts\")",
+      "Bash(pkill -9 -f \"src/index.ts\")",
+      "Bash(ssh root@46.225.113.117 \"cd /opt/wordswipe && docker compose -f docker-compose.prod.yml exec -T postgres psql -U postgres -d wordswipe -tAc \\\\\"select count\\(*\\) from information_schema.tables where table_name='user_words'\\\\\"\")",
+      "Bash(curl -s -o /dev/null -w \"lookup no-auth: %{http_code}\\\\n\" \"https://bunyodjonov.uz/api/my-words/lookup?word=hello\")",
+      "Bash(npx tsx -e ' *)",
+      "Bash(node_modules/.bin/tsx -e ' *)",
+      "Bash(node -e 'const{createSigner}=require\\(\"/home/kahero/bobur/flash-card/node_modules/.pnpm/fast-jwt@3.3.3/node_modules/fast-jwt\"\\);const fs=require\\(\"fs\"\\);const s=fs.readFileSync\\(\"/home/kahero/bobur/flash-card/.env\",\"utf8\"\\).match\\(/^JWT_SECRET=\\(.*\\)$/m\\)[1].trim\\(\\);console.log\\(createSigner\\({key:s,expiresIn:600000}\\)\\({userId:\"fix_test\",isPremium:false}\\)\\)')",
+      "Bash(curl -s -o /dev/null -w 'HTTP %{http_code}\\\\n' -X POST http://127.0.0.1:3000/api/my-words -H 'Authorization: Bearer __TRACKED_VAR__' -H 'Content-Type: application/json' -d '{\"word\":\"Brave\",\"translation\":\"Jasur\",\"pronunciation\":\"/bɹeɪv/\",\"audioUrl\":null,\"partOfSpeech\":\"noun\",\"definitionEn\":\"A Native American warrior.\",\"exampleEn\":null,\"synonyms\":null}')",
+      "Bash(ssh root@46.225.113.117 'curl -s -o /dev/null -w \"prod API: %{http_code}\\\\n\" 127.0.0.1:3001/api/categories')",
+      "Bash(ssh root@46.225.113.117 'cd /opt/wordswipe && docker compose -f docker-compose.prod.yml ps postgres --format \"{{.Names}} {{.Ports}}\"; echo \"--- prod DB still has data? ---\"; docker compose -f docker-compose.prod.yml exec -T postgres psql -U postgres -d wordswipe -tAc \"select \\(select count\\(*\\) from users\\) as users, \\(select count\\(*\\) from words\\) as words\"')"
     ]
   }
 }

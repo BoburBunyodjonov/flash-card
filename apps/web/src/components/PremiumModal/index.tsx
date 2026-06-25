@@ -98,7 +98,7 @@ export function PremiumModal({ open, onClose }: PremiumModalProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-end justify-center"
+          className="fixed inset-0 z-[60] flex items-end justify-center"
           style={{ background: 'rgba(10,10,10,0.75)', backdropFilter: 'blur(4px)' }}
           onClick={onClose}
         >
@@ -107,8 +107,14 @@ export function PremiumModal({ open, onClose }: PremiumModalProps) {
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', stiffness: 380, damping: 36 }}
-            className="w-full max-w-md rounded-t-3xl px-5 pt-5 pb-8 overflow-y-auto no-scrollbar"
-            style={{ background: '#141420', border: '1px solid rgba(255,255,255,0.07)', maxHeight: '88vh' }}
+            className="w-full max-w-md rounded-t-3xl px-5 pt-5 overflow-y-auto no-scrollbar"
+            style={{
+              background: '#141420',
+              border: '1px solid rgba(255,255,255,0.07)',
+              maxHeight: '92vh',
+              // Clear the home indicator / safe area so the pay button is never cut off
+              paddingBottom: 'max(2rem, env(safe-area-inset-bottom))',
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Drag handle */}

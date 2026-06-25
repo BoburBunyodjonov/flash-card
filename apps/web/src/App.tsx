@@ -16,9 +16,10 @@ import { ChallengePage } from './pages/Challenge'
 import { QuizPage } from './pages/Quiz'
 import { DuelPage } from './pages/Duel'
 import { SpeakingPage } from './pages/Speaking'
+import { MyWordsPage } from './pages/MyWords'
 import { flushPendingSwipes } from './store/feed.store'
 
-type Page = 'feed' | 'dictionary' | 'decks' | 'progress' | 'leaderboard' | 'settings' | 'challenge' | 'quiz' | 'duel' | 'speaking'
+type Page = 'feed' | 'dictionary' | 'decks' | 'progress' | 'leaderboard' | 'settings' | 'challenge' | 'quiz' | 'duel' | 'speaking' | 'mywords'
 
 const NAV_PAGES: Page[] = ['feed', 'dictionary', 'decks', 'progress', 'leaderboard', 'settings']
 
@@ -79,10 +80,14 @@ export default function App() {
               onQuiz={() => setPage('quiz')}
               onDuel={() => setPage('duel')}
               onSpeaking={() => setPage('speaking')}
+              onMyWords={() => setPage('mywords')}
             />
           )}
           {page === 'speaking' && (
             <SpeakingPage onBack={() => setPage('feed')} />
+          )}
+          {page === 'mywords' && (
+            <MyWordsPage onBack={() => setPage('feed')} />
           )}
           {page === 'challenge' && (
             <ChallengePage onBack={() => setPage('feed')} />
