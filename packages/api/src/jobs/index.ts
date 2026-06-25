@@ -1,8 +1,8 @@
 import { Queue, Worker } from 'bullmq'
-import type { Telegraf } from 'telegraf'
 import { redis } from '../lib/redis'
 import { config } from '../config'
 import { prisma } from '../lib/prisma'
+import { getBot } from '../lib/bot'
 import { finalizeLastWeek } from '../services/league.service'
 import { REVIEW_REMINDER_THRESHOLD } from '@wordswipe/shared'
 
@@ -31,17 +31,6 @@ function todayKey() {
 const DAILY_COUNT_KEY = (userId: string) => `feed:daily:${userId}:${todayKey()}`
 const REMINDER_SENT_KEY = (userId: string) => `reminder:sent:${userId}:${todayKey()}`
 const DUE_REMINDER_SENT_KEY = (userId: string) => `reminder:due:${userId}:${todayKey()}`
-
-// Lazily-created shared bot instance (avoids re-instantiating per job).
-let botInstance: Telegraf | null = null
-async function getBot(): Promise<Telegraf | null> {
-  if (!config.telegram.botToken) return null
-  if (!botInstance) {
-    const { Telegraf } = await import('telegraf')
-    botInstance = new Telegraf(config.telegram.botToken)
-  }
-  return botInstance
-}
 
 const reminderMessages: Record<string, (streak: number) => string> = {
   uz: (s) => `📚 Bugun so'z yodladingizmi? Streak: ${s} kun 🔥`,

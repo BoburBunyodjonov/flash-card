@@ -7,6 +7,7 @@ import {
   getInitDataDebug,
 } from '../utils/telegram'
 import { resolveReferrer, grantReferralRewards } from './referral.service'
+import { REFERRAL_NEW_USER_XP, REFERRAL_BONUS_WORDS } from '@wordswipe/shared'
 import { config } from '../config'
 import type { FastifyInstance } from 'fastify'
 
@@ -90,6 +91,7 @@ async function upsertUser(
   })
 
   let user
+  let referralBonus: { xp: number; bonusWords: number } | null = null
   if (existing) {
     user = await prisma.user.update({
       where: { telegramId: data.telegramId },
@@ -117,9 +119,12 @@ async function upsertUser(
 
     if (referredById) {
       // Rewards are best-effort — a failure here must not block login.
-      await grantReferralRewards(referredById, user.id).catch((err) =>
-        fastify.log.error({ msg: 'referral reward failed', error: (err as Error).message }),
-      )
+      try {
+        await grantReferralRewards(referredById, user.id)
+        referralBonus = { xp: REFERRAL_NEW_USER_XP, bonusWords: REFERRAL_BONUS_WORDS }
+      } catch (err) {
+        fastify.log.error({ msg: 'referral reward failed', error: (err as Error).message })
+      }
     }
   }
 
@@ -148,11 +153,14 @@ async function upsertUser(
     premiumUntil: user.premiumUntil?.toISOString() ?? null,
     isAdmin: user.isAdmin,
     streak: user.streak,
-    xp: user.xp,
+    // `user` was read before the referral XP increment — reflect it here
+    xp: user.xp + (referralBonus?.xp ?? 0),
+    cefrLevel: user.cefrLevel,
+    gender: user.gender,
     notifyAt: user.notifyAt,
     notifyEnabled: user.notifyEnabled,
     telegramId: user.telegramId.toString(),
   }
 
-  return { user: safeUser, accessToken, refreshToken }
+  return { user: safeUser, accessToken, refreshToken, referralBonus }
 }

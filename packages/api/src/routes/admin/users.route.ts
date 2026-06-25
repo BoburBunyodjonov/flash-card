@@ -33,6 +33,7 @@ export async function adminUsersRoutes(fastify: FastifyInstance) {
           firstName: true,
           lastName: true,
           username: true,
+          avatarUrl: true,
           isPremium: true,
           premiumUntil: true,
           streak: true,
@@ -46,7 +47,9 @@ export async function adminUsersRoutes(fastify: FastifyInstance) {
       prisma.user.count({ where }),
     ])
 
-    return reply.send({ success: true, data: { users, total, page: query.page, limit: query.limit } })
+    // telegramId is a BigInt — JSON.stringify throws on it
+    const serializable = users.map((u) => ({ ...u, telegramId: u.telegramId.toString() }))
+    return reply.send({ success: true, data: { users: serializable, total, page: query.page, limit: query.limit } })
   })
 
   fastify.put('/:id', async (req, reply) => {
@@ -62,6 +65,6 @@ export async function adminUsersRoutes(fastify: FastifyInstance) {
     if (data.premiumUntil) data.premiumUntil = new Date(data.premiumUntil)
 
     const user = await prisma.user.update({ where: { id }, data })
-    return reply.send({ success: true, data: user })
+    return reply.send({ success: true, data: { ...user, telegramId: user.telegramId.toString() } })
   })
 }

@@ -286,7 +286,7 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
             >
               {word.translation?.translation && (
                 <div className="text-center py-2">
-                  <p className="text-white/30 text-[10px] font-black uppercase tracking-[0.15em] mb-2">Translation</p>
+                  <p className="text-white/30 text-[10px] font-black uppercase tracking-[0.15em] mb-2">{t('feed.translation')}</p>
                   <h2
                     className="font-black leading-tight"
                     style={{
@@ -303,7 +303,7 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
               {word.translation?.definitionEn && (
                 <div className="rounded-2xl p-4"
                   style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                  <p className="text-white/30 text-[10px] font-black uppercase tracking-[0.12em] mb-2">Definition</p>
+                  <p className="text-white/30 text-[10px] font-black uppercase tracking-[0.12em] mb-2">{t('feed.definition')}</p>
                   <p className="text-white/70 text-sm leading-relaxed">{word.translation.definitionEn}</p>
                 </div>
               )}
@@ -311,7 +311,7 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
               {word.translation?.exampleEn && (
                 <div className="rounded-2xl p-4"
                   style={{ background: 'rgba(99,102,241,0.07)', border: '1px solid rgba(99,102,241,0.18)' }}>
-                  <p className="text-primary/50 text-[10px] font-black uppercase tracking-[0.12em] mb-2">Example</p>
+                  <p className="text-primary/50 text-[10px] font-black uppercase tracking-[0.12em] mb-2">{t('feed.example')}</p>
                   <p className="text-white/65 text-sm italic leading-relaxed">"{word.translation.exampleEn}"</p>
                   {word.translation.exampleTranslated && (
                     <p className="text-white/30 text-xs italic mt-1.5">{word.translation.exampleTranslated}</p>
@@ -333,8 +333,8 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
           </div>
 
           <div className="flex flex-col items-center gap-0.5" style={{ opacity: 0.22 }}>
-            <span className="text-white text-[11px]">↑ save</span>
-            <span className="text-white text-[11px]">↓ skip</span>
+            <span className="text-white text-[11px]">{t('feed.saveHint')}</span>
+            <span className="text-white text-[11px]">{t('feed.skipHint')}</span>
           </div>
 
           <div className="flex items-center gap-1.5">

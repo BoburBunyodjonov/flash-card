@@ -77,7 +77,14 @@ export async function authRoutes(fastify: FastifyInstance) {
 
     try {
       const payload = fastify.jwt.verify<{ userId: string }>(body.data.refreshToken)
-      const newToken = fastify.jwt.sign({ userId: payload.userId }, { expiresIn: '15m' })
+      // The admin pseudo-user must keep its isAdmin claim, or requireAdmin
+      // rejects every request made with a refreshed token
+      const newToken = fastify.jwt.sign(
+        payload.userId === 'admin'
+          ? { userId: 'admin', isAdmin: true, isPremium: false }
+          : { userId: payload.userId },
+        { expiresIn: '15m' },
+      )
       return reply.send({ success: true, data: { accessToken: newToken } })
     } catch {
       return reply.code(401).send({ success: false, error: 'Invalid refresh token' })

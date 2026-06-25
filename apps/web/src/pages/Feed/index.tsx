@@ -7,6 +7,7 @@ import { SwipeCard } from '../../components/SwipeCard'
 import { useTelegram } from '../../hooks/useTelegram'
 import { categoriesApi, type Category } from '../../api/categories.api'
 import { profileApi } from '../../api/profile.api'
+import { PremiumModal } from '../../components/PremiumModal'
 
 function useCountdownToMidnight() {
   const [hoursLeft, setHoursLeft]     = useState(0)
@@ -29,7 +30,7 @@ function useCountdownToMidnight() {
   return { hoursLeft, minutesLeft }
 }
 
-export function FeedPage({ onChallenge, onQuiz, onDuel }: { onChallenge?: () => void; onQuiz?: () => void; onDuel?: () => void }) {
+export function FeedPage({ onChallenge, onQuiz, onDuel, onSpeaking }: { onChallenge?: () => void; onQuiz?: () => void; onDuel?: () => void; onSpeaking?: () => void }) {
   const { t } = useTranslation()
   const { words, currentIndex, stats, isLoading, isLimitReached, isEmpty, loadFeed, swipe, nextCard, selectedCategoryId, setCategory } = useFeedStore()
   const { user } = useAuthStore()
@@ -37,6 +38,7 @@ export function FeedPage({ onChallenge, onQuiz, onDuel }: { onChallenge?: () => 
   const { hoursLeft, minutesLeft } = useCountdownToMidnight()
   const [shared, setShared] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
+  const [premiumOpen, setPremiumOpen] = useState(false)
 
   useEffect(() => {
     categoriesApi.getAll().then(setCategories).catch(() => {})
@@ -196,12 +198,15 @@ export function FeedPage({ onChallenge, onQuiz, onDuel }: { onChallenge?: () => 
           <motion.button
             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.48 }}
             whileTap={{ scale: 0.96 }}
+            onClick={() => { haptic.impact('medium'); setPremiumOpen(true) }}
             className="w-full max-w-xs font-bold text-base px-8 py-4 rounded-2xl text-white"
             style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', boxShadow: '0 8px 32px rgba(99,102,241,0.35)' }}
           >
             ⚡ Cheksiz o'rganish — Premium
           </motion.button>
         )}
+
+        <PremiumModal open={premiumOpen} onClose={() => setPremiumOpen(false)} />
       </div>
     )
   }
@@ -265,6 +270,14 @@ export function FeedPage({ onChallenge, onQuiz, onDuel }: { onChallenge?: () => 
           >
             ⚔️
           </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.88 }}
+            onClick={onSpeaking}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-base"
+            style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.25)' }}
+          >
+            🎙️
+          </motion.button>
         </div>
       </div>
 
@@ -281,7 +294,7 @@ export function FeedPage({ onChallenge, onQuiz, onDuel }: { onChallenge?: () => 
               : { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)' }
             }
           >
-            Barchasi
+            {t('feed.all')}
           </motion.button>
           {categories.map(cat => (
             <motion.button

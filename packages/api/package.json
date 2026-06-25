@@ -20,6 +20,7 @@
     "@fastify/rate-limit": "^9.1.0",
     "@fastify/swagger": "^8.14.0",
     "@fastify/swagger-ui": "^4.0.1",
+    "@fastify/websocket": "^10.0.1",
     "@prisma/client": "^5.19.0",
     "@telegram-apps/init-data-node": "^2.0.10",
     "@wordswipe/shared": "workspace:*",

@@ -1,8 +1,9 @@
 # API image for the pnpm monorepo (works on amd64 and arm64 — Hetzner CAX is ARM)
 FROM node:22-slim
 
-# openssl is required for Prisma engine detection on Debian
-RUN apt-get update -qq && apt-get install -y -qq openssl && rm -rf /var/lib/apt/lists/*
+# openssl — Prisma engine detection; python3/make/g++ — native fallback builds
+# on arm64 (msgpackr-extract ships no usable prebuilt and compiles from source)
+RUN apt-get update -qq && apt-get install -y -qq openssl python3 make g++ && rm -rf /var/lib/apt/lists/*
 RUN corepack enable
 WORKDIR /app
 

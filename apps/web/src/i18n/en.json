@@ -2,7 +2,9 @@
   "login": {
     "title": "WordSwipe",
     "subtitle": "Turn vocabulary learning into a game",
-    "button": "Login with Telegram"
+    "button": "Login with Telegram",
+    "connecting": "Connecting to Telegram...",
+    "retry": "Retry"
   },
   "nav": {
     "feed": "Learn",
@@ -20,7 +22,13 @@
     "limitMsg": "Come back tomorrow or get Premium",
     "getPremium": "Get Premium",
     "wordsLeft": "words left",
-    "streak": "day streak"
+    "streak": "day streak",
+    "all": "All",
+    "translation": "Translation",
+    "definition": "Definition",
+    "example": "Example",
+    "saveHint": "↑ save",
+    "skipHint": "↓ skip"
   },
   "difficulty": {
     "A1": "Beginner",
@@ -41,7 +49,8 @@
     "weakWords": "Weak Words",
     "history": "History",
     "week": "Week",
-    "month": "Month"
+    "month": "Month",
+    "tapToFlip": "Tap to flip"
   },
   "settings": {
     "title": "Settings",
@@ -51,13 +60,99 @@
     "premium": "Premium",
     "logout": "Logout",
     "getPremium": "Get Premium",
-    "premiumActive": "Premium Active"
+    "premiumActive": "Premium Active",
+    "premiumDesc": "Unlimited words · No ads · All features",
+    "premiumUntil": "Until {{date}}",
+    "gender": "Gender",
+    "genderHint": "Used for partner matching in speaking practice",
+    "genderMale": "Male",
+    "genderFemale": "Female",
+    "genderNone": "Not set"
   },
   "premium": {
     "title": "WordSwipe Premium",
     "monthly": "Monthly",
     "annual": "Annual",
+    "yearly": "Yearly",
     "lifetime": "Lifetime",
-    "features": ["Unlimited swipes", "All categories", "No ads", "Offline mode", "Friends leaderboard"]
+    "subtitle": "Unlimited learning and all features",
+    "savePercent": "Save {{percent}}%",
+    "payWithStars": "⭐ Pay {{stars}} Stars",
+    "processing": "Opening payment...",
+    "success": "Premium activated!",
+    "successDesc": "All features are now unlocked. Happy learning!",
+    "close": "Close",
+    "openInTelegram": "Stars payments only work inside the Telegram app. Open the bot in Telegram.",
+    "failed": "Payment failed. Please try again.",
+    "error": "Something went wrong. Please try again.",
+    "retry": "Retry",
+    "features": [
+      "Unlimited swipes",
+      "All categories",
+      "No ads",
+      "Offline mode",
+      "Friends leaderboard"
+    ]
+  },
+  "decks": {
+    "new": "+ New",
+    "namePlaceholder": "Deck name...",
+    "create": "Create",
+    "words": "words",
+    "back": "Back",
+    "rename": "Rename",
+    "delete": "Delete",
+    "confirmDelete": "Really delete?",
+    "save": "Save",
+    "addWord": "Add word",
+    "searchPlaceholder": "Search English words...",
+    "searchHint": "Type a word to search",
+    "noResults": "Nothing found",
+    "inDeck": "Added",
+    "removeConfirm": "Remove?",
+    "error": "Something went wrong",
+    "tapToFlip": "Tap to flip"
+  },
+  "referral": {
+    "bonusTitle": "🎁 Referral bonus!",
+    "bonusSubtitle": "A gift for joining via your friend's invite",
+    "bonusXp": "+{{n}} XP",
+    "bonusWords": "+{{n}} bonus words",
+    "dismiss": "Awesome!"
+  },
+  "speaking": {
+    "title": "Speaking",
+    "back": "Back",
+    "introTitle": "Live speaking practice",
+    "introDesc": "Practice speaking English in a 1:1 voice call with a random partner. We'll suggest topics and useful words!",
+    "sameGender": "Same gender only",
+    "sameGenderHint": "Set your gender first",
+    "male": "Male",
+    "female": "Female",
+    "anyLevel": "Any level",
+    "anyLevelHint": "When off: matches your level ±1",
+    "findPartner": "Find partner",
+    "micTitle": "Microphone needed",
+    "micTelegram": "The microphone may not work inside Telegram. Open the app in your browser — it works at the same address.",
+    "micBrowser": "Allow microphone access in your browser settings and try again.",
+    "retry": "Retry",
+    "searching": "Looking for a partner...",
+    "cancel": "Cancel",
+    "topics": "Conversation topics",
+    "nextTopic": "Next topic",
+    "unmute": "Mic is off — tap to unmute",
+    "endHint": "Tap the red button to end the call",
+    "partnerLeft": "Your partner left the call",
+    "summaryTitle": "Call finished!",
+    "duration": "Duration",
+    "ratePartner": "How was your call with {{name}}?",
+    "rated": "Thanks!",
+    "report": "Report",
+    "reportPrompt": "Describe the reason...",
+    "reportSubmit": "Send report",
+    "reportSent": "Report sent",
+    "findAnother": "Find another partner",
+    "errorTitle": "Connection lost",
+    "errorMsg": "Lost connection to the server. Please try again."
   }
 }

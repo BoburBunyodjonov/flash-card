@@ -50,6 +50,12 @@ export const config = {
     },
   },
 
+  turn: {
+    url: process.env.TURN_URL ?? '',
+    username: process.env.TURN_USERNAME ?? '',
+    password: process.env.TURN_PASSWORD ?? '',
+  },
+
   r2: {
     accountId: process.env.R2_ACCOUNT_ID ?? '',
     accessKeyId: process.env.R2_ACCESS_KEY_ID ?? '',

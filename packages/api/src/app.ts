@@ -2,6 +2,7 @@ import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import jwt from '@fastify/jwt'
 import rateLimit from '@fastify/rate-limit'
+import websocket from '@fastify/websocket'
 import { config } from './config'
 import { prisma } from './lib/prisma'
 import { registerRoutes } from './routes'
@@ -43,6 +44,8 @@ export async function buildApp() {
     max: 100,
     timeWindow: '1 minute',
   })
+
+  await fastify.register(websocket)
 
   fastify.decorate('prisma', prisma)
 

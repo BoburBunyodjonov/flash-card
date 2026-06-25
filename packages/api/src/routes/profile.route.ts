@@ -31,6 +31,7 @@ export async function profileRoutes(fastify: FastifyInstance) {
         streak: true,
         xp: true,
         cefrLevel: true,
+        gender: true,
         leagueTier: true,
         notifyAt: true,
         notifyEnabled: true,
@@ -81,6 +82,15 @@ export async function profileRoutes(fastify: FastifyInstance) {
 
     const user = req.user as JwtPayload
     await prisma.user.update({ where: { id: user.userId }, data: { cefrLevel: body.data.level } })
+    return reply.send({ success: true })
+  })
+
+  fastify.put('/gender', async (req, reply) => {
+    const body = z.object({ gender: z.enum(['male', 'female']).nullable() }).safeParse(req.body)
+    if (!body.success) return reply.code(400).send({ success: false, error: 'Invalid body' })
+
+    const user = req.user as JwtPayload
+    await prisma.user.update({ where: { id: user.userId }, data: { gender: body.data.gender } })
     return reply.send({ success: true })
   })
 

@@ -169,7 +169,15 @@ export const theme = createTheme({
             color: '#9ca3af',
           },
           '& .MuiDataGrid-row:hover': { backgroundColor: 'rgba(99,102,241,0.06)' },
-          '& .MuiDataGrid-cell': { borderTopColor: BORDER },
+          // v7 cells aren't flex by default — custom renderCell content
+          // (chips, boxes) sticks to the top/bottom without this
+          '& .MuiDataGrid-cell': {
+            borderTopColor: BORDER,
+            display: 'flex',
+            alignItems: 'center',
+          },
+          '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within': { outline: 'none' },
+          '& .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within': { outline: 'none' },
           '& .MuiDataGrid-footerContainer': { borderTopColor: BORDER },
           '& .MuiDataGrid-columnSeparator': { color: 'rgba(255,255,255,0.08)' },
         },

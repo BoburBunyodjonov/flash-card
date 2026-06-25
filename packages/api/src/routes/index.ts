@@ -19,6 +19,8 @@ import { onboardingRoutes } from './onboarding.route'
 import { quizRoutes } from './quiz.route'
 import { duelRoutes } from './duel.route'
 import { leagueRoutes } from './league.route'
+import { paymentsRoutes } from './payments.route'
+import { speakingRoutes } from './speaking.route'
 
 export async function registerRoutes(fastify: FastifyInstance) {
   fastify.register(authRoutes, { prefix: '/api/auth' })
@@ -34,6 +36,8 @@ export async function registerRoutes(fastify: FastifyInstance) {
   fastify.register(quizRoutes, { prefix: '/api/quiz' })
   fastify.register(duelRoutes, { prefix: '/api/duel' })
   fastify.register(leagueRoutes, { prefix: '/api/league' })
+  fastify.register(paymentsRoutes, { prefix: '/api/payments' })
+  fastify.register(speakingRoutes, { prefix: '/api/speaking' })
 
   fastify.register(
     async (adminApp) => {

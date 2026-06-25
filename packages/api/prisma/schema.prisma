@@ -55,6 +55,16 @@ enum DuelStatus {
   expired
 }
 
+enum Gender {
+  male
+  female
+}
+
+enum SpeakingStatus {
+  active
+  ended
+}
+
 model User {
   id           String    @id @default(uuid())
   telegramId   BigInt    @unique @map("telegram_id")
@@ -70,6 +80,7 @@ model User {
   lastActive   DateTime? @map("last_active")
   xp           Int       @default(0)
   cefrLevel    Difficulty? @map("cefr_level")
+  gender       Gender?
   leagueTier   Int       @default(0) @map("league_tier")
   referredById String?   @map("referred_by")
   notifyAt      String   @default("20:00") @map("notify_at")
@@ -88,8 +99,45 @@ model User {
   duelsCreated   Duel[]           @relation("DuelChallenger")
   duelsReceived  Duel[]           @relation("DuelOpponent")
   leagueEntries  LeagueMember[]
+  speakingAsA    SpeakingSession[] @relation("SpeakingUserA")
+  speakingAsB    SpeakingSession[] @relation("SpeakingUserB")
+  speakingReports SpeakingReport[]
 
   @@map("users")
+}
+
+model SpeakingSession {
+  id          String         @id @default(uuid())
+  userAId     String         @map("user_a_id")
+  userBId     String         @map("user_b_id")
+  status      SpeakingStatus @default(active)
+  startedAt   DateTime       @default(now()) @map("started_at")
+  endedAt     DateTime?      @map("ended_at")
+  durationSec Int?           @map("duration_sec")
+  ratingByA   Boolean?       @map("rating_by_a")
+  ratingByB   Boolean?       @map("rating_by_b")
+
+  userA   User             @relation("SpeakingUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB   User             @relation("SpeakingUserB", fields: [userBId], references: [id], onDelete: Cascade)
+  reports SpeakingReport[]
+
+  @@index([userAId])
+  @@index([userBId])
+  @@map("speaking_sessions")
+}
+
+model SpeakingReport {
+  id         String   @id @default(uuid())
+  sessionId  String   @map("session_id")
+  reporterId String   @map("reporter_id")
+  reason     String
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  session  SpeakingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  reporter User            @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("speaking_reports")
 }
 
 model Duel {

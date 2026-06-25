@@ -125,13 +125,13 @@ export function LoginPage() {
                   onClick={() => loginWebApp(initData).catch(() => {})}
                   className="text-primary text-sm font-semibold"
                 >
-                  Qayta urinish
+                  {t('login.retry')}
                 </button>
               </>
             ) : (
               <div className="flex gap-2 items-center">
                 <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                <span className="text-white/50 text-sm">Connecting to Telegram...</span>
+                <span className="text-white/50 text-sm">{t('login.connecting')}</span>
               </div>
             )}
           </div>

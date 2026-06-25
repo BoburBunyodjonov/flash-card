@@ -29,6 +29,8 @@ export const PLAN_SETTING_KEYS = {
   PREMIUM_LIFETIME_USD: 'premium_lifetime_price_usd',
   PREMIUM_DISCOUNT_PERCENT: 'premium_discount_percent',
   PREMIUM_TRIAL_DAYS: 'premium_trial_days',
+  PREMIUM_MONTHLY_STARS: 'premium_monthly_price_stars',
+  PREMIUM_ANNUAL_STARS: 'premium_annual_price_stars',
 } as const
 
 export const DEFAULT_PLAN_SETTINGS: Record<string, number | boolean> = {
@@ -47,6 +49,17 @@ export const DEFAULT_PLAN_SETTINGS: Record<string, number | boolean> = {
   premium_lifetime_price_usd: 49.99,
   premium_discount_percent: 0,
   premium_trial_days: 0,
+  // Telegram Stars (XTR) prices — 1 star ≈ $0.02
+  premium_monthly_price_stars: 125, // ≈ $2.50/month
+  premium_annual_price_stars: 1000, // ≈ $20/year
+}
+
+// Telegram Stars purchase plans (web → API contract)
+export const STARS_PLANS = ['monthly', 'yearly'] as const
+export type StarsPlan = (typeof STARS_PLANS)[number]
+export const STARS_PLAN_DAYS: Record<StarsPlan, number> = {
+  monthly: 30,
+  yearly: 365,
 }
 
 export const SPACED_REPETITION_INTERVALS = [1, 3, 7, 14, 30, 60]
@@ -82,3 +95,7 @@ export const LEAGUE_DEMOTE_COUNT = 5
 
 // Smart reminders
 export const REVIEW_REMINDER_THRESHOLD = 10
+
+// Speaking practice (1:1 voice calls)
+export const XP_PER_SPEAKING_MINUTE = 2
+export const SPEAKING_DAILY_XP_CAP = 30

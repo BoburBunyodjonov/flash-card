@@ -170,6 +170,10 @@ async function bookmarkWord(userId: string, wordId: string) {
   }
 }
 
+// Day index in Asia/Tashkent (UTC+5, no DST) — server timezone must not affect streaks
+const TASHKENT_OFFSET_MS = 5 * 60 * 60 * 1000
+const dayIndex = (date: Date) => Math.floor((date.getTime() + TASHKENT_OFFSET_MS) / 86_400_000)
+
 async function updateStreak(userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -177,18 +181,14 @@ async function updateStreak(userId: string) {
   })
   if (!user) return
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const lastActive = user.lastActive ? new Date(user.lastActive) : null
-
-  if (lastActive) {
-    lastActive.setHours(0, 0, 0, 0)
-    const diff = Math.floor((today.getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24))
+  if (user.lastActive) {
+    const diff = dayIndex(new Date()) - dayIndex(new Date(user.lastActive))
     if (diff === 0) return
     if (diff === 1) {
       await prisma.user.update({ where: { id: userId }, data: { streak: { increment: 1 }, lastActive: new Date() } })
     } else {
-      await prisma.user.update({ where: { id: userId }, data: { streak: 0, lastActive: new Date() } })
+      // Gap of 2+ days: today's activity restarts the streak at day 1
+      await prisma.user.update({ where: { id: userId }, data: { streak: 1, lastActive: new Date() } })
     }
   } else {
     await prisma.user.update({ where: { id: userId }, data: { streak: 1, lastActive: new Date() } })

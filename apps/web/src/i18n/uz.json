@@ -2,7 +2,9 @@
   "login": {
     "title": "WordSwipe",
     "subtitle": "So'z yodlashni o'yinga aylantir",
-    "button": "Telegram bilan kirish"
+    "button": "Telegram bilan kirish",
+    "connecting": "Telegram'ga ulanmoqda...",
+    "retry": "Qayta urinish"
   },
   "nav": {
     "feed": "O'rgan",
@@ -20,7 +22,13 @@
     "limitMsg": "Ertaga qaytib keling yoki Premium oling",
     "getPremium": "Premium olish",
     "wordsLeft": "so'z qoldi",
-    "streak": "kun ketma-ket"
+    "streak": "kun ketma-ket",
+    "all": "Barchasi",
+    "translation": "Tarjima",
+    "definition": "Ta'rif",
+    "example": "Misol",
+    "saveHint": "↑ saqlash",
+    "skipHint": "↓ o'tkazish"
   },
   "difficulty": {
     "A1": "Boshlang'ich",
@@ -41,7 +49,8 @@
     "weakWords": "Kuchsiz so'zlar",
     "history": "Tarix",
     "week": "Hafta",
-    "month": "Oy"
+    "month": "Oy",
+    "tapToFlip": "Ag'darish uchun bosing"
   },
   "settings": {
     "title": "Sozlamalar",
@@ -51,13 +60,99 @@
     "premium": "Premium",
     "logout": "Chiqish",
     "getPremium": "Premium olish",
-    "premiumActive": "Premium faol"
+    "premiumActive": "Premium faol",
+    "premiumDesc": "Cheksiz so'zlar · Reklamasiz · Barcha imkoniyatlar",
+    "premiumUntil": "{{date}} gacha",
+    "gender": "Jins",
+    "genderHint": "Speaking amaliyotida sherik tanlash uchun ishlatiladi",
+    "genderMale": "Erkak",
+    "genderFemale": "Ayol",
+    "genderNone": "Ko'rsatilmagan"
   },
   "premium": {
     "title": "WordSwipe Premium",
     "monthly": "Oylik",
     "annual": "Yillik",
+    "yearly": "Yillik",
     "lifetime": "Umrbod",
-    "features": ["Cheksiz swipe", "Barcha kategoriyalar", "Reklamasiz", "Offline rejim", "Do'stlar reytingi"]
+    "subtitle": "Cheksiz o'rganish va barcha imkoniyatlar",
+    "savePercent": "{{percent}}% tejang",
+    "payWithStars": "⭐ {{stars}} Stars bilan to'lash",
+    "processing": "To'lov ochilmoqda...",
+    "success": "Premium faollashtirildi!",
+    "successDesc": "Endi barcha imkoniyatlar ochiq. Yaxshi o'rganishlar!",
+    "close": "Yopish",
+    "openInTelegram": "Stars orqali to'lov faqat Telegram ilovasi ichida ishlaydi. Botni Telegram orqali oching.",
+    "failed": "To'lov amalga oshmadi. Qayta urinib ko'ring.",
+    "error": "Xatolik yuz berdi. Qayta urinib ko'ring.",
+    "retry": "Qayta urinish",
+    "features": [
+      "Cheksiz swipe",
+      "Barcha kategoriyalar",
+      "Reklamasiz",
+      "Offline rejim",
+      "Do'stlar reytingi"
+    ]
+  },
+  "decks": {
+    "new": "+ Yangi",
+    "namePlaceholder": "To'plam nomi...",
+    "create": "Yaratish",
+    "words": "ta so'z",
+    "back": "Orqaga",
+    "rename": "Nomini o'zgartirish",
+    "delete": "O'chirish",
+    "confirmDelete": "Rostdan o'chirilsinmi?",
+    "save": "Saqlash",
+    "addWord": "So'z qo'shish",
+    "searchPlaceholder": "Inglizcha so'z qidiring...",
+    "searchHint": "Qidirish uchun so'z yozing",
+    "noResults": "Hech narsa topilmadi",
+    "inDeck": "Qo'shilgan",
+    "removeConfirm": "Olib tashlash?",
+    "error": "Xatolik yuz berdi",
+    "tapToFlip": "Ag'darish uchun bosing"
+  },
+  "referral": {
+    "bonusTitle": "🎁 Taklif bonusi!",
+    "bonusSubtitle": "Do'stingiz taklifi orqali qo'shilganingiz uchun sovg'a",
+    "bonusXp": "+{{n}} XP",
+    "bonusWords": "+{{n}} bonus so'z",
+    "dismiss": "Zo'r!"
+  },
+  "speaking": {
+    "title": "Speaking",
+    "back": "Orqaga",
+    "introTitle": "Jonli suhbat amaliyoti",
+    "introDesc": "Tasodifiy sherik bilan 1:1 ovozli suhbatda ingliz tilida gapirishni mashq qiling. Mavzular va foydali so'zlarni biz beramiz!",
+    "sameGender": "Faqat bir xil jins",
+    "sameGenderHint": "Avval jinsingizni tanlang",
+    "male": "Erkak",
+    "female": "Ayol",
+    "anyLevel": "Istalgan daraja",
+    "anyLevelHint": "O'chirilgan bo'lsa: sizning darajangiz ±1",
+    "findPartner": "Sherik topish",
+    "micTitle": "Mikrofon kerak",
+    "micTelegram": "Telegram ichida mikrofon ishlamasligi mumkin. Ilovani brauzerda oching — xuddi shu manzilda ishlaydi.",
+    "micBrowser": "Brauzer sozlamalarida mikrofonga ruxsat bering va qayta urinib ko'ring.",
+    "retry": "Qayta urinish",
+    "searching": "Sherik qidirilmoqda...",
+    "cancel": "Bekor qilish",
+    "topics": "Suhbat mavzulari",
+    "nextTopic": "Keyingi mavzu",
+    "unmute": "Mikrofon o'chirilgan — yoqish uchun bosing",
+    "endHint": "Suhbatni tugatish uchun qizil tugmani bosing",
+    "partnerLeft": "Sherik suhbatni tark etdi",
+    "summaryTitle": "Suhbat yakunlandi!",
+    "duration": "Davomiylik",
+    "ratePartner": "{{name}} bilan suhbat qanday o'tdi?",
+    "rated": "Rahmat!",
+    "report": "Shikoyat qilish",
+    "reportPrompt": "Sababini yozing...",
+    "reportSubmit": "Shikoyat yuborish",
+    "reportSent": "Shikoyat yuborildi",
+    "findAnother": "Yana sherik topish",
+    "errorTitle": "Aloqa uzildi",
+    "errorMsg": "Server bilan aloqa uzildi. Qayta urinib ko'ring."
   }
 }

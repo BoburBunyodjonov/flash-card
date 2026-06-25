@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useAuthStore } from './store/auth.store'
 import { api } from './api/client'
 import { BottomNav } from './components/BottomNav'
+import { ReferralBonusToast } from './components/ReferralBonusToast'
 import { LoginPage } from './pages/Login'
 import { OnboardingPage } from './pages/Onboarding'
 import { FeedPage } from './pages/Feed'
@@ -14,16 +15,17 @@ import { SettingsPage } from './pages/Settings'
 import { ChallengePage } from './pages/Challenge'
 import { QuizPage } from './pages/Quiz'
 import { DuelPage } from './pages/Duel'
+import { SpeakingPage } from './pages/Speaking'
 import { flushPendingSwipes } from './store/feed.store'
 
-type Page = 'feed' | 'dictionary' | 'decks' | 'progress' | 'leaderboard' | 'settings' | 'challenge' | 'quiz' | 'duel'
+type Page = 'feed' | 'dictionary' | 'decks' | 'progress' | 'leaderboard' | 'settings' | 'challenge' | 'quiz' | 'duel' | 'speaking'
 
 const NAV_PAGES: Page[] = ['feed', 'dictionary', 'decks', 'progress', 'leaderboard', 'settings']
 
 const DUEL_PREFIX = 'duel_'
 
 export default function App() {
-  const { user } = useAuthStore()
+  const { user, setUser } = useAuthStore()
   const [page, setPage] = useState<Page>('feed')
   const [duelId, setDuelId] = useState<string | null>(null)
   const [onboardingDone, setOnboardingDone] = useState(() => !!localStorage.getItem('ws_onboarding_done'))
@@ -41,14 +43,21 @@ export default function App() {
 
   if (!user) return <LoginPage />
 
-  if (!onboardingDone) return (
-    <OnboardingPage onDone={(level) => {
-      localStorage.setItem('ws_onboarding_done', '1')
-      localStorage.setItem('ws_level', level)
-      // Persist the CEFR level so the feed serves level-appropriate words
-      api.post('/api/onboarding/complete', { level }).catch(() => {})
-      setOnboardingDone(true)
-    }} />
+  // Server-side cefrLevel is the source of truth — Telegram webviews wipe
+  // localStorage between sessions, so the local flag alone re-triggers the test
+  if (!user.cefrLevel && !onboardingDone) return (
+    <>
+      <OnboardingPage onDone={(level) => {
+        localStorage.setItem('ws_onboarding_done', '1')
+        localStorage.setItem('ws_level', level)
+        // Persist the CEFR level so the feed serves level-appropriate words
+        api.post('/api/onboarding/complete', { level }).catch(() => {})
+        setUser({ ...user, cefrLevel: level })
+        setOnboardingDone(true)
+      }} />
+      {/* Referred users see onboarding first — bonus toast must show over it */}
+      <ReferralBonusToast />
+    </>
   )
 
   const navPage = NAV_PAGES.includes(page) ? page : 'feed'
@@ -69,7 +78,11 @@ export default function App() {
               onChallenge={() => setPage('challenge')}
               onQuiz={() => setPage('quiz')}
               onDuel={() => setPage('duel')}
+              onSpeaking={() => setPage('speaking')}
             />
+          )}
+          {page === 'speaking' && (
+            <SpeakingPage onBack={() => setPage('feed')} />
           )}
           {page === 'challenge' && (
             <ChallengePage onBack={() => setPage('feed')} />
@@ -91,6 +104,7 @@ export default function App() {
         </motion.div>
       </AnimatePresence>
       <BottomNav active={navPage} onChange={(p) => setPage(p as Page)} />
+      <ReferralBonusToast />
     </div>
   )
 }

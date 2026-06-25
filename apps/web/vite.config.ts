@@ -9,6 +9,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        // The SW is scoped to the whole origin — without this it hijacks
+        // /admin (the admin panel SPA) and serves the web app instead
+        navigateFallbackDenylist: [/^\/admin/, /^\/api/],
         runtimeCaching: [
           {
             // Same-origin API GETs (feed, categories, progress…) — fresh when online,
@@ -68,6 +71,8 @@ export default defineConfig({
         // can resolve to ::1 first and Vite's proxy won't fall back → ECONNREFUSED.
         target: 'http://127.0.0.1:3000',
         changeOrigin: true,
+        // Speaking practice WebSocket (/api/speaking/ws) goes through the same proxy
+        ws: true,
       },
     },
   },

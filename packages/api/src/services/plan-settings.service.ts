@@ -57,6 +57,11 @@ export async function getPremiumPrices() {
     monthly: { uzs: settings['premium_monthly_price_uzs'], usd: settings['premium_monthly_price_usd'] },
     annual: { uzs: settings['premium_annual_price_uzs'], usd: settings['premium_annual_price_usd'] },
     lifetime: { uzs: settings['premium_lifetime_price_uzs'], usd: settings['premium_lifetime_price_usd'] },
+    // Telegram Stars (XTR) — used by the in-app Stars purchase flow
+    stars: {
+      monthly: settings['premium_monthly_price_stars'] as number,
+      yearly: settings['premium_annual_price_stars'] as number,
+    },
     discountPercent: settings['premium_discount_percent'],
     trialDays: settings['premium_trial_days'],
   }

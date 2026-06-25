@@ -3,7 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../../store/auth.store'
 import { profileApi, type ReferralInfo } from '../../api/profile.api'
+import { speakingApi } from '../../api/speaking.api'
 import { useTelegram } from '../../hooks/useTelegram'
+import { PremiumModal } from '../../components/PremiumModal'
 import i18n from '../../i18n'
 
 const LANGUAGES = [
@@ -32,12 +34,13 @@ const NOTIFY_TIMES = [
 
 export function SettingsPage() {
   const { t } = useTranslation()
-  const { user, logout } = useAuthStore()
+  const { user, setUser, logout } = useAuthStore()
   const { twa, haptic } = useTelegram()
   const [lang, setLang] = useState(i18n.language)
   const [notifyEnabled, setNotifyEnabled] = useState(user?.notifyEnabled ?? true)
   const [notifyTime, setNotifyTime] = useState(user?.notifyAt ?? '20:00')
   const [referral, setReferral] = useState<ReferralInfo | null>(null)
+  const [premiumOpen, setPremiumOpen] = useState(false)
 
   useEffect(() => {
     profileApi.getReferral().then(setReferral).catch(() => {})
@@ -80,6 +83,12 @@ export function SettingsPage() {
   const toggleNotify = async (enabled: boolean) => {
     setNotifyEnabled(enabled)
     await profileApi.setNotifyEnabled(enabled).catch(() => {})
+  }
+
+  const changeGender = async (gender: 'male' | 'female' | null) => {
+    if (!user) return
+    setUser({ ...user, gender })
+    await speakingApi.setGender(gender).catch(() => {})
   }
 
   return (
@@ -136,7 +145,7 @@ export function SettingsPage() {
               <p className="text-white font-black text-lg">✨ {t('settings.premiumActive')}</p>
               {user.premiumUntil && (
                 <p className="text-white/60 text-sm mt-0.5">
-                  Until {new Date(user.premiumUntil).toLocaleDateString()}
+                  {t('settings.premiumUntil', { date: new Date(user.premiumUntil).toLocaleDateString() })}
                 </p>
               )}
             </div>
@@ -145,6 +154,7 @@ export function SettingsPage() {
         ) : (
           <motion.button
             whileTap={{ scale: 0.97 }}
+            onClick={() => { haptic.impact('medium'); setPremiumOpen(true) }}
             className="w-full rounded-2xl p-5 flex items-center justify-between relative overflow-hidden text-left glow-purple"
             style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
           >
@@ -152,7 +162,7 @@ export function SettingsPage() {
               style={{ background: 'radial-gradient(circle at 80% 50%, rgba(255,255,255,0.3), transparent 60%)' }} />
             <div>
               <p className="text-white font-black text-lg">{t('settings.getPremium')}</p>
-              <p className="text-white/60 text-sm mt-0.5">Unlimited words · No ads · All features</p>
+              <p className="text-white/60 text-sm mt-0.5">{t('settings.premiumDesc')}</p>
             </div>
             <span className="text-4xl">⚡</span>
           </motion.button>
@@ -358,6 +368,43 @@ export function SettingsPage() {
         </div>
       </motion.div>
 
+      {/* Gender (for speaking practice matching) */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="mx-5 mb-4 rounded-2xl p-5"
+        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+      >
+        <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">
+          {t('settings.gender')}
+        </p>
+        <p className="text-white/30 text-xs mb-3">{t('settings.genderHint')}</p>
+        <div className="grid grid-cols-3 gap-2">
+          {([
+            { value: 'male' as const, label: t('settings.genderMale'), icon: '👨' },
+            { value: 'female' as const, label: t('settings.genderFemale'), icon: '👩' },
+            { value: null, label: t('settings.genderNone'), icon: '—' },
+          ]).map((g) => (
+            <button
+              key={String(g.value)}
+              onClick={() => changeGender(g.value)}
+              className="flex flex-col items-center py-2.5 rounded-xl transition-all"
+              style={(user?.gender ?? null) === g.value
+                ? { background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)' }
+                : { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }
+              }
+            >
+              <span className="text-base">{g.icon}</span>
+              <span className="text-xs font-bold mt-0.5"
+                style={{ color: (user?.gender ?? null) === g.value ? '#a78bfa' : 'rgba(255,255,255,0.4)' }}>
+                {g.label}
+              </span>
+            </button>
+          ))}
+        </div>
+      </motion.div>
+
       {/* Logout */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -374,6 +421,8 @@ export function SettingsPage() {
           {t('settings.logout')}
         </motion.button>
       </motion.div>
+
+      <PremiumModal open={premiumOpen} onClose={() => setPremiumOpen(false)} />
     </div>
   )
 }

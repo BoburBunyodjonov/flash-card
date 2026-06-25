@@ -93,6 +93,7 @@ function heatColor(count: number, isFuture: boolean) {
 }
 
 function WeakWordsReview({ words, onClose }: { words: WeakWord[]; onClose: () => void }) {
+  const { t } = useTranslation()
   const [index, setIndex] = useState(0)
   const [flipped, setFlipped] = useState(false)
   const [score, setScore] = useState({ know: 0, dontKnow: 0 })
@@ -179,7 +180,7 @@ function WeakWordsReview({ words, onClose }: { words: WeakWord[]; onClose: () =>
                     {current.word.partOfSpeech}
                   </span>
                 )}
-                <p className="text-white/20 text-xs mt-1">👆 Tap to flip</p>
+                <p className="text-white/20 text-xs mt-1">👆 {t('progress.tapToFlip')}</p>
               </div>
             ) : (
               <div className="flex-1 flex flex-col gap-3">

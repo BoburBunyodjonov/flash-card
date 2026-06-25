@@ -23,7 +23,8 @@ export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <BrowserRouter>
+      {/* base is '/admin/' in prod — keeps SPA routes at /admin/words etc. so reloads hit the right Caddy block */}
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/" element={<RequireAdmin><DashboardPage /></RequireAdmin>} />
