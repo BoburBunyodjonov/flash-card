@@ -1,38 +1,35 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
+import {
+  Brain, Check, X, Volume2, ArrowRight, ArrowLeft, Trophy,
+  Dices, Languages, Type, Headphones, PenLine, RefreshCw, Frown, Inbox, type LucideIcon,
+} from 'lucide-react'
 import { quizApi, type QuizMode, type QuizQuestion } from '../../api/quiz.api'
 import { playWordAudio } from '../../lib/tts'
 import { useTelegram } from '../../hooks/useTelegram'
 
 type ChoiceState = 'default' | 'correct' | 'wrong' | 'reveal'
 
-const MODES: { key: QuizMode; icon: string; title: string; desc: string; color: string }[] = [
-  { key: 'mixed', icon: '🎲', title: 'Aralash', desc: 'Har xil savol turlari', color: '#6366f1' },
-  { key: 'mcq', icon: '🇺🇿', title: "Tarjimani top", desc: "Inglizcha so'z → o'zbekcha", color: '#34d399' },
-  { key: 'reverse', icon: '🇬🇧', title: "So'zni top", desc: "O'zbekcha → inglizcha so'z", color: '#38bdf8' },
-  { key: 'typing', icon: '⌨️', title: 'Yozish', desc: "So'zni o'zingiz yozing", color: '#f59e0b' },
-  { key: 'listening', icon: '🎧', title: 'Tinglash', desc: "Eshiting va so'zni toping", color: '#a78bfa' },
-  { key: 'cloze', icon: '✏️', title: "Bo'sh joyni to'ldir", desc: "Gapdagi tushgan so'zni top", color: '#f87171' },
+const MODES: { key: QuizMode; Icon: LucideIcon; tint: string }[] = [
+  { key: 'mixed',     Icon: Dices,      tint: '#6366f1' },
+  { key: 'mcq',       Icon: Languages,  tint: '#10b981' },
+  { key: 'reverse',   Icon: Languages,  tint: '#38bdf8' },
+  { key: 'typing',    Icon: Type,       tint: '#f59e0b' },
+  { key: 'listening', Icon: Headphones, tint: '#a78bfa' },
+  { key: 'cloze',     Icon: PenLine,    tint: '#f87171' },
 ]
-
-const MODE_PROMPTS: Record<string, string> = {
-  mcq: "Bu so'z o'zbekchada nima?",
-  reverse: "Bu tarjimaning inglizchasi qaysi?",
-  typing: "Inglizcha so'zni yozing",
-  listening: "Eshitganingiz qaysi so'z?",
-  cloze: "Bo'sh joyga qaysi so'z mos keladi?",
-}
 
 function choiceStyle(state: ChoiceState): React.CSSProperties {
   switch (state) {
     case 'correct':
-      return { background: 'rgba(16,185,129,0.2)', border: '1px solid rgba(16,185,129,0.4)', color: '#34d399' }
+      return { background: 'rgba(16,185,129,0.18)', border: '1px solid rgba(16,185,129,0.4)', color: 'var(--ws-success)' }
     case 'wrong':
-      return { background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)', color: '#f87171' }
+      return { background: 'rgba(239,68,68,0.18)', border: '1px solid rgba(239,68,68,0.4)', color: 'var(--ws-danger)' }
     case 'reveal':
-      return { background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#34d399' }
+      return { background: 'rgba(16,185,129,0.13)', border: '1px solid rgba(16,185,129,0.3)', color: 'var(--ws-success)' }
     default:
-      return { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.85)' }
+      return { background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)', color: 'var(--ws-text)' }
   }
 }
 
@@ -48,6 +45,7 @@ function QuestionView({
   total: number
   onAnswer: (correct: boolean) => void
 }) {
+  const { t } = useTranslation()
   const { haptic } = useTelegram()
   const [states, setStates] = useState<ChoiceState[]>([])
   const [locked, setLocked] = useState(false)
@@ -109,45 +107,45 @@ function QuestionView({
     >
       {/* Progress */}
       <div className="flex items-center gap-3">
-        <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.07)' }}>
+        <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
           <motion.div
-            className="h-full rounded-full"
-            style={{ background: 'linear-gradient(90deg, #6366f1, #8b5cf6)' }}
+            className="h-full rounded-full ws-gradient-bg"
             animate={{ width: `${progressPct}%` }}
             transition={{ type: 'spring', stiffness: 160, damping: 26 }}
           />
         </div>
-        <span className="text-white/35 text-xs font-bold shrink-0 tabular-nums">{index + 1} / {total}</span>
+        <span className="text-xs font-bold shrink-0 tabular-nums" style={{ color: 'var(--ws-faint)' }}>{index + 1} / {total}</span>
       </div>
 
       {/* Prompt hero */}
       <div
-        className="rounded-3xl p-6 flex flex-col items-center gap-3 text-center"
+        className="rounded-card p-6 flex flex-col items-center gap-3 text-center"
         style={{
-          background: 'linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(139,92,246,0.06) 100%)',
+          background: 'linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(139,92,246,0.05) 100%)',
           border: '1px solid rgba(99,102,241,0.2)',
         }}
       >
-        <p className="text-white/30 text-xs font-black uppercase tracking-widest">
-          {MODE_PROMPTS[question.mode]}
+        <p className="text-xs font-black uppercase tracking-widest" style={{ color: 'var(--ws-muted)' }}>
+          {t(`quiz.prompt.${question.mode}`)}
         </p>
 
         {question.mode === 'listening' ? (
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={() => playWordAudio(question.ttsWord ?? question.word, question.audioUrl)}
-            className="w-20 h-20 rounded-full flex items-center justify-center text-4xl"
+            className="w-20 h-20 rounded-full flex items-center justify-center"
             style={{ background: 'rgba(167,139,250,0.15)', border: '1px solid rgba(167,139,250,0.35)' }}
           >
-            🔊
+            <Volume2 size={34} strokeWidth={2} style={{ color: '#a78bfa' }} />
           </motion.button>
         ) : (
           <motion.h2
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ type: 'spring', stiffness: 400, damping: 26, delay: 0.06 }}
-            className="font-black text-white"
+            className="font-black"
             style={{
+              color: 'var(--ws-text)',
               fontSize: question.mode === 'cloze' ? 'clamp(1.1rem, 5vw, 1.5rem)' : 'clamp(2rem, 8vw, 3.4rem)',
               lineHeight: question.mode === 'cloze' ? 1.5 : 1.1,
             }}
@@ -157,7 +155,7 @@ function QuestionView({
         )}
 
         {question.mode === 'mcq' && question.pronunciation && (
-          <p className="text-white/35 font-mono text-sm">{question.pronunciation}</p>
+          <p className="font-mono text-sm" style={{ color: 'var(--ws-faint)' }}>{question.pronunciation}</p>
         )}
       </div>
 
@@ -173,48 +171,52 @@ function QuestionView({
             autoCapitalize="none"
             autoCorrect="off"
             spellCheck={false}
-            placeholder="So'zni yozing..."
-            className="w-full py-4 px-5 rounded-2xl font-semibold text-base text-white outline-none"
+            placeholder={t('quiz.typePlaceholder')}
+            className="w-full py-4 px-5 rounded-btn font-semibold text-base outline-none"
             style={
               typedResult === 'correct'
-                ? { background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.4)' }
+                ? { background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.4)', color: 'var(--ws-text)' }
                 : typedResult === 'wrong'
-                  ? { background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)' }
-                  : { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)' }
+                  ? { background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', color: 'var(--ws-text)' }
+                  : { background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)', color: 'var(--ws-text)' }
             }
           />
           {typedResult === 'wrong' && (
-            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-success text-sm font-bold px-1">
-              To'g'ri javob: {question.answer}
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm font-bold px-1" style={{ color: 'var(--ws-success)' }}>
+              {t('quiz.correctAnswer')}: {question.answer}
             </motion.p>
           )}
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={handleTypedSubmit}
             disabled={locked || !typed.trim()}
-            className="w-full py-4 rounded-2xl font-black text-base text-white disabled:opacity-40"
-            style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+            className="w-full py-4 rounded-btn font-black text-base text-white disabled:opacity-40 ws-gradient-bg ws-glow-primary"
           >
-            Tekshirish
+            {t('quiz.check')}
           </motion.button>
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {(question.choices ?? []).map((choice, ci) => (
-            <motion.button
-              key={ci}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.08 + ci * 0.06, type: 'spring', stiffness: 340, damping: 28 }}
-              whileTap={locked ? {} : { scale: 0.97 }}
-              onClick={() => handleChoice(ci)}
-              className="w-full py-4 px-5 rounded-2xl text-left font-semibold text-base transition-none"
-              style={choiceStyle(states[ci] ?? 'default')}
-            >
-              <span className="mr-3 font-black text-white/30">{String.fromCharCode(65 + ci)}.</span>
-              {choice}
-            </motion.button>
-          ))}
+          {(question.choices ?? []).map((choice, ci) => {
+            const st = states[ci] ?? 'default'
+            return (
+              <motion.button
+                key={ci}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.08 + ci * 0.06, type: 'spring', stiffness: 340, damping: 28 }}
+                whileTap={locked ? {} : { scale: 0.97 }}
+                onClick={() => handleChoice(ci)}
+                className="w-full py-4 px-5 rounded-btn text-left font-semibold text-base flex items-center gap-3"
+                style={choiceStyle(st)}
+              >
+                <span className="font-black tabular-nums" style={{ color: 'var(--ws-faint)' }}>{String.fromCharCode(65 + ci)}</span>
+                <span className="flex-1">{choice}</span>
+                {st === 'correct' || st === 'reveal' ? <Check size={18} strokeWidth={2.6} />
+                  : st === 'wrong' ? <X size={18} strokeWidth={2.6} /> : null}
+              </motion.button>
+            )
+          })}
         </div>
       )}
     </motion.div>
@@ -235,7 +237,9 @@ function ScoreScreen({
   onRetry: () => void
   onBack: () => void
 }) {
-  const emoji = correct >= total - 1 ? '🎉' : correct >= Math.ceil(total / 2) ? '💪' : '📚'
+  const { t } = useTranslation()
+  const good = correct >= Math.ceil(total / 2)
+  const tint = good ? '#10b981' : '#f59e0b'
 
   return (
     <motion.div
@@ -248,16 +252,17 @@ function ScoreScreen({
         initial={{ scale: 0, rotate: -20 }}
         animate={{ scale: 1, rotate: 0 }}
         transition={{ type: 'spring', stiffness: 380, damping: 18, delay: 0.05 }}
-        className="text-7xl"
+        className="w-24 h-24 rounded-3xl flex items-center justify-center"
+        style={{ background: `${tint}1f`, border: `1px solid ${tint}3a` }}
       >
-        {emoji}
+        <Trophy size={46} strokeWidth={1.8} style={{ color: tint }} />
       </motion.div>
 
       <div>
-        <p className="text-4xl font-black text-white">
-          {correct} <span className="text-white/30 font-bold text-2xl">/ {total}</span>
+        <p className="text-4xl font-black" style={{ color: 'var(--ws-text)' }}>
+          {correct} <span className="font-bold text-2xl" style={{ color: 'var(--ws-faint)' }}>/ {total}</span>
         </p>
-        <p className="text-white/50 text-sm mt-1.5">ta to'g'ri javob</p>
+        <p className="text-sm mt-1.5" style={{ color: 'var(--ws-muted)' }}>{t('quiz.correctCount')}</p>
       </div>
 
       {xpEarned !== null && xpEarned > 0 && (
@@ -265,29 +270,28 @@ function ScoreScreen({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="rounded-2xl px-6 py-4"
+          className="rounded-btn px-6 py-4"
           style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.25)' }}
         >
-          <p className="text-primary font-black text-xl">+{xpEarned} XP</p>
+          <p className="font-black text-xl" style={{ color: 'var(--ws-primary-light)' }}>+{xpEarned} XP</p>
         </motion.div>
       )}
 
-      <div className="flex gap-3 w-full max-w-xs">
+      <div className="flex flex-col gap-3 w-full max-w-xs">
         <motion.button
-          whileTap={{ scale: 0.95 }}
+          whileTap={{ scale: 0.96 }}
           onClick={onRetry}
-          className="flex-1 py-4 rounded-2xl font-black text-sm text-white"
-          style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', boxShadow: '0 6px 20px rgba(99,102,241,0.28)' }}
+          className="w-full py-4 rounded-btn font-black text-sm text-white flex items-center justify-center gap-2 ws-gradient-bg ws-glow-primary"
         >
-          🔄 Yana mashq
+          <RefreshCw size={17} strokeWidth={2.4} /> {t('quiz.retry')}
         </motion.button>
         <motion.button
-          whileTap={{ scale: 0.95 }}
+          whileTap={{ scale: 0.96 }}
           onClick={onBack}
-          className="flex-1 py-4 rounded-2xl font-bold text-sm"
-          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.55)' }}
+          className="w-full py-4 rounded-btn font-bold text-sm flex items-center justify-center gap-2 ws-card-2"
+          style={{ color: 'var(--ws-muted)' }}
         >
-          ← Orqaga
+          <ArrowLeft size={17} strokeWidth={2.2} /> {t('quiz.back')}
         </motion.button>
       </div>
     </motion.div>
@@ -296,6 +300,7 @@ function ScoreScreen({
 
 // ── Main QuizPage ──────────────────────────────────────────────────────────────
 export function QuizPage({ onBack }: { onBack: () => void }) {
+  const { t } = useTranslation()
   const [mode, setMode] = useState<QuizMode | null>(null)
   const [questions, setQuestions] = useState<QuizQuestion[]>([])
   const [loading, setLoading] = useState(false)
@@ -338,21 +343,22 @@ export function QuizPage({ onBack }: { onBack: () => void }) {
   const correctCount = answers.filter((a) => a.correct).length
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#0a0a14' }}>
+    <div className="h-full flex flex-col" style={{ background: 'var(--ws-bg)' }}>
       {/* Top bar */}
       <div className="flex items-center justify-between px-5 pt-4 pb-3 shrink-0">
         <motion.button
-          whileTap={{ scale: 0.95 }}
+          whileTap={{ scale: 0.92 }}
           onClick={() => (mode && !done ? setMode(null) : onBack())}
-          className="text-primary font-semibold text-sm flex items-center gap-1.5"
+          className="w-9 h-9 rounded-full flex items-center justify-center"
+          style={{ background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)' }}
         >
-          ← Orqaga
+          <ArrowLeft size={18} strokeWidth={2.2} style={{ color: 'var(--ws-muted)' }} />
         </motion.button>
         <div className="flex items-center gap-2">
-          <span className="text-xl">🧠</span>
-          <span className="text-white font-black text-base">Mashq</span>
+          <Brain size={20} strokeWidth={2} style={{ color: 'var(--ws-primary-light)' }} />
+          <span className="font-black text-base" style={{ color: 'var(--ws-text)' }}>{t('practice.quiz.title')}</span>
         </div>
-        <div className="w-16" />
+        <div className="w-9" />
       </div>
 
       <div className="flex-1 flex flex-col overflow-hidden px-5 pb-8">
@@ -366,8 +372,8 @@ export function QuizPage({ onBack }: { onBack: () => void }) {
               exit={{ opacity: 0, y: -16 }}
               className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-3 pt-2"
             >
-              <p className="text-white/40 text-sm mb-1">
-                Qaysi usulda mashq qilamiz? Zaif va takrorlash vaqti kelgan so'zlar tanlanadi.
+              <p className="text-sm mb-1" style={{ color: 'var(--ws-muted)' }}>
+                {t('quiz.pickMode')}
               </p>
               {MODES.map((m, i) => (
                 <motion.button
@@ -375,17 +381,21 @@ export function QuizPage({ onBack }: { onBack: () => void }) {
                   initial={{ opacity: 0, x: -12 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.05 }}
-                  whileTap={{ scale: 0.97 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => start(m.key)}
-                  className="w-full rounded-2xl p-4 flex items-center gap-4 text-left"
-                  style={{ background: `${m.color}14`, border: `1px solid ${m.color}30` }}
+                  className="w-full ws-card p-4 flex items-center gap-4 text-left"
                 >
-                  <span className="text-3xl">{m.icon}</span>
-                  <div className="flex-1">
-                    <p className="font-black text-base" style={{ color: m.color }}>{m.title}</p>
-                    <p className="text-white/35 text-xs mt-0.5">{m.desc}</p>
+                  <div
+                    className="shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center"
+                    style={{ background: `${m.tint}1f`, border: `1px solid ${m.tint}3a` }}
+                  >
+                    <m.Icon size={22} strokeWidth={2} style={{ color: m.tint }} />
                   </div>
-                  <span className="text-white/25 text-lg">→</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-[15px]" style={{ color: 'var(--ws-text)' }}>{t(`quiz.modes.${m.key}.title`)}</p>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--ws-muted)' }}>{t(`quiz.modes.${m.key}.desc`)}</p>
+                  </div>
+                  <ArrowRight size={20} strokeWidth={2} style={{ color: 'var(--ws-faint)' }} />
                 </motion.button>
               ))}
             </motion.div>
@@ -400,8 +410,11 @@ export function QuizPage({ onBack }: { onBack: () => void }) {
               exit={{ opacity: 0 }}
               className="flex-1 flex flex-col items-center justify-center gap-5"
             >
-              <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-              <p className="text-white/35 text-sm font-medium">Savollar tayyorlanmoqda...</p>
+              <div className="relative w-12 h-12">
+                <div className="absolute inset-0 rounded-full" style={{ border: '2px solid rgba(99,102,241,0.15)' }} />
+                <div className="absolute inset-0 rounded-full animate-spin" style={{ border: '2px solid transparent', borderTopColor: 'var(--ws-primary)' }} />
+              </div>
+              <p className="text-sm font-medium" style={{ color: 'var(--ws-faint)' }}>{t('quiz.preparing')}</p>
             </motion.div>
           )}
 
@@ -414,20 +427,26 @@ export function QuizPage({ onBack }: { onBack: () => void }) {
               exit={{ opacity: 0 }}
               className="flex-1 flex flex-col items-center justify-center gap-5 text-center"
             >
-              <span className="text-6xl">{error ? '😓' : '📭'}</span>
+              <div
+                className="w-20 h-20 rounded-3xl flex items-center justify-center"
+                style={{ background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)' }}
+              >
+                {error
+                  ? <Frown size={36} strokeWidth={1.8} style={{ color: 'var(--ws-muted)' }} />
+                  : <Inbox size={36} strokeWidth={1.8} style={{ color: 'var(--ws-muted)' }} />}
+              </div>
               <div>
-                <p className="text-white font-bold text-lg">{error ? 'Savollar yuklanmadi' : "Mashq uchun so'zlar yo'q"}</p>
-                <p className="text-white/35 text-sm mt-1">
-                  {error ? 'Internet aloqasini tekshiring' : "Avval feed'da so'zlarni o'rganing"}
-                </p>
+                <p className="font-bold text-lg" style={{ color: 'var(--ws-text)' }}>{error ? t('quiz.loadError') : t('quiz.noWords')}</p>
+                <p className="text-sm mt-1" style={{ color: 'var(--ws-muted)' }}>{error ? t('quiz.checkConnection') : t('quiz.learnFirst')}</p>
               </div>
               <motion.button
-                whileTap={{ scale: 0.95 }}
+                whileTap={{ scale: 0.96 }}
                 onClick={() => (error ? start(mode) : setMode(null))}
-                className="px-6 py-3 rounded-2xl font-bold text-sm text-white"
-                style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+                className="px-6 py-3 rounded-btn font-bold text-sm text-white flex items-center gap-2 ws-gradient-bg ws-glow-primary"
               >
-                {error ? '🔄 Qayta urinish' : '← Orqaga'}
+                {error
+                  ? <><RefreshCw size={16} strokeWidth={2.4} /> {t('quiz.retry')}</>
+                  : <><ArrowLeft size={16} strokeWidth={2.4} /> {t('quiz.back')}</>}
               </motion.button>
             </motion.div>
           )}

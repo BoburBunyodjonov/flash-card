@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
+import {
+  Flame, BarChart3, Layers, NotebookPen, BookOpen, RefreshCw, ArrowLeft,
+  Plus, Clock, Share2, Check, Sparkles, Target, Zap,
+} from 'lucide-react'
 import { useFeedStore } from '../../store/feed.store'
 import { useAuthStore } from '../../store/auth.store'
 import { SwipeCard } from '../../components/SwipeCard'
@@ -30,7 +34,7 @@ function useCountdownToMidnight() {
   return { hoursLeft, minutesLeft }
 }
 
-export function FeedPage({ onChallenge, onQuiz, onDuel, onSpeaking, onMyWords }: { onChallenge?: () => void; onQuiz?: () => void; onDuel?: () => void; onSpeaking?: () => void; onMyWords?: () => void }) {
+export function FeedPage({ onChallenge, onMyWords, onProgress }: { onChallenge?: () => void; onMyWords?: () => void; onProgress?: () => void }) {
   const { t } = useTranslation()
   const { words, currentIndex, stats, isLoading, isLimitReached, isEmpty, loadFeed, swipe, nextCard, selectedCategoryId, setCategory } = useFeedStore()
   const { user } = useAuthStore()
@@ -52,11 +56,13 @@ export function FeedPage({ onChallenge, onQuiz, onDuel, onSpeaking, onMyWords }:
 
   const handleSwipe = async (direction: 'left' | 'right' | 'up' | 'down') => {
     if (!currentWord) return
-    if (direction === 'down') { haptic.impact('light'); nextCard(); return }
+    // Up = skip (just advance, nothing saved); Down = save (bookmark, backend 'up')
+    if (direction === 'up') { haptic.impact('light'); nextCard(); return }
     if (direction === 'right') haptic.success()
     else if (direction === 'left') haptic.impact('medium')
-    else if (direction === 'up')  haptic.impact('light')
-    await swipe(currentWord.id, direction as 'left' | 'right' | 'up')
+    else if (direction === 'down') haptic.impact('light')
+    const backendDir = direction === 'down' ? 'up' : direction
+    await swipe(currentWord.id, backendDir as 'left' | 'right' | 'up')
     nextCard()
   }
 
@@ -84,9 +90,11 @@ export function FeedPage({ onChallenge, onQuiz, onDuel, onSpeaking, onMyWords }:
           <div className="relative w-14 h-14">
             <div className="absolute inset-0 rounded-full" style={{ border: '2px solid rgba(99,102,241,0.15)' }} />
             <div className="absolute inset-0 rounded-full animate-spin" style={{ border: '2px solid transparent', borderTopColor: '#6366f1' }} />
-            <div className="absolute inset-0 flex items-center justify-center text-xl">⚡</div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Zap size={18} strokeWidth={2.2} style={{ color: 'var(--ws-primary-light)' }} />
+            </div>
           </div>
-          <p className="text-white/35 text-sm font-medium tracking-wide">Loading your feed...</p>
+          <p className="text-sm font-medium tracking-wide" style={{ color: 'var(--ws-faint)' }}>{t('feed.loading')}</p>
         </div>
       </div>
     )
@@ -98,15 +106,21 @@ export function FeedPage({ onChallenge, onQuiz, onDuel, onSpeaking, onMyWords }:
   if (isEmpty) {
     const isPersonal = selectedCategoryId === 'personal'
     return (
-      <div className="h-full flex flex-col items-center justify-center animated-gradient px-8 text-center gap-5">
-        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 220 }} className="text-7xl">
-          {isPersonal ? '📝' : '📚'}
+      <div className="h-full flex flex-col items-center justify-center px-8 text-center gap-5" style={{ background: 'var(--ws-bg)' }}>
+        <motion.div
+          initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 220 }}
+          className="w-20 h-20 rounded-3xl flex items-center justify-center"
+          style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)' }}
+        >
+          {isPersonal
+            ? <NotebookPen size={34} strokeWidth={1.8} style={{ color: 'var(--ws-primary-light)' }} />
+            : <BookOpen size={34} strokeWidth={1.8} style={{ color: 'var(--ws-primary-light)' }} />}
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
-          <h2 className="text-2xl font-black text-white">
+          <h2 className="text-2xl font-black" style={{ color: 'var(--ws-text)' }}>
             {isPersonal ? t('feed.myWordsEmptyTitle') : t('feed.emptyTitle')}
           </h2>
-          <p className="text-white/35 text-sm mt-2">
+          <p className="text-sm mt-2" style={{ color: 'var(--ws-muted)' }}>
             {isPersonal ? t('feed.myWordsEmptyDesc') : t('feed.emptyDesc')}
           </p>
         </motion.div>
@@ -117,10 +131,9 @@ export function FeedPage({ onChallenge, onQuiz, onDuel, onSpeaking, onMyWords }:
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
             whileTap={{ scale: 0.95 }}
             onClick={onMyWords}
-            className="w-full max-w-xs py-4 rounded-2xl font-black text-base text-white"
-            style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', boxShadow: '0 8px 32px rgba(99,102,241,0.35)' }}
+            className="w-full max-w-xs py-4 rounded-btn font-bold text-base text-white flex items-center justify-center gap-2 ws-gradient-bg ws-glow-primary"
           >
-            ➕ {t('feed.addWord')}
+            <Plus size={18} strokeWidth={2.4} /> {t('feed.addWord')}
           </motion.button>
         )}
 
@@ -130,18 +143,20 @@ export function FeedPage({ onChallenge, onQuiz, onDuel, onSpeaking, onMyWords }:
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.28 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setCategory(null)}
-            className="glass rounded-2xl px-6 py-3 text-white/60 font-semibold text-sm"
+            className="rounded-btn px-6 py-3 font-semibold text-sm flex items-center gap-2 ws-card-2"
+            style={{ color: 'var(--ws-muted)' }}
           >
-            ← {t('feed.backToAll')}
+            <ArrowLeft size={16} strokeWidth={2.2} /> {t('feed.backToAll')}
           </motion.button>
         ) : (
           <motion.button
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.28 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => loadFeed()}
-            className="glass rounded-2xl px-6 py-3 text-white/60 font-semibold text-sm"
+            className="rounded-btn px-6 py-3 font-semibold text-sm flex items-center gap-2 ws-card-2"
+            style={{ color: 'var(--ws-muted)' }}
           >
-            🔄 {t('feed.reload')}
+            <RefreshCw size={16} strokeWidth={2.2} /> {t('feed.reload')}
           </motion.button>
         )}
       </div>
@@ -151,50 +166,49 @@ export function FeedPage({ onChallenge, onQuiz, onDuel, onSpeaking, onMyWords }:
   // ── LIMIT REACHED ──
   if (isLimitReached) {
     return (
-      <div className="h-full flex flex-col items-center justify-center animated-gradient px-6 text-center gap-5 overflow-y-auto no-scrollbar pb-24">
+      <div className="h-full flex flex-col items-center justify-center px-6 text-center gap-5 overflow-y-auto no-scrollbar pb-24" style={{ background: 'var(--ws-bg)' }}>
 
         <motion.div
-          initial={{ scale: 0, rotate: -15 }}
-          animate={{ scale: 1, rotate: 0 }}
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 200 }}
-          className="text-8xl"
+          className="w-20 h-20 rounded-3xl flex items-center justify-center"
+          style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.28)' }}
         >
-          🎉
+          <Check size={38} strokeWidth={2.2} style={{ color: 'var(--ws-success)' }} />
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
-          <h2 className="text-3xl font-black gradient-text">{t('feed.limitReached')}</h2>
-          <p className="text-white/35 text-sm mt-1">{t('feed.limitMsg')}</p>
+          <h2 className="text-3xl font-black ws-gradient-text">{t('feed.limitReached')}</h2>
+          <p className="text-sm mt-1" style={{ color: 'var(--ws-muted)' }}>{t('feed.limitMsg')}</p>
         </motion.div>
 
         {stats && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.22 }}
-            className="rounded-3xl px-8 py-5 flex gap-8 w-full max-w-xs justify-center"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+            className="ws-card px-8 py-5 flex gap-8 w-full max-w-xs justify-center"
           >
             <div className="text-center">
-              <p className="text-3xl font-black" style={{ color: '#6366f1' }}>{stats.learnedToday}</p>
-              <p className="text-xs text-white/30 mt-1 font-medium">bugun o'rgandim</p>
+              <p className="text-3xl font-black" style={{ color: 'var(--ws-primary-light)' }}>{stats.learnedToday}</p>
+              <p className="text-xs mt-1 font-medium" style={{ color: 'var(--ws-faint)' }}>{t('feed.learnedToday')}</p>
             </div>
-            <div className="w-px bg-white/10" />
+            <div className="w-px" style={{ background: 'var(--ws-border)' }} />
             <div className="text-center">
-              <p className="text-3xl font-black" style={{ color: '#f59e0b' }}>{user?.streak ?? 0}</p>
-              <p className="text-xs text-white/30 mt-1 font-medium">{t('feed.streak')}</p>
+              <p className="text-3xl font-black" style={{ color: 'var(--ws-warning)' }}>{user?.streak ?? 0}</p>
+              <p className="text-xs mt-1 font-medium" style={{ color: 'var(--ws-faint)' }}>{t('feed.streak')}</p>
             </div>
           </motion.div>
         )}
 
         <motion.div
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.32 }}
-          className="rounded-2xl px-5 py-4 flex items-center gap-3 w-full max-w-xs"
-          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
+          className="ws-card-2 px-5 py-4 flex items-center gap-3 w-full max-w-xs"
         >
-          <span className="text-2xl">⏰</span>
-          <div>
-            <p className="text-white/35 text-xs mb-0.5">Yangi so'zlar ochilishiga</p>
-            <p className="font-black text-white text-base">
-              {hoursLeft} soat {minutesLeft} daqiqa
+          <Clock size={22} strokeWidth={2} style={{ color: 'var(--ws-muted)' }} />
+          <div className="text-left">
+            <p className="text-xs mb-0.5" style={{ color: 'var(--ws-faint)' }}>{t('feed.unlockIn')}</p>
+            <p className="font-black text-base" style={{ color: 'var(--ws-text)' }}>
+              {hoursLeft} {t('feed.hours')} {minutesLeft} {t('feed.minutes')}
             </p>
           </div>
         </motion.div>
@@ -205,24 +219,26 @@ export function FeedPage({ onChallenge, onQuiz, onDuel, onSpeaking, onMyWords }:
           transition={{ delay: 0.28 }}
           whileTap={{ scale: 0.96 }}
           onClick={onChallenge}
-          className="w-full max-w-xs py-4 rounded-2xl font-black text-base flex items-center justify-center gap-2"
-          style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)', boxShadow: '0 8px 32px rgba(245,158,11,0.3)', color: '#fff' }}
+          className="w-full max-w-xs py-4 rounded-btn font-bold text-base flex items-center justify-center gap-2 text-white"
+          style={{ background: 'linear-gradient(135deg, #F59E0B, #F97316)', boxShadow: '0 8px 28px rgba(245,158,11,0.3)' }}
         >
-          🎯 Kunlik Challeng
+          <Target size={18} strokeWidth={2.4} /> {t('practice.challenge.title')}
         </motion.button>
 
         <motion.button
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
           whileTap={{ scale: 0.96 }}
           onClick={handleShare}
-          className="w-full max-w-xs rounded-2xl py-3.5 font-bold text-sm flex items-center justify-center gap-2 transition-colors"
+          className="w-full max-w-xs rounded-btn py-3.5 font-bold text-sm flex items-center justify-center gap-2"
           style={{
-            background: shared ? 'rgba(52,211,153,0.12)' : 'rgba(255,255,255,0.05)',
-            border: `1px solid ${shared ? 'rgba(52,211,153,0.28)' : 'rgba(255,255,255,0.09)'}`,
-            color: shared ? '#34d399' : 'rgba(255,255,255,0.65)',
+            background: shared ? 'rgba(16,185,129,0.12)' : 'rgba(255,255,255,0.05)',
+            border: `1px solid ${shared ? 'rgba(16,185,129,0.28)' : 'var(--ws-border)'}`,
+            color: shared ? 'var(--ws-success)' : 'var(--ws-muted)',
           }}
         >
-          {shared ? '✓ Ulashildi!' : '📤 Do\'stlarga ulash'}
+          {shared
+            ? <><Check size={16} strokeWidth={2.4} /> {t('feed.shared')}</>
+            : <><Share2 size={16} strokeWidth={2} /> {t('feed.shareFriends')}</>}
         </motion.button>
 
         {!user?.isPremium && (
@@ -230,10 +246,9 @@ export function FeedPage({ onChallenge, onQuiz, onDuel, onSpeaking, onMyWords }:
             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.48 }}
             whileTap={{ scale: 0.96 }}
             onClick={() => { haptic.impact('medium'); setPremiumOpen(true) }}
-            className="w-full max-w-xs font-bold text-base px-8 py-4 rounded-2xl text-white"
-            style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', boxShadow: '0 8px 32px rgba(99,102,241,0.35)' }}
+            className="w-full max-w-xs font-bold text-base px-8 py-4 rounded-btn text-white flex items-center justify-center gap-2 ws-gradient-bg ws-glow-primary"
           >
-            ⚡ Cheksiz o'rganish — Premium
+            <Sparkles size={18} strokeWidth={2.2} /> {t('feed.unlimitedPremium')}
           </motion.button>
         )}
 
@@ -244,81 +259,47 @@ export function FeedPage({ onChallenge, onQuiz, onDuel, onSpeaking, onMyWords }:
 
   // ── MAIN FEED ──
   return (
-    <div className="h-full flex flex-col" style={{ background: '#0a0a14' }}>
+    <div className="h-full flex flex-col" style={{ background: 'var(--ws-bg)' }}>
 
       {/* Top bar */}
-      <div className="flex items-center justify-between px-5 pt-4 pb-3 shrink-0">
+      <div className="flex items-center gap-3 px-5 pt-4 pb-3 shrink-0">
 
         {/* Streak pill */}
         <motion.div
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
-          style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.18)' }}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full shrink-0"
+          style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)' }}
           whileTap={{ scale: 0.93 }}
         >
-          <motion.span
-            className="text-base leading-none"
-            animate={{ scale: [1, 1.3, 1] }}
-            transition={{ repeat: Infinity, duration: 2, repeatDelay: 3 }}
-          >
-            🔥
-          </motion.span>
-          <span className="font-black text-sm" style={{ color: '#f59e0b' }}>{user?.streak ?? 0}</span>
-          <span className="text-white/30 text-xs">{t('feed.streak')}</span>
+          <Flame size={15} strokeWidth={2.2} style={{ color: 'var(--ws-warning)' }} />
+          <span className="font-black text-sm tabular-nums" style={{ color: 'var(--ws-warning)' }}>{user?.streak ?? 0}</span>
         </motion.div>
 
-        {/* Progress */}
+        {/* Progress — fills available space */}
         {stats && (
-          <div className="flex items-center gap-2.5">
-            <div className="relative h-1.5 w-16 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+          <div className="flex-1 flex items-center gap-2.5 min-w-0">
+            <div className="relative h-1.5 flex-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
               <motion.div
-                className="absolute inset-y-0 left-0 rounded-full"
-                style={{ background: 'linear-gradient(90deg, #6366f1, #a78bfa, #38bdf8)' }}
+                className="absolute inset-y-0 left-0 rounded-full ws-gradient-bg"
                 animate={{ width: `${progressPct}%` }}
                 transition={{ type: 'spring', stiffness: 120, damping: 20 }}
               />
             </div>
-            <span className="text-white/40 text-xs font-bold tabular-nums">
+            <span className="text-xs font-bold tabular-nums whitespace-nowrap" style={{ color: 'var(--ws-muted)' }}>
               {stats.remaining} {t('feed.wordsLeft')}
             </span>
           </div>
         )}
 
-        {/* Practice shortcuts */}
-        <div className="flex items-center gap-1.5">
-          <motion.button
-            whileTap={{ scale: 0.88 }}
-            onClick={onQuiz}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-base"
-            style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)' }}
-          >
-            🧠
-          </motion.button>
-          <motion.button
-            whileTap={{ scale: 0.88 }}
-            onClick={onDuel}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-base"
-            style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)' }}
-          >
-            ⚔️
-          </motion.button>
-          <motion.button
-            whileTap={{ scale: 0.88 }}
-            onClick={onSpeaking}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-base"
-            style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.25)' }}
-          >
-            🎙️
-          </motion.button>
-          <motion.button
-            whileTap={{ scale: 0.88 }}
-            onClick={onMyWords}
-            aria-label={t('myWords.title')}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-base"
-            style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.25)' }}
-          >
-            📝
-          </motion.button>
-        </div>
+        {/* Stats / profile button → Progress page */}
+        <motion.button
+          whileTap={{ scale: 0.88 }}
+          onClick={onProgress}
+          aria-label={t('nav.progress')}
+          className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center"
+          style={{ background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)' }}
+        >
+          <BarChart3 size={18} strokeWidth={2} style={{ color: 'var(--ws-muted)' }} />
+        </motion.button>
       </div>
 
       {/* Category chips */}
@@ -328,42 +309,46 @@ export function FeedPage({ onChallenge, onQuiz, onDuel, onSpeaking, onMyWords }:
           <motion.button
             whileTap={{ scale: 0.93 }}
             onClick={() => !selectedCategoryId || setCategory(null)}
-            className="shrink-0 px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap"
+            className="shrink-0 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1.5"
             style={!selectedCategoryId
-              ? { background: '#6366f1', color: '#fff' }
-              : { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)' }
+              ? { background: 'var(--ws-gradient)', color: '#fff', boxShadow: '0 4px 14px rgba(99,102,241,0.3)' }
+              : { background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)', color: 'var(--ws-muted)' }
             }
           >
+            <Layers size={14} strokeWidth={2.2} />
             {t('feed.all')}
           </motion.button>
           {/* "My Words" chip — switches the feed to only the user's own added words */}
           <motion.button
             whileTap={{ scale: 0.93 }}
             onClick={() => selectedCategoryId !== 'personal' && setCategory('personal')}
-            className="shrink-0 px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1.5"
+            className="shrink-0 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1.5"
             style={selectedCategoryId === 'personal'
-              ? { background: '#6366f1', color: '#fff' }
-              : { background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.35)', color: 'rgba(165,180,252,0.9)' }
+              ? { background: 'var(--ws-gradient)', color: '#fff', boxShadow: '0 4px 14px rgba(99,102,241,0.3)' }
+              : { background: 'var(--ws-card-2)', border: '1px solid rgba(99,102,241,0.3)', color: 'var(--ws-primary-light)' }
             }
           >
-            <span>📝</span>
+            <NotebookPen size={14} strokeWidth={2.2} />
             {t('feed.myWords')}
           </motion.button>
-          {categories.map(cat => (
-            <motion.button
-              key={cat.id}
-              whileTap={{ scale: 0.93 }}
-              onClick={() => selectedCategoryId !== cat.id && setCategory(cat.id)}
-              className="shrink-0 px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1.5"
-              style={selectedCategoryId === cat.id
-                ? { background: cat.color, color: '#fff' }
-                : { background: 'rgba(255,255,255,0.06)', border: `1px solid ${cat.color}40`, color: 'rgba(255,255,255,0.5)' }
-              }
-            >
-              {cat.icon && <span>{cat.icon}</span>}
-              {cat.nameUz}
-            </motion.button>
-          ))}
+          {categories.map(cat => {
+            const isActive = selectedCategoryId === cat.id
+            return (
+              <motion.button
+                key={cat.id}
+                whileTap={{ scale: 0.93 }}
+                onClick={() => !isActive && setCategory(cat.id)}
+                className="shrink-0 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1.5"
+                style={isActive
+                  ? { background: 'var(--ws-gradient)', color: '#fff', boxShadow: '0 4px 14px rgba(99,102,241,0.3)' }
+                  : { background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)', color: 'var(--ws-muted)' }
+                }
+              >
+                {cat.icon && <span className="text-[13px] leading-none">{cat.icon}</span>}
+                {cat.nameUz}
+              </motion.button>
+            )
+          })}
         </div>
       )}
 

@@ -2,6 +2,33 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
+/* ── Premium design tokens ── */
+:root {
+  --ws-bg:            #08080C;
+  --ws-bg-elevated:   #0E0E15;
+  --ws-card:          #15151E;
+  --ws-card-2:        #1B1B26;
+  --ws-surface:       #20202C;
+
+  --ws-border:        rgba(255, 255, 255, 0.07);
+  --ws-border-strong: rgba(255, 255, 255, 0.12);
+
+  --ws-primary:       #6366F1;
+  --ws-primary-light: #818CF8;
+  --ws-accent:        #8B5CF6;
+
+  --ws-success:       #10B981;
+  --ws-warning:       #F59E0B;
+  --ws-danger:        #EF4444;
+
+  --ws-text:          rgba(255, 255, 255, 0.95);
+  --ws-muted:         rgba(255, 255, 255, 0.55);
+  --ws-faint:         rgba(255, 255, 255, 0.32);
+
+  /* Brand gradient for primary CTAs */
+  --ws-gradient:      linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+}
+
 * {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
@@ -101,3 +128,28 @@ html, body, #root {
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
 }
+
+/* ── Premium primitives ── */
+.ws-card {
+  background: var(--ws-card);
+  border: 1px solid var(--ws-border);
+  border-radius: 20px;
+}
+.ws-card-2 {
+  background: var(--ws-card-2);
+  border: 1px solid var(--ws-border);
+  border-radius: 20px;
+}
+.ws-gradient-bg { background: var(--ws-gradient); }
+.ws-gradient-text {
+  background: var(--ws-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.ws-glow-primary { box-shadow: 0 8px 28px rgba(99, 102, 241, 0.35); }
+.ws-border       { border: 1px solid var(--ws-border); }
+.ws-border-strong{ border: 1px solid var(--ws-border-strong); }
+
+/* iOS safe-area for bottom-fixed elements */
+.pb-safe { padding-bottom: calc(env(safe-area-inset-bottom, 0px)); }

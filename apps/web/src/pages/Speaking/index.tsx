@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
+import {
+  Mic, MicOff, PhoneOff, ThumbsUp, ThumbsDown, Flag, ArrowLeft, Loader, RefreshCw,
+  User, MessageCircle, ArrowRight, X, Wifi, PartyPopper, Trophy, Clock, Zap, Check, AlertTriangle,
+} from 'lucide-react'
 import { useAuthStore } from '../../store/auth.store'
 import { useTelegram } from '../../hooks/useTelegram'
 import { speakingApi, type SpeakingPartner, type SpeakingTopics } from '../../api/speaking.api'
@@ -330,7 +334,7 @@ export function SpeakingPage({ onBack }: { onBack: () => void }) {
 
   // ── UI ───────────────────────────────────────────────────────────────────
   return (
-    <div className="h-full flex flex-col overflow-hidden" style={{ background: '#0a0a14' }}>
+    <div className="h-full flex flex-col overflow-hidden" style={{ background: 'var(--ws-bg)' }}>
       {/* Remote audio sink — always mounted so refs survive stage changes */}
       <audio ref={audioRef} autoPlay playsInline className="hidden" />
 
@@ -339,11 +343,15 @@ export function SpeakingPage({ onBack }: { onBack: () => void }) {
         <motion.button
           whileTap={{ scale: 0.92 }}
           onClick={stage === 'searching' ? cancelSearch : handleBack}
-          className="text-white/50 font-bold text-sm py-1 pr-2"
+          className="w-9 h-9 rounded-full flex items-center justify-center"
+          style={{ background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)' }}
         >
-          ← {t('speaking.back')}
+          <ArrowLeft size={18} strokeWidth={2.2} style={{ color: 'var(--ws-muted)' }} />
         </motion.button>
-        <h1 className="text-lg font-black gradient-text">🎙️ {t('speaking.title')}</h1>
+        <div className="flex items-center gap-2">
+          <Mic size={19} strokeWidth={2} style={{ color: 'var(--ws-success)' }} />
+          <h1 className="text-lg font-black" style={{ color: 'var(--ws-text)' }}>{t('speaking.title')}</h1>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar pb-24">
@@ -357,35 +365,35 @@ export function SpeakingPage({ onBack }: { onBack: () => void }) {
               className="px-5 pt-3 flex flex-col gap-4"
             >
               {/* Explanation card */}
-              <div className="rounded-2xl p-5 text-center"
-                style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)' }}>
+              <div className="ws-card p-6 text-center flex flex-col items-center"
+                style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.08), rgba(99,102,241,0.05))', border: '1px solid rgba(16,185,129,0.2)' }}>
                 <motion.div
                   initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 220 }}
-                  className="text-6xl mb-3"
+                  className="w-20 h-20 rounded-3xl flex items-center justify-center mb-4"
+                  style={{ background: 'rgba(16,185,129,0.14)', border: '1px solid rgba(16,185,129,0.3)' }}
                 >
-                  🗣️
+                  <Mic size={38} strokeWidth={1.8} style={{ color: 'var(--ws-success)' }} />
                 </motion.div>
-                <p className="text-white font-black text-lg mb-1">{t('speaking.introTitle')}</p>
-                <p className="text-white/45 text-sm leading-relaxed">{t('speaking.introDesc')}</p>
+                <p className="font-black text-lg mb-1" style={{ color: 'var(--ws-text)' }}>{t('speaking.introTitle')}</p>
+                <p className="text-sm leading-relaxed" style={{ color: 'var(--ws-muted)' }}>{t('speaking.introDesc')}</p>
               </div>
 
               {/* Filters */}
-              <div className="rounded-2xl p-5 flex flex-col gap-4"
-                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+              <div className="ws-card p-5 flex flex-col gap-4">
 
                 {/* Same gender toggle */}
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-white font-bold text-sm">{t('speaking.sameGender')}</p>
+                    <p className="font-bold text-sm" style={{ color: 'var(--ws-text)' }}>{t('speaking.sameGender')}</p>
                     {!hasGender && (
-                      <p className="text-xs mt-0.5" style={{ color: '#f59e0b' }}>{t('speaking.sameGenderHint')}</p>
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--ws-warning)' }}>{t('speaking.sameGenderHint')}</p>
                     )}
                   </div>
                   <button
                     onClick={() => hasGender && setSameGender((v) => !v)}
                     disabled={!hasGender}
                     className="relative w-12 h-6 rounded-full transition-all duration-200 shrink-0 disabled:opacity-40"
-                    style={{ background: sameGender && hasGender ? '#6366f1' : 'rgba(255,255,255,0.1)' }}
+                    style={{ background: sameGender && hasGender ? 'var(--ws-primary)' : 'rgba(255,255,255,0.1)' }}
                   >
                     <motion.div
                       className="absolute top-1 w-4 h-4 rounded-full bg-white"
@@ -405,35 +413,35 @@ export function SpeakingPage({ onBack }: { onBack: () => void }) {
                       <button
                         onClick={() => saveGender('male')}
                         disabled={savingGender}
-                        className="py-2.5 rounded-xl text-sm font-bold disabled:opacity-50"
+                        className="py-2.5 rounded-btn text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-50"
                         style={{ background: 'rgba(56,189,248,0.1)', border: '1px solid rgba(56,189,248,0.25)', color: '#38bdf8' }}
                       >
-                        👨 {t('speaking.male')}
+                        <User size={15} strokeWidth={2.2} /> {t('speaking.male')}
                       </button>
                       <button
                         onClick={() => saveGender('female')}
                         disabled={savingGender}
-                        className="py-2.5 rounded-xl text-sm font-bold disabled:opacity-50"
+                        className="py-2.5 rounded-btn text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-50"
                         style={{ background: 'rgba(244,114,182,0.1)', border: '1px solid rgba(244,114,182,0.25)', color: '#f472b6' }}
                       >
-                        👩 {t('speaking.female')}
+                        <User size={15} strokeWidth={2.2} /> {t('speaking.female')}
                       </button>
                     </motion.div>
                   )}
                 </AnimatePresence>
 
-                <div className="h-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
+                <div className="h-px" style={{ background: 'var(--ws-border)' }} />
 
                 {/* Any level toggle */}
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-white font-bold text-sm">{t('speaking.anyLevel')}</p>
-                    <p className="text-white/30 text-xs mt-0.5">{t('speaking.anyLevelHint')}</p>
+                    <p className="font-bold text-sm" style={{ color: 'var(--ws-text)' }}>{t('speaking.anyLevel')}</p>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--ws-faint)' }}>{t('speaking.anyLevelHint')}</p>
                   </div>
                   <button
                     onClick={() => setAnyLevel((v) => !v)}
                     className="relative w-12 h-6 rounded-full transition-all duration-200 shrink-0"
-                    style={{ background: anyLevel ? '#6366f1' : 'rgba(255,255,255,0.1)' }}
+                    style={{ background: anyLevel ? 'var(--ws-primary)' : 'rgba(255,255,255,0.1)' }}
                   >
                     <motion.div
                       className="absolute top-1 w-4 h-4 rounded-full bg-white"
@@ -448,10 +456,9 @@ export function SpeakingPage({ onBack }: { onBack: () => void }) {
               <motion.button
                 whileTap={{ scale: 0.96 }}
                 onClick={startSearch}
-                className="w-full py-4 rounded-2xl font-black text-base text-white glow-purple"
-                style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', boxShadow: '0 8px 32px rgba(99,102,241,0.35)' }}
+                className="w-full py-4 rounded-btn font-black text-base text-white flex items-center justify-center gap-2 ws-gradient-bg ws-glow-primary"
               >
-                🎙️ {t('speaking.findPartner')}
+                <Mic size={18} strokeWidth={2.2} /> {t('speaking.findPartner')}
               </motion.button>
             </motion.div>
           )}
@@ -463,28 +470,34 @@ export function SpeakingPage({ onBack }: { onBack: () => void }) {
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
               className="px-6 pt-10 flex flex-col items-center text-center gap-4"
             >
-              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 220 }} className="text-7xl">
-                🎤
+              <motion.div
+                initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 220 }}
+                className="w-20 h-20 rounded-3xl flex items-center justify-center"
+                style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)' }}
+              >
+                <MicOff size={38} strokeWidth={1.8} style={{ color: 'var(--ws-warning)' }} />
               </motion.div>
-              <h2 className="text-xl font-black text-white">{t('speaking.micTitle')}</h2>
-              <p className="text-white/40 text-sm leading-relaxed max-w-xs">
+              <h2 className="text-xl font-black" style={{ color: 'var(--ws-text)' }}>{t('speaking.micTitle')}</h2>
+              <p className="text-sm leading-relaxed max-w-xs" style={{ color: 'var(--ws-muted)' }}>
                 {isInsideTelegram ? t('speaking.micTelegram') : t('speaking.micBrowser')}
               </p>
               {!isInsideTelegram && (
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={startSearch}
-                  className="glass rounded-2xl px-6 py-3 text-white/70 font-bold text-sm"
+                  className="ws-card-2 rounded-btn px-6 py-3 font-bold text-sm flex items-center gap-2"
+                  style={{ color: 'var(--ws-muted)' }}
                 >
-                  🔄 {t('speaking.retry')}
+                  <RefreshCw size={16} strokeWidth={2.2} /> {t('speaking.retry')}
                 </motion.button>
               )}
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setStage('intro')}
-                className="text-white/35 font-semibold text-sm py-2"
+                className="font-semibold text-sm py-2 flex items-center gap-1.5"
+                style={{ color: 'var(--ws-faint)' }}
               >
-                ← {t('speaking.back')}
+                <ArrowLeft size={15} strokeWidth={2.2} /> {t('speaking.back')}
               </motion.button>
             </motion.div>
           )}
@@ -507,24 +520,25 @@ export function SpeakingPage({ onBack }: { onBack: () => void }) {
                     transition={{ repeat: Infinity, duration: 2, delay: i * 0.6, ease: 'easeOut' }}
                   />
                 ))}
-                <div className="w-20 h-20 rounded-full flex items-center justify-center text-3xl glow-purple"
-                  style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
-                  🎙️
+                <div className="w-20 h-20 rounded-full flex items-center justify-center ws-gradient-bg ws-glow-primary">
+                  <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1.6, ease: 'linear' }}>
+                    <Loader size={32} strokeWidth={2.2} className="text-white" />
+                  </motion.div>
                 </div>
               </div>
 
               <div className="text-center">
-                <p className="text-white font-black text-lg">{t('speaking.searching')}</p>
-                <p className="text-white/35 text-sm mt-1 tabular-nums">{fmtDuration(searchSec)}</p>
+                <p className="font-black text-lg" style={{ color: 'var(--ws-text)' }}>{t('speaking.searching')}</p>
+                <p className="text-sm mt-1 tabular-nums" style={{ color: 'var(--ws-faint)' }}>{fmtDuration(searchSec)}</p>
               </div>
 
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={cancelSearch}
-                className="rounded-2xl px-8 py-3.5 font-bold text-sm"
-                style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171' }}
+                className="rounded-btn px-8 py-3.5 font-bold text-sm flex items-center gap-2"
+                style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', color: 'var(--ws-danger)' }}
               >
-                ✕ {t('speaking.cancel')}
+                <X size={16} strokeWidth={2.4} /> {t('speaking.cancel')}
               </motion.button>
             </motion.div>
           )}
@@ -537,39 +551,37 @@ export function SpeakingPage({ onBack }: { onBack: () => void }) {
               className="px-5 pt-3 flex flex-col gap-4"
             >
               {/* Partner card */}
-              <div className="rounded-2xl p-5 flex items-center gap-4"
-                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+              <div className="ws-card p-5 flex items-center gap-4">
                 <div className="relative shrink-0">
-                  <div className="w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center text-3xl"
-                    style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
+                  <div className="w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center ws-gradient-bg">
                     {partner.avatarUrl
                       ? <img src={partner.avatarUrl} className="w-full h-full object-cover" alt="" />
-                      : '👤'}
+                      : <User size={30} strokeWidth={2} className="text-white" />}
                   </div>
                   <motion.div
                     className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full"
-                    style={{ background: '#10b981', border: '2px solid #0a0a14' }}
+                    style={{ background: 'var(--ws-success)', border: '2px solid var(--ws-bg)' }}
                     animate={{ scale: [1, 1.2, 1] }}
                     transition={{ repeat: Infinity, duration: 1.6 }}
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-white font-black text-lg truncate">{partner.firstName}</p>
+                  <p className="font-black text-lg truncate" style={{ color: 'var(--ws-text)' }}>{partner.firstName}</p>
                   <div className="flex items-center gap-2 mt-1">
                     {partner.cefrLevel && (
                       <span className="text-xs font-bold px-2 py-0.5 rounded-full"
-                        style={{ background: 'rgba(99,102,241,0.15)', color: '#a78bfa' }}>
+                        style={{ background: 'rgba(99,102,241,0.15)', color: 'var(--ws-primary-light)' }}>
                         {partner.cefrLevel}
                       </span>
                     )}
-                    <span className="text-xs font-bold px-2 py-0.5 rounded-full"
+                    <span className="flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full"
                       style={{ background: 'rgba(251,191,36,0.12)', color: '#fbbf24' }}>
-                      ⚡ {partner.xp} XP
+                      <Zap size={12} strokeWidth={2.4} /> {partner.xp} XP
                     </span>
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-2xl font-black tabular-nums" style={{ color: '#34d399' }}>{fmtDuration(callSec)}</p>
+                  <p className="text-2xl font-black tabular-nums" style={{ color: 'var(--ws-success)' }}>{fmtDuration(callSec)}</p>
                 </div>
               </div>
 
@@ -578,8 +590,8 @@ export function SpeakingPage({ onBack }: { onBack: () => void }) {
                 {partnerLeft && (
                   <motion.div
                     initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                    className="rounded-xl px-4 py-3 text-center text-sm font-bold"
-                    style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.25)', color: '#f59e0b' }}
+                    className="rounded-btn px-4 py-3 text-center text-sm font-bold"
+                    style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.25)', color: 'var(--ws-warning)' }}
                   >
                     {t('speaking.partnerLeft')}
                   </motion.div>
@@ -590,18 +602,19 @@ export function SpeakingPage({ onBack }: { onBack: () => void }) {
               {topics && topics.topics.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-                  className="rounded-2xl p-5"
+                  className="rounded-card p-5"
                   style={{ background: 'rgba(99,102,241,0.07)', border: '1px solid rgba(99,102,241,0.18)' }}
                 >
-                  <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-2">
-                    💬 {t('speaking.topics')}
+                  <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--ws-muted)' }}>
+                    <MessageCircle size={12} strokeWidth={2.4} style={{ color: 'var(--ws-primary-light)' }} /> {t('speaking.topics')}
                   </p>
                   <AnimatePresence mode="wait">
                     <motion.p
                       key={topicIndex}
                       initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }}
                       transition={{ duration: 0.18 }}
-                      className="text-white font-bold text-base leading-relaxed min-h-[3rem]"
+                      className="font-bold text-base leading-relaxed min-h-[3rem]"
+                      style={{ color: 'var(--ws-text)' }}
                     >
                       {topics.topics[topicIndex % topics.topics.length]}
                     </motion.p>
@@ -611,7 +624,7 @@ export function SpeakingPage({ onBack }: { onBack: () => void }) {
                     <div className="flex flex-wrap gap-1.5 mt-3">
                       {topics.words.slice(0, 8).map((w) => (
                         <span key={w} className="text-xs font-semibold px-2.5 py-1 rounded-full"
-                          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }}>
+                          style={{ background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)', color: 'var(--ws-muted)' }}>
                           {w}
                         </span>
                       ))}
@@ -621,10 +634,10 @@ export function SpeakingPage({ onBack }: { onBack: () => void }) {
                   <motion.button
                     whileTap={{ scale: 0.95 }}
                     onClick={() => { haptic.impact('light'); setTopicIndex((i) => i + 1) }}
-                    className="mt-4 w-full py-2.5 rounded-xl text-sm font-bold"
-                    style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)', color: '#a78bfa' }}
+                    className="mt-4 w-full py-2.5 rounded-btn text-sm font-bold flex items-center justify-center gap-2"
+                    style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)', color: 'var(--ws-primary-light)' }}
                   >
-                    → {t('speaking.nextTopic')}
+                    {t('speaking.nextTopic')} <ArrowRight size={15} strokeWidth={2.4} />
                   </motion.button>
                 </motion.div>
               )}
@@ -634,23 +647,25 @@ export function SpeakingPage({ onBack }: { onBack: () => void }) {
                 <motion.button
                   whileTap={{ scale: 0.88 }}
                   onClick={toggleMute}
-                  className="w-16 h-16 rounded-full flex items-center justify-center text-2xl"
+                  className="w-16 h-16 rounded-full flex items-center justify-center"
                   style={muted
                     ? { background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.35)' }
-                    : { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)' }}
+                    : { background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)' }}
                 >
-                  {muted ? '🔇' : '🎙️'}
+                  {muted
+                    ? <MicOff size={26} strokeWidth={2} style={{ color: 'var(--ws-warning)' }} />
+                    : <Mic size={26} strokeWidth={2} style={{ color: 'var(--ws-muted)' }} />}
                 </motion.button>
                 <motion.button
                   whileTap={{ scale: 0.88 }}
                   onClick={endCall}
-                  className="w-20 h-20 rounded-full flex items-center justify-center text-3xl glow-red"
+                  className="w-20 h-20 rounded-full flex items-center justify-center"
                   style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', boxShadow: '0 8px 32px rgba(239,68,68,0.35)' }}
                 >
-                  📞
+                  <PhoneOff size={32} strokeWidth={2.2} className="text-white" />
                 </motion.button>
               </div>
-              <p className="text-center text-white/25 text-xs font-semibold">
+              <p className="text-center text-xs font-semibold" style={{ color: 'var(--ws-faint)' }}>
                 {muted ? t('speaking.unmute') : t('speaking.endHint')}
               </p>
             </motion.div>
@@ -666,24 +681,26 @@ export function SpeakingPage({ onBack }: { onBack: () => void }) {
               <motion.div
                 initial={{ scale: 0, rotate: -15 }} animate={{ scale: 1, rotate: 0 }}
                 transition={{ type: 'spring', stiffness: 200 }}
-                className="text-7xl"
+                className="w-24 h-24 rounded-3xl flex items-center justify-center"
+                style={{ background: 'rgba(16,185,129,0.14)', border: '1px solid rgba(16,185,129,0.3)' }}
               >
-                🎉
+                <PartyPopper size={46} strokeWidth={1.8} style={{ color: 'var(--ws-success)' }} />
               </motion.div>
-              <h2 className="text-2xl font-black gradient-text">{t('speaking.summaryTitle')}</h2>
+              <h2 className="text-2xl font-black ws-gradient-text">{t('speaking.summaryTitle')}</h2>
 
-              <div className="rounded-3xl px-8 py-5 flex gap-8 w-full max-w-xs justify-center"
-                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                <div className="text-center">
+              <div className="ws-card px-8 py-5 flex gap-8 w-full max-w-xs justify-center">
+                <div className="flex flex-col items-center text-center">
+                  <Clock size={18} strokeWidth={2} style={{ color: '#38bdf8' }} className="mb-1.5" />
                   <p className="text-3xl font-black tabular-nums" style={{ color: '#38bdf8' }}>
                     {fmtDuration(summary?.durationSec ?? 0)}
                   </p>
-                  <p className="text-xs text-white/30 mt-1 font-medium">{t('speaking.duration')}</p>
+                  <p className="text-xs mt-1 font-medium" style={{ color: 'var(--ws-faint)' }}>{t('speaking.duration')}</p>
                 </div>
-                <div className="w-px bg-white/10" />
-                <div className="text-center">
-                  <p className="text-3xl font-black" style={{ color: '#a78bfa' }}>+{summary?.xpEarned ?? 0}</p>
-                  <p className="text-xs text-white/30 mt-1 font-medium">XP</p>
+                <div className="w-px" style={{ background: 'var(--ws-border)' }} />
+                <div className="flex flex-col items-center text-center">
+                  <Trophy size={18} strokeWidth={2} style={{ color: 'var(--ws-primary-light)' }} className="mb-1.5" />
+                  <p className="text-3xl font-black" style={{ color: 'var(--ws-primary-light)' }}>+{summary?.xpEarned ?? 0}</p>
+                  <p className="text-xs mt-1 font-medium" style={{ color: 'var(--ws-faint)' }}>XP</p>
                 </div>
               </div>
 
@@ -691,10 +708,9 @@ export function SpeakingPage({ onBack }: { onBack: () => void }) {
               {partner && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-                  className="rounded-2xl p-5 w-full max-w-xs"
-                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+                  className="ws-card p-5 w-full max-w-xs"
                 >
-                  <p className="text-white/50 text-sm font-bold mb-3">
+                  <p className="text-sm font-bold mb-3" style={{ color: 'var(--ws-muted)' }}>
                     {rated === null ? t('speaking.ratePartner', { name: partner.firstName }) : t('speaking.rated')}
                   </p>
                   <div className="flex justify-center gap-4">
@@ -702,23 +718,23 @@ export function SpeakingPage({ onBack }: { onBack: () => void }) {
                       whileTap={{ scale: 0.85 }}
                       onClick={() => ratePartner(true)}
                       disabled={rated !== null}
-                      className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl disabled:opacity-40"
+                      className="w-14 h-14 rounded-2xl flex items-center justify-center disabled:opacity-40"
                       style={rated === true
                         ? { background: 'rgba(16,185,129,0.2)', border: '1px solid rgba(16,185,129,0.45)', opacity: 1 }
-                        : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+                        : { background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)' }}
                     >
-                      👍
+                      <ThumbsUp size={24} strokeWidth={2} style={{ color: rated === true ? 'var(--ws-success)' : 'var(--ws-muted)' }} />
                     </motion.button>
                     <motion.button
                       whileTap={{ scale: 0.85 }}
                       onClick={() => ratePartner(false)}
                       disabled={rated !== null}
-                      className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl disabled:opacity-40"
+                      className="w-14 h-14 rounded-2xl flex items-center justify-center disabled:opacity-40"
                       style={rated === false
                         ? { background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.45)', opacity: 1 }
-                        : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+                        : { background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)' }}
                     >
-                      👎
+                      <ThumbsDown size={24} strokeWidth={2} style={{ color: rated === false ? 'var(--ws-danger)' : 'var(--ws-muted)' }} />
                     </motion.button>
                   </div>
 
@@ -726,10 +742,10 @@ export function SpeakingPage({ onBack }: { onBack: () => void }) {
                   {!reportSent && !reportOpen && (
                     <button
                       onClick={() => setReportOpen(true)}
-                      className="text-xs font-semibold mt-4"
+                      className="flex items-center gap-1.5 text-xs font-semibold mt-4 mx-auto"
                       style={{ color: 'rgba(239,68,68,0.6)' }}
                     >
-                      ⚠️ {t('speaking.report')}
+                      <Flag size={13} strokeWidth={2.2} /> {t('speaking.report')}
                     </button>
                   )}
                   {reportOpen && (
@@ -739,22 +755,22 @@ export function SpeakingPage({ onBack }: { onBack: () => void }) {
                         onChange={(e) => setReportReason(e.target.value)}
                         placeholder={t('speaking.reportPrompt')}
                         rows={2}
-                        className="w-full rounded-xl px-3 py-2.5 text-sm text-white placeholder-white/25 resize-none outline-none"
-                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+                        className="w-full rounded-btn px-3 py-2.5 text-sm resize-none outline-none"
+                        style={{ background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)', color: 'var(--ws-text)' }}
                       />
                       <button
                         onClick={submitReport}
                         disabled={!reportReason.trim()}
-                        className="w-full mt-2 py-2.5 rounded-xl text-sm font-bold disabled:opacity-40"
-                        style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}
+                        className="w-full mt-2 py-2.5 rounded-btn text-sm font-bold disabled:opacity-40"
+                        style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: 'var(--ws-danger)' }}
                       >
                         {t('speaking.reportSubmit')}
                       </button>
                     </motion.div>
                   )}
                   {reportSent && (
-                    <p className="text-xs font-semibold mt-4" style={{ color: '#34d399' }}>
-                      ✓ {t('speaking.reportSent')}
+                    <p className="flex items-center justify-center gap-1.5 text-xs font-semibold mt-4" style={{ color: 'var(--ws-success)' }}>
+                      <Check size={13} strokeWidth={2.6} /> {t('speaking.reportSent')}
                     </p>
                   )}
                 </motion.div>
@@ -764,18 +780,18 @@ export function SpeakingPage({ onBack }: { onBack: () => void }) {
                 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
                 whileTap={{ scale: 0.96 }}
                 onClick={startSearch}
-                className="w-full max-w-xs py-4 rounded-2xl font-black text-base text-white"
-                style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', boxShadow: '0 8px 32px rgba(99,102,241,0.35)' }}
+                className="w-full max-w-xs py-4 rounded-btn font-black text-base text-white flex items-center justify-center gap-2 ws-gradient-bg ws-glow-primary"
               >
-                🎙️ {t('speaking.findAnother')}
+                <Mic size={18} strokeWidth={2.2} /> {t('speaking.findAnother')}
               </motion.button>
               <motion.button
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.32 }}
                 whileTap={{ scale: 0.96 }}
                 onClick={handleBack}
-                className="text-white/35 font-bold text-sm py-2"
+                className="font-bold text-sm py-2 flex items-center gap-1.5"
+                style={{ color: 'var(--ws-faint)' }}
               >
-                ← {t('speaking.back')}
+                <ArrowLeft size={15} strokeWidth={2.2} /> {t('speaking.back')}
               </motion.button>
             </motion.div>
           )}
@@ -787,25 +803,31 @@ export function SpeakingPage({ onBack }: { onBack: () => void }) {
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               className="px-6 pt-12 flex flex-col items-center text-center gap-4"
             >
-              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 220 }} className="text-7xl">
-                📡
+              <motion.div
+                initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 220 }}
+                className="w-20 h-20 rounded-3xl flex items-center justify-center"
+                style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)' }}
+              >
+                <Wifi size={38} strokeWidth={1.8} style={{ color: 'var(--ws-danger)' }} />
               </motion.div>
-              <h2 className="text-xl font-black text-white">{t('speaking.errorTitle')}</h2>
-              <p className="text-white/40 text-sm max-w-xs">{errorMsg || t('speaking.errorMsg')}</p>
+              <h2 className="text-xl font-black flex items-center gap-2" style={{ color: 'var(--ws-text)' }}>
+                <AlertTriangle size={20} strokeWidth={2} style={{ color: 'var(--ws-danger)' }} /> {t('speaking.errorTitle')}
+              </h2>
+              <p className="text-sm max-w-xs" style={{ color: 'var(--ws-muted)' }}>{errorMsg || t('speaking.errorMsg')}</p>
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={startSearch}
-                className="rounded-2xl px-8 py-3.5 font-black text-sm text-white mt-2"
-                style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+                className="rounded-btn px-8 py-3.5 font-black text-sm text-white mt-2 flex items-center gap-2 ws-gradient-bg ws-glow-primary"
               >
-                🔄 {t('speaking.retry')}
+                <RefreshCw size={16} strokeWidth={2.4} /> {t('speaking.retry')}
               </motion.button>
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setStage('intro')}
-                className="text-white/35 font-semibold text-sm py-2"
+                className="font-semibold text-sm py-2 flex items-center gap-1.5"
+                style={{ color: 'var(--ws-faint)' }}
               >
-                ← {t('speaking.back')}
+                <ArrowLeft size={15} strokeWidth={2.2} /> {t('speaking.back')}
               </motion.button>
             </motion.div>
           )}

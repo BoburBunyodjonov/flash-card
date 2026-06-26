@@ -4,14 +4,24 @@
     "subtitle": "Turn vocabulary learning into a game",
     "button": "Login with Telegram",
     "connecting": "Connecting to Telegram...",
-    "retry": "Retry"
+    "retry": "Retry",
+    "statsWords": "Words",
+    "statsLearners": "Learners",
+    "statsRating": "Rating",
+    "featStreak": "Streak system",
+    "featSrs": "Spaced repetition",
+    "featLeaderboard": "Leaderboard",
+    "featOffline": "Offline mode"
   },
   "nav": {
     "feed": "Learn",
     "dictionary": "Dictionary",
     "decks": "Decks",
     "progress": "Progress",
-    "leaderboard": "Ranking"
+    "leaderboard": "Ranking",
+    "practice": "Practice",
+    "speaking": "Speaking",
+    "profile": "Profile"
   },
   "feed": {
     "know": "I Know",
@@ -36,7 +46,17 @@
     "definition": "Definition",
     "example": "Example",
     "saveHint": "↑ save",
-    "skipHint": "↓ skip"
+    "skipHint": "↓ skip",
+    "saveLabel": "Save",
+    "skipLabel": "Skip",
+    "loading": "Loading your feed...",
+    "learnedToday": "learned today",
+    "unlockIn": "New words unlock in",
+    "hours": "h",
+    "minutes": "min",
+    "shared": "Shared!",
+    "shareFriends": "Share with friends",
+    "unlimitedPremium": "Unlimited learning — Premium"
   },
   "difficulty": {
     "A1": "Beginner",
@@ -58,7 +78,30 @@
     "history": "History",
     "week": "Week",
     "month": "Month",
-    "tapToFlip": "Tap to flip"
+    "tapToFlip": "Tap to flip",
+    "translation": "Translation",
+    "weakWordsCount": "{{count}} words need review",
+    "startReview": "Start",
+    "weakReviewDone": "Weak words review finished",
+    "knew": "Knew it",
+    "didntKnow": "Didn't know",
+    "exit": "Exit",
+    "backToProgress": "Back to Progress",
+    "wordStatus": "Word status",
+    "activity": "Activity",
+    "daysCount": "{{count}} days",
+    "less": "Less",
+    "more": "More",
+    "achievements": "Achievements",
+    "dow": {
+      "0": "Mon",
+      "1": "Tue",
+      "2": "Wed",
+      "3": "Thu",
+      "4": "Fri",
+      "5": "Sat",
+      "6": "Sun"
+    }
   },
   "settings": {
     "title": "Settings",
@@ -75,7 +118,15 @@
     "genderHint": "Used for partner matching in speaking practice",
     "genderMale": "Male",
     "genderFemale": "Female",
-    "genderNone": "Not set"
+    "genderNone": "Not set",
+    "notifyHint": "Reminders via Telegram",
+    "notifySaved": "Saved — reminder at {{time}}",
+    "inviteTitle": "Invite friends",
+    "inviteReward": "+50 XP and +10 bonus words per friend",
+    "invited": "invited",
+    "shareInvite": "Share invite link",
+    "cefrTitle": "English level",
+    "cefrHint": "Feed shows words for this level"
   },
   "premium": {
     "title": "WordSwipe Premium",
@@ -207,5 +258,191 @@
     "reviewed": "Reviewed",
     "again": "Again",
     "loading": "Loading..."
+  },
+  "onboarding": {
+    "welcomeTitle": "Let's find your level",
+    "welcomeDesc": "10 quick questions to gauge your English level and recommend the right words for you",
+    "featTime": "Takes about 2 minutes",
+    "featChoose": "Choose the word's meaning",
+    "featPlan": "A study plan matched to your level",
+    "start": "Get started",
+    "loading": "Loading...",
+    "questionPrompt": "What does this word mean?",
+    "yourLevel": "Your level",
+    "correct": "Correct",
+    "total": "Total",
+    "begin": "Start learning",
+    "levels": {
+      "A1": {
+        "title": "Beginner",
+        "desc": "You're just starting out in English. Great start!"
+      },
+      "A2": {
+        "title": "Elementary",
+        "desc": "You know the basics. Keep learning more!"
+      },
+      "B1": {
+        "title": "Intermediate",
+        "desc": "Nice! You've reached an intermediate level."
+      },
+      "B2": {
+        "title": "Upper-intermediate",
+        "desc": "Great! Your English is strong."
+      },
+      "C1": {
+        "title": "Advanced",
+        "desc": "Excellent! You're at an advanced level."
+      },
+      "C2": {
+        "title": "Proficient",
+        "desc": "Amazing! Your vocabulary is exceptional."
+      }
+    }
+  },
+  "leaderboard": {
+    "league": "League",
+    "global": "Global",
+    "friends": "Friends",
+    "xp": "XP",
+    "follow": "Follow",
+    "following": "Following"
+  },
+  "league": {
+    "loadError": "Failed to load league",
+    "promoteInfo": "Top {{count}} promote",
+    "daysLeft": "{{count}} days left",
+    "promoteLine": "Promotion zone",
+    "demoteLine": "Demotion zone",
+    "xpWeek": "XP / week",
+    "tier": {
+      "bronze": "Bronze League",
+      "silver": "Silver League",
+      "gold": "Gold League",
+      "sapphire": "Sapphire League",
+      "diamond": "Diamond League"
+    }
+  },
+  "quiz": {
+    "pickMode": "Which way would you like to practice? Weak and due-for-review words are picked.",
+    "typePlaceholder": "Type the word...",
+    "check": "Check",
+    "correctAnswer": "Correct answer",
+    "correctCount": "correct answers",
+    "retry": "Practice again",
+    "back": "Back",
+    "preparing": "Preparing questions...",
+    "loadError": "Could not load questions",
+    "checkConnection": "Check your internet connection",
+    "noWords": "No words to practice",
+    "learnFirst": "Learn some words in the feed first",
+    "prompt": {
+      "mcq": "What is this word in Uzbek?",
+      "reverse": "Which is the English for this translation?",
+      "typing": "Type the English word",
+      "listening": "Which word did you hear?",
+      "cloze": "Which word fits the blank?",
+      "mixed": "Answer the question"
+    },
+    "modes": {
+      "mixed": {
+        "title": "Mixed",
+        "desc": "Various question types"
+      },
+      "mcq": {
+        "title": "Find translation",
+        "desc": "English word → Uzbek"
+      },
+      "reverse": {
+        "title": "Find the word",
+        "desc": "Uzbek → English word"
+      },
+      "typing": {
+        "title": "Typing",
+        "desc": "Type the word yourself"
+      },
+      "listening": {
+        "title": "Listening",
+        "desc": "Listen and find the word"
+      },
+      "cloze": {
+        "title": "Fill the blank",
+        "desc": "Find the missing word in the sentence"
+      }
+    }
+  },
+  "duel": {
+    "questionPrompt": "What is this word in Uzbek?",
+    "creating": "Creating...",
+    "challengeFriend": "Challenge a friend",
+    "myDuels": "My duels",
+    "emptyTitle": "No duels yet.",
+    "emptyDesc": "Invite a friend!",
+    "withName": "with {{name}}",
+    "openInvite": "Open invite",
+    "ready": "Duel is ready!",
+    "readyDesc": "Send the link to your friend. They answer the same {{count}} questions.",
+    "shareTelegram": "Share on Telegram",
+    "playNow": "I'll play now",
+    "backToList": "Duels list",
+    "notFound": "Duel not found",
+    "result": {
+      "waiting": "Wait for your opponent",
+      "waitingDesc": "The result appears once your opponent plays",
+      "draw": "Draw!",
+      "won": "Victory!",
+      "lost": "Defeat"
+    },
+    "status": {
+      "pending": "Waiting for opponent",
+      "expired": "Expired",
+      "completed": "Finished",
+      "opponentPlaying": "Opponent is playing",
+      "yourTurn": "Your turn"
+    }
+  },
+  "challenge": {
+    "title": "Daily Challenge",
+    "questionPrompt": "What is this word in Uzbek?",
+    "correctCount": "correct answers",
+    "comeBack": "Come back tomorrow!",
+    "onceADay": "The daily challenge is given once a day",
+    "retry": "Try again",
+    "toFeed": "Feed",
+    "loading": "Loading challenge...",
+    "loadError": "Could not load challenge",
+    "checkConnection": "Check your internet connection",
+    "emptyTitle": "No challenge today",
+    "emptyDesc": "Come back tomorrow!"
+  },
+  "practice": {
+    "title": "Practice",
+    "subtitle": "Reinforce what you've learned",
+    "quiz": {
+      "title": "Quiz",
+      "desc": "Test your knowledge"
+    },
+    "duel": {
+      "title": "Duel",
+      "desc": "Challenge a friend"
+    },
+    "speaking": {
+      "title": "Speaking",
+      "desc": "Voice conversation"
+    },
+    "challenge": {
+      "title": "Daily challenge",
+      "desc": "A new test each day"
+    },
+    "myWords": {
+      "title": "My Words",
+      "desc": "Study your own words"
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "progress": "Progress",
+    "leaderboard": "Leaderboard",
+    "decks": "Decks",
+    "settings": "Settings"
   }
 }

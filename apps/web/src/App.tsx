@@ -7,6 +7,7 @@ import { ReferralBonusToast } from './components/ReferralBonusToast'
 import { LoginPage } from './pages/Login'
 import { OnboardingPage } from './pages/Onboarding'
 import { FeedPage } from './pages/Feed'
+import { PracticePage } from './pages/Practice'
 import { DictionaryPage } from './pages/Dictionary'
 import { DecksPage } from './pages/Decks'
 import { ProgressPage } from './pages/Progress'
@@ -17,11 +18,14 @@ import { QuizPage } from './pages/Quiz'
 import { DuelPage } from './pages/Duel'
 import { SpeakingPage } from './pages/Speaking'
 import { MyWordsPage } from './pages/MyWords'
+import { ProfilePage } from './pages/Profile'
 import { flushPendingSwipes } from './store/feed.store'
 
-type Page = 'feed' | 'dictionary' | 'decks' | 'progress' | 'leaderboard' | 'settings' | 'challenge' | 'quiz' | 'duel' | 'speaking' | 'mywords'
+type Page = 'feed' | 'practice' | 'dictionary' | 'decks' | 'progress' | 'leaderboard' | 'settings' | 'challenge' | 'quiz' | 'duel' | 'speaking' | 'mywords' | 'profile'
 
-const NAV_PAGES: Page[] = ['feed', 'dictionary', 'decks', 'progress', 'leaderboard', 'settings']
+const NAV_PAGES: Page[] = ['feed', 'practice', 'speaking', 'dictionary', 'profile']
+// Pages reached from inside the Profile tab — they keep the Profil tab highlighted
+const PROFILE_SUBPAGES: Page[] = ['progress', 'leaderboard', 'decks', 'settings']
 
 const DUEL_PREFIX = 'duel_'
 
@@ -61,7 +65,9 @@ export default function App() {
     </>
   )
 
-  const navPage = NAV_PAGES.includes(page) ? page : 'feed'
+  const navPage = NAV_PAGES.includes(page)
+    ? page
+    : PROFILE_SUBPAGES.includes(page) ? 'profile' : 'feed'
 
   return (
     <div className="h-full flex flex-col bg-bg overflow-hidden">
@@ -77,9 +83,24 @@ export default function App() {
           {page === 'feed' && (
             <FeedPage
               onChallenge={() => setPage('challenge')}
+              onMyWords={() => setPage('mywords')}
+              onProgress={() => setPage('profile')}
+            />
+          )}
+          {page === 'profile' && (
+            <ProfilePage
+              onProgress={() => setPage('progress')}
+              onLeaderboard={() => setPage('leaderboard')}
+              onDecks={() => setPage('decks')}
+              onSettings={() => setPage('settings')}
+            />
+          )}
+          {page === 'practice' && (
+            <PracticePage
               onQuiz={() => setPage('quiz')}
               onDuel={() => setPage('duel')}
               onSpeaking={() => setPage('speaking')}
+              onChallenge={() => setPage('challenge')}
               onMyWords={() => setPage('mywords')}
             />
           )}
@@ -102,10 +123,10 @@ export default function App() {
             />
           )}
           {page === 'dictionary' && <DictionaryPage />}
-          {page === 'decks' && <DecksPage />}
-          {page === 'progress' && <ProgressPage />}
-          {page === 'leaderboard' && <LeaderboardPage />}
-          {page === 'settings' && <SettingsPage />}
+          {page === 'decks' && <DecksPage onBack={() => setPage('profile')} />}
+          {page === 'progress' && <ProgressPage onBack={() => setPage('profile')} />}
+          {page === 'leaderboard' && <LeaderboardPage onBack={() => setPage('profile')} />}
+          {page === 'settings' && <SettingsPage onBack={() => setPage('profile')} />}
         </motion.div>
       </AnimatePresence>
       <BottomNav active={navPage} onChange={(p) => setPage(p as Page)} />

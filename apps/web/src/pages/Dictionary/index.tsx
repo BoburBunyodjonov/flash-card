@@ -1,6 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import {
+  Search, X, Check, ArrowLeft, Volume2, ChevronRight, BookOpen, SearchX,
+  Target, Sparkles, PartyPopper, Dumbbell, BookText, Zap, Globe,
+} from 'lucide-react'
 import { wordsApi } from '../../api/words.api'
+import { playWordAudio } from '../../lib/tts'
 
 // ── App DB types ──────────────────────────────────────────────────────────────
 interface WordResult {
@@ -29,6 +34,11 @@ const POS_COLORS: Record<string, { color: string; bg: string }> = {
   exclamation: { color: '#6ee7b7', bg: 'rgba(110,231,183,0.12)' },
 }
 const DEFAULT_POS = { color: '#9ca3af', bg: 'rgba(156,163,175,0.12)' }
+
+const DIFF_COLORS: Record<string, string> = {
+  A1: '#34d399', A2: '#6ee7b7', B1: '#fbbf24', B2: '#f97316', C1: '#f87171', C2: '#c084fc',
+}
+function diffColor(d: string) { return DIFF_COLORS[d] ?? '#9ca3af' }
 
 async function fetchDictEntry(word: string): Promise<DictEntry[]> {
   const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word.trim())}`)
@@ -150,14 +160,15 @@ function SearchInput({
   value, onChange, isLoading, placeholder,
 }: { value: string; onChange: (v: string) => void; isLoading: boolean; placeholder: string }) {
   return (
-    <div className="flex items-center gap-3 rounded-2xl px-4 py-3"
-      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
-      <span className="text-white/30 text-lg">🔍</span>
+    <div className="flex items-center gap-3 rounded-btn px-4 py-3.5"
+      style={{ background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)' }}>
+      <Search size={19} strokeWidth={2} style={{ color: 'var(--ws-faint)' }} className="shrink-0" />
       <input
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className="flex-1 bg-transparent text-white placeholder-white/25 outline-none text-base"
+        className="flex-1 bg-transparent outline-none text-base font-medium"
+        style={{ color: 'var(--ws-text)' }}
         autoComplete="off"
         autoCorrect="off"
         spellCheck={false}
@@ -165,7 +176,14 @@ function SearchInput({
       {isLoading
         ? <div className="w-4 h-4 rounded-full border-2 border-primary border-t-transparent animate-spin shrink-0" />
         : value && (
-          <button onClick={() => onChange('')} className="text-white/25 text-xl leading-none shrink-0">×</button>
+          <button
+            onClick={() => onChange('')}
+            aria-label="Clear"
+            className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
+            style={{ background: 'rgba(255,255,255,0.06)' }}
+          >
+            <X size={14} strokeWidth={2.4} style={{ color: 'var(--ws-muted)' }} />
+          </button>
         )
       }
     </div>
@@ -204,39 +222,49 @@ function AppDictionary() {
         <AnimatePresence mode="wait">
           {selected ? (
             <motion.div key="detail" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} className="flex flex-col gap-4 pb-4">
-              <button onClick={() => setSelected(null)} className="flex items-center gap-1.5 text-primary font-semibold text-sm">
-                ← Orqaga
+              <button onClick={() => setSelected(null)} className="flex items-center gap-1.5 font-semibold text-sm self-start" style={{ color: 'var(--ws-primary-light)' }}>
+                <ArrowLeft size={16} strokeWidth={2.2} /> Orqaga
               </button>
-              <div className="rounded-3xl p-5 flex flex-col gap-4"
-                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                <div>
-                  <h2 className="text-4xl font-black text-white">{selected.word}</h2>
-                  {selected.pronunciation && <p className="text-white/35 font-mono text-sm mt-1">{selected.pronunciation}</p>}
-                  {selected.partOfSpeech && (
-                    <span className="text-xs font-bold px-3 py-1 rounded-full mt-2 inline-block"
-                      style={{ ...(POS_COLORS[selected.partOfSpeech] ?? DEFAULT_POS) }}>
-                      {selected.partOfSpeech}
-                    </span>
-                  )}
+              <div className="ws-card p-5 flex flex-col gap-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-4xl font-black break-words" style={{ color: 'var(--ws-text)' }}>{selected.word}</h2>
+                    {selected.pronunciation && <p className="font-mono text-sm mt-1" style={{ color: 'var(--ws-faint)' }}>{selected.pronunciation}</p>}
+                    {selected.partOfSpeech && (
+                      <span className="text-xs font-bold px-3 py-1 rounded-full mt-2 inline-block"
+                        style={{ color: (POS_COLORS[selected.partOfSpeech] ?? DEFAULT_POS).color, background: (POS_COLORS[selected.partOfSpeech] ?? DEFAULT_POS).bg }}>
+                        {selected.partOfSpeech}
+                      </span>
+                    )}
+                  </div>
+                  <motion.button
+                    whileTap={{ scale: 0.85 }}
+                    onClick={() => playWordAudio(selected.word)}
+                    aria-label="Play"
+                    className="shrink-0 w-11 h-11 rounded-full flex items-center justify-center"
+                    style={{ background: 'rgba(99,102,241,0.14)', border: '1px solid rgba(99,102,241,0.3)' }}
+                  >
+                    <Volume2 size={19} strokeWidth={2} style={{ color: 'var(--ws-primary-light)' }} />
+                  </motion.button>
                 </div>
                 {selected.translations[0] && (
                   <div className="flex flex-col gap-3">
                     {selected.translations[0].translation && (
                       <div>
-                        <p className="text-white/30 text-[10px] font-black uppercase tracking-widest mb-1.5">Tarjima</p>
-                        <p className="text-success text-2xl font-black">{selected.translations[0].translation}</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest mb-1.5" style={{ color: 'var(--ws-faint)' }}>Tarjima</p>
+                        <p className="text-2xl font-black" style={{ color: 'var(--ws-success)' }}>{selected.translations[0].translation}</p>
                       </div>
                     )}
                     {selected.translations[0].definitionEn && (
-                      <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                        <p className="text-white/30 text-[10px] font-black uppercase tracking-widest mb-1.5">Ta'rif</p>
-                        <p className="text-white/70 text-sm leading-relaxed">{selected.translations[0].definitionEn}</p>
+                      <div className="ws-card-2 rounded-btn p-4">
+                        <p className="text-[10px] font-black uppercase tracking-widest mb-1.5" style={{ color: 'var(--ws-faint)' }}>Ta'rif</p>
+                        <p className="text-sm leading-relaxed" style={{ color: 'var(--ws-muted)' }}>{selected.translations[0].definitionEn}</p>
                       </div>
                     )}
                     {selected.translations[0].exampleEn && (
-                      <div className="rounded-2xl p-4" style={{ background: 'rgba(99,102,241,0.07)', border: '1px solid rgba(99,102,241,0.18)' }}>
-                        <p className="text-primary/50 text-[10px] font-black uppercase tracking-widest mb-1.5">Misol</p>
-                        <p className="text-white/65 text-sm italic">"{selected.translations[0].exampleEn}"</p>
+                      <div className="rounded-btn p-4" style={{ background: 'rgba(99,102,241,0.07)', border: '1px solid rgba(99,102,241,0.18)' }}>
+                        <p className="text-[10px] font-black uppercase tracking-widest mb-1.5" style={{ color: 'var(--ws-primary-light)' }}>Misol</p>
+                        <p className="text-sm italic" style={{ color: 'var(--ws-muted)' }}>"{selected.translations[0].exampleEn}"</p>
                       </div>
                     )}
                   </div>
@@ -244,32 +272,46 @@ function AppDictionary() {
               </div>
             </motion.div>
           ) : (
-            <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col gap-2 pb-4">
+            <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col gap-2.5 pb-4">
               {!query.trim() && (
-                <p className="text-white/20 text-sm text-center mt-8">So'z yozing va qidiring...</p>
+                <div className="flex flex-col items-center gap-4 pt-12 text-center">
+                  <motion.div
+                    animate={{ y: [0, -6, 0] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                    className="w-16 h-16 rounded-3xl flex items-center justify-center"
+                    style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)' }}
+                  >
+                    <BookOpen size={28} strokeWidth={1.8} style={{ color: 'var(--ws-primary-light)' }} />
+                  </motion.div>
+                  <p className="text-sm" style={{ color: 'var(--ws-muted)' }}>So'z yozing va qidiring...</p>
+                </div>
               )}
               {results.map((word, i) => (
                 <motion.button
                   key={word.id}
                   initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => setSelected(word)}
-                  className="w-full flex items-center justify-between rounded-2xl px-5 py-4 text-left"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}
+                  className="w-full flex items-center gap-3 ws-card px-5 py-4 text-left"
                 >
-                  <div>
-                    <p className="text-white font-bold">{word.word}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold" style={{ color: 'var(--ws-text)' }}>{word.word}</p>
                     {word.translations[0]?.translation && (
-                      <p className="text-white/35 text-sm mt-0.5">{word.translations[0].translation}</p>
+                      <p className="text-sm mt-0.5 truncate" style={{ color: 'var(--ws-muted)' }}>{word.translations[0].translation}</p>
                     )}
                   </div>
-                  <span className="text-xs font-bold px-2.5 py-1 rounded-lg shrink-0 ml-3"
-                    style={{ color: '#6366f1', background: 'rgba(99,102,241,0.12)' }}>
+                  <span className="text-xs font-black px-2.5 py-1 rounded-lg shrink-0"
+                    style={{ color: diffColor(word.difficulty), background: `${diffColor(word.difficulty)}1f` }}>
                     {word.difficulty}
                   </span>
+                  <ChevronRight size={18} strokeWidth={2} style={{ color: 'var(--ws-faint)' }} className="shrink-0" />
                 </motion.button>
               ))}
               {query.trim() && !loading && results.length === 0 && (
-                <p className="text-white/25 text-sm text-center mt-8">Natija topilmadi</p>
+                <div className="flex flex-col items-center gap-3 pt-12 text-center">
+                  <SearchX size={36} strokeWidth={1.8} style={{ color: 'var(--ws-faint)' }} />
+                  <p className="text-sm" style={{ color: 'var(--ws-muted)' }}>Natija topilmadi</p>
+                </div>
               )}
             </motion.div>
           )}
@@ -308,7 +350,6 @@ function PracticeMode({ items, onReset }: { items: ChallengeItem[]; onReset: () 
   if (done) {
     const total = score.know + score.dontKnow
     const pct   = total > 0 ? (score.know / total) * 100 : 0
-    const emoji = pct >= 80 ? '🎉' : pct >= 50 ? '💪' : '📚'
     return (
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
@@ -320,13 +361,14 @@ function PracticeMode({ items, onReset }: { items: ChallengeItem[]; onReset: () 
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 400, damping: 18, delay: 0.1 }}
-          className="text-7xl"
+          className="w-20 h-20 rounded-3xl flex items-center justify-center"
+          style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.28)' }}
         >
-          {emoji}
+          <PartyPopper size={36} strokeWidth={1.8} style={{ color: 'var(--ws-primary-light)' }} />
         </motion.div>
         <div className="text-center">
-          <p className="text-white text-2xl font-black mb-1">Mashq tugadi!</p>
-          <p className="text-white/40 text-sm">{Math.round(pct)}% to'g'ri</p>
+          <p className="text-2xl font-black mb-1" style={{ color: 'var(--ws-text)' }}>Mashq tugadi!</p>
+          <p className="text-sm" style={{ color: 'var(--ws-muted)' }}>{Math.round(pct)}% to'g'ri</p>
         </div>
         <div className="flex gap-4">
           <div className="flex flex-col items-center rounded-2xl px-6 py-4 gap-1"
@@ -445,18 +487,18 @@ function PracticeMode({ items, onReset }: { items: ChallengeItem[]; onReset: () 
             <motion.button
               whileTap={{ scale: 0.94 }}
               onClick={() => advance(false)}
-              className="flex-1 py-4 rounded-2xl font-black text-base flex items-center justify-center gap-2"
+              className="flex-1 py-4 rounded-btn font-black text-base flex items-center justify-center gap-2"
               style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}
             >
-              <span>✗</span> Bilmadim
+              <X size={18} strokeWidth={2.6} /> Bilmadim
             </motion.button>
             <motion.button
               whileTap={{ scale: 0.94 }}
               onClick={() => advance(true)}
-              className="flex-1 py-4 rounded-2xl font-black text-base flex items-center justify-center gap-2"
+              className="flex-1 py-4 rounded-btn font-black text-base flex items-center justify-center gap-2"
               style={{ background: 'rgba(52,211,153,0.15)', border: '1px solid rgba(52,211,153,0.3)', color: '#34d399' }}
             >
-              <span>✓</span> Bildim!
+              <Check size={18} strokeWidth={2.6} /> Bildim!
             </motion.button>
           </motion.div>
         )}
@@ -631,9 +673,9 @@ function EnglishDictionary() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-3 self-end"
         >
-          <span className="text-xs font-bold px-3 py-1 rounded-full"
+          <span className="flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full"
             style={{ background: 'rgba(251,191,36,0.13)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)' }}>
-            Bugun: {exploredCount} ta so'z
+            <Sparkles size={13} strokeWidth={2.2} /> Bugun: {exploredCount} ta so'z
           </span>
         </motion.div>
       )}
@@ -665,17 +707,18 @@ function EnglishDictionary() {
               <motion.div
                 animate={{ y: [0, -6, 0] }}
                 transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                className="text-5xl"
+                className="w-16 h-16 rounded-3xl flex items-center justify-center"
+                style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)' }}
               >
-                📖
+                <BookText size={28} strokeWidth={1.8} style={{ color: 'var(--ws-primary-light)' }} />
               </motion.div>
-              <p className="text-white/35 text-sm text-center leading-relaxed px-4">
+              <p className="text-sm text-center leading-relaxed px-4" style={{ color: 'var(--ws-muted)' }}>
                 Har qanday inglizcha so'zni qidiring
               </p>
 
               {/* Featured word chips */}
               <div className="w-full">
-                <p className="text-white/25 text-[10px] font-black uppercase tracking-widest text-center mb-3">
+                <p className="text-[10px] font-black uppercase tracking-widest text-center mb-3" style={{ color: 'var(--ws-faint)' }}>
                   Mashhur so'zlar
                 </p>
                 <div className="flex flex-wrap justify-center gap-2">
@@ -711,9 +754,9 @@ function EnglishDictionary() {
               exit={{ opacity: 0 }}
               className="flex flex-col items-center gap-3 mt-10 text-center px-4"
             >
-              <span className="text-4xl">🔎</span>
-              <p className="text-white font-bold">"{query}" topilmadi</p>
-              <p className="text-white/30 text-sm">Imlosini tekshiring yoki boshqa so'z kiriting</p>
+              <SearchX size={38} strokeWidth={1.8} style={{ color: 'var(--ws-faint)' }} />
+              <p className="font-bold" style={{ color: 'var(--ws-text)' }}>"{query}" topilmadi</p>
+              <p className="text-sm" style={{ color: 'var(--ws-muted)' }}>Imlosini tekshiring yoki boshqa so'z kiriting</p>
             </motion.div>
           )}
 
@@ -753,7 +796,8 @@ function EnglishDictionary() {
                     <motion.button
                       whileTap={{ scale: 0.82 }}
                       onClick={() => playAudio(audioUrl)}
-                      className="shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-xl mt-1 relative"
+                      aria-label="Play"
+                      className="shrink-0 w-12 h-12 rounded-full flex items-center justify-center mt-1 relative"
                       style={{ background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.35)' }}
                     >
                       {isPlaying && (
@@ -764,7 +808,7 @@ function EnglishDictionary() {
                           transition={{ duration: 1.2, repeat: Infinity, ease: 'easeOut' }}
                         />
                       )}
-                      🔊
+                      <Volume2 size={20} strokeWidth={2} style={{ color: 'var(--ws-primary-light)' }} />
                     </motion.button>
                   )}
                 </div>
@@ -788,24 +832,25 @@ function EnglishDictionary() {
               <div className="flex gap-1.5 p-1 rounded-2xl shrink-0"
                 style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
                 {([
-                  { key: 'read' as const,     label: `O'qish` },
-                  { key: 'practice' as const, label: `Mashq (${challengeItems.length})` },
-                ]).map(({ key, label }) => (
+                  { key: 'read' as const,     label: `O'qish`,                     Icon: BookText },
+                  { key: 'practice' as const, label: `Mashq (${challengeItems.length})`, Icon: Dumbbell },
+                ]).map(({ key, label, Icon }) => (
                   <motion.button
                     key={key}
                     onClick={() => setInnerTab(key)}
                     className="flex-1 py-2 rounded-xl text-sm font-bold relative overflow-hidden"
-                    style={{ color: innerTab === key ? '#fff' : 'rgba(255,255,255,0.35)' }}
+                    style={{ color: innerTab === key ? '#fff' : 'var(--ws-muted)' }}
                   >
                     {innerTab === key && (
                       <motion.div
                         layoutId="inner-tab-bg"
-                        className="absolute inset-0 rounded-xl"
-                        style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+                        className="absolute inset-0 rounded-xl ws-gradient-bg"
                         transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                       />
                     )}
-                    <span className="relative z-10">{key === 'read' ? '📖 ' : '🎯 '}{label}</span>
+                    <span className="relative z-10 flex items-center justify-center gap-1.5">
+                      <Icon size={15} strokeWidth={2.2} /> {label}
+                    </span>
                   </motion.button>
                 ))}
               </div>
@@ -834,11 +879,11 @@ function EnglishDictionary() {
                       <PracticeMode items={challengeItems} onReset={() => setInnerTab('read')} />
                     ) : (
                       <div className="flex flex-col items-center gap-3 py-10 text-center">
-                        <span className="text-4xl">📝</span>
-                        <p className="text-white/40 text-sm">
+                        <Target size={34} strokeWidth={1.8} style={{ color: 'var(--ws-faint)' }} />
+                        <p className="text-sm" style={{ color: 'var(--ws-muted)' }}>
                           Bu so'z uchun mashq topilmadi
                         </p>
-                        <p className="text-white/20 text-xs">Misollari bo'lgan so'zlarni qidiring</p>
+                        <p className="text-xs" style={{ color: 'var(--ws-faint)' }}>Misollari bo'lgan so'zlarni qidiring</p>
                       </div>
                     )}
                   </motion.div>
@@ -858,32 +903,33 @@ export function DictionaryPage() {
   const [tab, setTab] = useState<'app' | 'english'>('app')
 
   return (
-    <div className="h-full flex flex-col pb-20" style={{ background: '#0a0a14' }}>
+    <div className="h-full flex flex-col pb-20" style={{ background: 'var(--ws-bg)' }}>
 
       {/* Header + tabs */}
       <div className="px-5 pt-4 pb-0 shrink-0">
-        <h1 className="text-2xl font-black text-white mb-3">Dictionary</h1>
+        <h1 className="text-2xl font-black tracking-tight mb-3" style={{ color: 'var(--ws-text)' }}>Dictionary</h1>
 
-        <div className="flex gap-1.5 p-1 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <div className="flex gap-1.5 p-1 rounded-btn" style={{ background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)' }}>
           {([
-            { key: 'app',     label: '⚡ WordSwipe' },
-            { key: 'english', label: '🌐 English'   },
-          ] as const).map(({ key, label }) => (
+            { key: 'app',     label: 'WordSwipe', Icon: Zap   },
+            { key: 'english', label: 'English',   Icon: Globe },
+          ] as const).map(({ key, label, Icon }) => (
             <motion.button
               key={key}
               onClick={() => setTab(key)}
               className="flex-1 py-2 rounded-xl text-sm font-bold relative overflow-hidden"
-              style={{ color: tab === key ? '#fff' : 'rgba(255,255,255,0.35)' }}
+              style={{ color: tab === key ? '#fff' : 'var(--ws-muted)' }}
             >
               {tab === key && (
                 <motion.div
                   layoutId="tab-bg"
-                  className="absolute inset-0 rounded-xl"
-                  style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+                  className="absolute inset-0 rounded-xl ws-gradient-bg"
                   transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                 />
               )}
-              <span className="relative z-10">{label}</span>
+              <span className="relative z-10 flex items-center justify-center gap-1.5">
+                <Icon size={15} strokeWidth={2.2} /> {label}
+              </span>
             </motion.button>
           ))}
         </div>

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, useMotionValue, useTransform, useAnimation, type PanInfo } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
+import { Volume2, Share2, Check, X, ArrowUp, ArrowDown, ChevronUp, NotebookPen } from 'lucide-react'
 import type { FeedWord } from '@wordswipe/shared'
 import { useTelegram } from '../../hooks/useTelegram'
 import { playWordAudio } from '../../lib/tts'
@@ -61,7 +62,8 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
 
   const rightOpacity = useTransform(x, [0, SWIPE_THRESHOLD], [0, 1])
   const leftOpacity  = useTransform(x, [-SWIPE_THRESHOLD, 0], [1, 0])
-  const upOpacity    = useTransform(y, [-SWIPE_THRESHOLD, 0], [1, 0])
+  // Save = drag DOWN (y positive); up-drag is "skip" and shows no stamp
+  const saveOpacity  = useTransform(y, [0, SWIPE_THRESHOLD], [0, 1])
 
   // Entrance: start from background card position, spring to full
   useEffect(() => {
@@ -178,18 +180,18 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
       />
       <motion.div
         className="absolute inset-0 rounded-3xl pointer-events-none"
-        style={{ opacity: upOpacity, background: 'linear-gradient(0deg, rgba(245,158,11,0.2) 0%, transparent 50%)', zIndex: 5 }}
+        style={{ opacity: saveOpacity, background: 'linear-gradient(180deg, rgba(245,158,11,0.2) 0%, transparent 50%)', zIndex: 5 }}
       />
 
       {/* ── SWIPE STAMPS ── */}
       <motion.div style={{ opacity: rightOpacity }} className="absolute top-8 left-5 z-20 stamp text-success border-success rotate-[-20deg]">
-        ✓ {t('feed.know')}
+        {t('feed.know')}
       </motion.div>
       <motion.div style={{ opacity: leftOpacity }} className="absolute top-8 right-5 z-20 stamp text-danger border-danger rotate-[20deg]">
-        ✗ {t('feed.dontKnow')}
+        {t('feed.dontKnow')}
       </motion.div>
-      <motion.div style={{ opacity: upOpacity }} className="absolute bottom-28 left-1/2 -translate-x-1/2 z-20 stamp text-warning border-warning">
-        ★ {t('feed.saved')}
+      <motion.div style={{ opacity: saveOpacity }} className="absolute top-28 left-1/2 -translate-x-1/2 z-20 stamp text-warning border-warning">
+        {t('feed.saved')}
       </motion.div>
 
       {/* ── CONTENT ── */}
@@ -198,32 +200,32 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
         {/* Top row: difficulty · category · audio */}
         <div className="flex items-center justify-between px-5 pt-5 shrink-0">
           {word.difficulty ? (
-            <span className="text-xs font-black px-3 py-1 rounded-full tracking-wider" style={{ color: diff.color, background: diff.bg }}>
+            <span className="text-[11px] font-black px-2.5 py-1 rounded-full tracking-wider" style={{ color: diff.color, background: diff.bg, border: `1px solid ${diff.color}33` }}>
               {diff.label}
             </span>
           ) : (
             // Personal "My Words" entries have no CEFR level — show an own-word marker instead
-            <span className="text-xs font-black px-3 py-1 rounded-full tracking-wider" style={{ color: '#818cf8', background: 'rgba(99,102,241,0.14)' }}>
-              📝
+            <span className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full tracking-wide" style={{ color: 'var(--ws-primary-light)', background: 'rgba(99,102,241,0.14)', border: '1px solid rgba(99,102,241,0.3)' }}>
+              <NotebookPen size={12} strokeWidth={2.2} />
             </span>
           )}
-          <span className="text-xs font-medium text-white/30 max-w-[130px] truncate">{word.category?.name}</span>
+          <span className="text-xs font-medium max-w-[130px] truncate" style={{ color: 'var(--ws-faint)' }}>{word.category?.name}</span>
           <div className="flex items-center gap-1.5">
             <motion.button
-              whileTap={{ scale: 0.8 }}
+              whileTap={{ scale: 0.85 }}
               onClick={(e) => { e.stopPropagation(); playWordAudio(word.word, word.audioUrl) }}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-sm"
-              style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
+              className="w-8 h-8 rounded-full flex items-center justify-center"
+              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid var(--ws-border)' }}
             >
-              🔊
+              <Volume2 size={16} strokeWidth={2} style={{ color: 'var(--ws-muted)' }} />
             </motion.button>
             <motion.button
-              whileTap={{ scale: 0.8 }}
+              whileTap={{ scale: 0.85 }}
               onClick={handleShare}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-sm"
-              style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
+              className="w-8 h-8 rounded-full flex items-center justify-center"
+              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid var(--ws-border)' }}
             >
-              📤
+              <Share2 size={15} strokeWidth={2} style={{ color: 'var(--ws-muted)' }} />
             </motion.button>
           </div>
         </div>
@@ -274,10 +276,10 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
                 <motion.div
                   animate={{ opacity: [0.25, 0.55, 0.25] }}
                   transition={{ repeat: Infinity, duration: 3 }}
-                  className="flex items-center gap-2 mt-1"
+                  className="flex items-center gap-1.5 mt-1"
                 >
-                  <span className="text-xl">👆</span>
-                  <p className="text-white/30 text-sm">{t('feed.tapToReveal')}</p>
+                  <ChevronUp size={16} strokeWidth={2} style={{ color: 'var(--ws-faint)' }} />
+                  <p className="text-sm" style={{ color: 'var(--ws-faint)' }}>{t('feed.tapToReveal')}</p>
                 </motion.div>
               </motion.div>
             </div>
@@ -329,27 +331,41 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
           )}
         </div>
 
-        {/* Bottom swipe hints */}
-        <div className="flex items-center justify-between px-6 pb-5 shrink-0">
-          <div className="flex items-center gap-1.5">
-            <div className="w-6 h-6 rounded-full flex items-center justify-center"
-              style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.18)' }}>
-              <span className="text-danger text-xs font-black">✗</span>
-            </div>
-            <span className="text-white/20 text-xs font-medium">{t('feed.dontKnow')}</span>
+        {/* Bottom action row */}
+        <div className="px-5 pb-5 shrink-0 flex flex-col gap-3">
+
+          {/* Vertical swipe hints — up = skip, down = save */}
+          <div className="flex items-center justify-center gap-5">
+            <span className="flex items-center gap-1 text-[11px] font-medium" style={{ color: 'var(--ws-faint)' }}>
+              <ArrowUp size={13} strokeWidth={2.2} />
+              {t('feed.skipLabel')}
+            </span>
+            <span className="flex items-center gap-1 text-[11px] font-medium" style={{ color: 'var(--ws-faint)' }}>
+              <ArrowDown size={13} strokeWidth={2.2} style={{ color: 'var(--ws-warning)' }} />
+              {t('feed.saveLabel')}
+            </span>
           </div>
 
-          <div className="flex flex-col items-center gap-0.5" style={{ opacity: 0.22 }}>
-            <span className="text-white text-[11px]">{t('feed.saveHint')}</span>
-            <span className="text-white text-[11px]">{t('feed.skipHint')}</span>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <span className="text-white/20 text-xs font-medium">{t('feed.know')}</span>
-            <div className="w-6 h-6 rounded-full flex items-center justify-center"
-              style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.18)' }}>
-              <span className="text-success text-xs font-black">✓</span>
-            </div>
+          {/* Know / Don't know buttons */}
+          <div className="flex items-center gap-3">
+            <motion.button
+              whileTap={{ scale: 0.96 }}
+              onClick={(e) => { e.stopPropagation(); onSwipe('left') }}
+              className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-btn font-bold text-sm"
+              style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.28)', color: 'var(--ws-danger)' }}
+            >
+              <X size={18} strokeWidth={2.4} />
+              {t('feed.dontKnow')}
+            </motion.button>
+            <motion.button
+              whileTap={{ scale: 0.96 }}
+              onClick={(e) => { e.stopPropagation(); onSwipe('right') }}
+              className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-btn font-bold text-sm"
+              style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.28)', color: 'var(--ws-success)' }}
+            >
+              <Check size={18} strokeWidth={2.4} />
+              {t('feed.know')}
+            </motion.button>
           </div>
         </div>
 

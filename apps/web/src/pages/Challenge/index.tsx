@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
+import { Target, Flame, Check, X, Trophy, ArrowLeft, RefreshCw, Frown, Inbox } from 'lucide-react'
 import { api } from '../../api/client'
 
 interface Question {
@@ -20,29 +22,13 @@ type ChoiceState = 'default' | 'correct' | 'wrong' | 'reveal'
 function choiceStyle(state: ChoiceState): React.CSSProperties {
   switch (state) {
     case 'correct':
-      return {
-        background: 'rgba(16,185,129,0.2)',
-        border: '1px solid rgba(16,185,129,0.4)',
-        color: '#34d399',
-      }
+      return { background: 'rgba(16,185,129,0.18)', border: '1px solid rgba(16,185,129,0.4)', color: 'var(--ws-success)' }
     case 'wrong':
-      return {
-        background: 'rgba(239,68,68,0.2)',
-        border: '1px solid rgba(239,68,68,0.4)',
-        color: '#f87171',
-      }
+      return { background: 'rgba(239,68,68,0.18)', border: '1px solid rgba(239,68,68,0.4)', color: 'var(--ws-danger)' }
     case 'reveal':
-      return {
-        background: 'rgba(16,185,129,0.15)',
-        border: '1px solid rgba(16,185,129,0.3)',
-        color: '#34d399',
-      }
+      return { background: 'rgba(16,185,129,0.13)', border: '1px solid rgba(16,185,129,0.3)', color: 'var(--ws-success)' }
     default:
-      return {
-        background: 'rgba(255,255,255,0.06)',
-        border: '1px solid rgba(255,255,255,0.1)',
-        color: 'rgba(255,255,255,0.85)',
-      }
+      return { background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)', color: 'var(--ws-text)' }
   }
 }
 
@@ -58,8 +44,7 @@ function ScoreScreen({
   onRetry: () => void
   onBack: () => void
 }) {
-  const emoji =
-    correct >= total - 1 ? '🎉' : correct >= Math.ceil(total / 2) ? '💪' : '📚'
+  const { t } = useTranslation()
 
   return (
     <motion.div
@@ -72,59 +57,54 @@ function ScoreScreen({
         initial={{ scale: 0, rotate: -20 }}
         animate={{ scale: 1, rotate: 0 }}
         transition={{ type: 'spring', stiffness: 380, damping: 18, delay: 0.05 }}
-        className="text-7xl"
+        className="w-24 h-24 rounded-3xl flex items-center justify-center"
+        style={{ background: 'rgba(245,158,11,0.14)', border: '1px solid rgba(245,158,11,0.3)' }}
       >
-        {emoji}
+        <Trophy size={46} strokeWidth={1.8} style={{ color: 'var(--ws-warning)' }} />
       </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.14 }}
-      >
-        <p className="text-4xl font-black text-white">
-          {correct}{' '}
-          <span className="text-white/30 font-bold text-2xl">/ {total}</span>
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 }}>
+        <p className="text-4xl font-black" style={{ color: 'var(--ws-text)' }}>
+          {correct} <span className="font-bold text-2xl" style={{ color: 'var(--ws-faint)' }}>/ {total}</span>
         </p>
-        <p className="text-white/50 text-sm mt-1.5">ta to'g'ri javob</p>
+        <p className="text-sm mt-1.5" style={{ color: 'var(--ws-muted)' }}>{t('challenge.correctCount')}</p>
       </motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.22 }}
-        className="rounded-2xl px-6 py-4 w-full max-w-xs"
+        className="rounded-btn px-6 py-4 w-full max-w-xs flex items-start gap-3"
         style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.18)' }}
       >
-        <p className="text-warning font-bold text-sm">Ertaga qaytib keling! 🔥</p>
-        <p className="text-white/30 text-xs mt-1">Kunlik challenge bir marta beriladi</p>
+        <Flame size={20} strokeWidth={2.2} style={{ color: 'var(--ws-warning)', flexShrink: 0, marginTop: 1 }} />
+        <div className="text-left">
+          <p className="font-bold text-sm" style={{ color: 'var(--ws-warning)' }}>{t('challenge.comeBack')}</p>
+          <p className="text-xs mt-1" style={{ color: 'var(--ws-muted)' }}>{t('challenge.onceADay')}</p>
+        </div>
       </motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="flex gap-3 w-full max-w-xs"
+        className="flex flex-col gap-3 w-full max-w-xs"
       >
         <motion.button
-          whileTap={{ scale: 0.95 }}
+          whileTap={{ scale: 0.96 }}
           onClick={onRetry}
-          className="flex-1 py-4 rounded-2xl font-black text-sm text-white flex items-center justify-center gap-2"
+          className="w-full py-4 rounded-btn font-black text-sm text-white flex items-center justify-center gap-2"
           style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)', boxShadow: '0 6px 20px rgba(245,158,11,0.28)' }}
         >
-          🔄 Qayta urinish
+          <RefreshCw size={17} strokeWidth={2.4} /> {t('challenge.retry')}
         </motion.button>
         <motion.button
-          whileTap={{ scale: 0.95 }}
+          whileTap={{ scale: 0.96 }}
           onClick={onBack}
-          className="flex-1 py-4 rounded-2xl font-bold text-sm"
-          style={{
-            background: 'rgba(255,255,255,0.05)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            color: 'rgba(255,255,255,0.55)',
-          }}
+          className="w-full py-4 rounded-btn font-bold text-sm flex items-center justify-center gap-2 ws-card-2"
+          style={{ color: 'var(--ws-muted)' }}
         >
-          ← Feed
+          <ArrowLeft size={17} strokeWidth={2.2} /> {t('challenge.toFeed')}
         </motion.button>
       </motion.div>
     </motion.div>
@@ -143,6 +123,7 @@ function QuestionCard({
   total: number
   onAnswer: (correct: boolean) => void
 }) {
+  const { t } = useTranslation()
   const [states, setStates] = useState<ChoiceState[]>(
     question.choices.map(() => 'default'),
   )
@@ -187,10 +168,7 @@ function QuestionCard({
     >
       {/* Progress */}
       <div className="flex items-center gap-3">
-        <div
-          className="flex-1 h-2 rounded-full overflow-hidden"
-          style={{ background: 'rgba(255,255,255,0.07)' }}
-        >
+        <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
           <motion.div
             className="h-full rounded-full"
             style={{ background: 'linear-gradient(90deg, #f59e0b, #f97316)' }}
@@ -198,56 +176,60 @@ function QuestionCard({
             transition={{ type: 'spring', stiffness: 160, damping: 26 }}
           />
         </div>
-        <span className="text-white/35 text-xs font-bold shrink-0 tabular-nums">
+        <span className="text-xs font-bold shrink-0 tabular-nums" style={{ color: 'var(--ws-faint)' }}>
           {index + 1} / {total}
         </span>
       </div>
 
       {/* Word hero */}
       <div
-        className="rounded-3xl p-6 flex flex-col items-center gap-3 text-center"
+        className="rounded-card p-6 flex flex-col items-center gap-3 text-center"
         style={{
-          background:
-            'linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(249,115,22,0.06) 100%)',
+          background: 'linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(249,115,22,0.05) 100%)',
           border: '1px solid rgba(245,158,11,0.2)',
         }}
       >
-        <p className="text-white/30 text-xs font-black uppercase tracking-widest">
-          Bu so'z o'zbekchada nima?
+        <p className="text-xs font-black uppercase tracking-widest" style={{ color: 'var(--ws-muted)' }}>
+          {t('challenge.questionPrompt')}
         </p>
         <motion.h2
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ type: 'spring', stiffness: 400, damping: 26, delay: 0.06 }}
-          className="font-black text-white"
-          style={{ fontSize: 'clamp(2.2rem, 9vw, 4rem)', lineHeight: 1.1 }}
+          className="font-black"
+          style={{ color: 'var(--ws-text)', fontSize: 'clamp(2.2rem, 9vw, 4rem)', lineHeight: 1.1 }}
         >
           {question.word}
         </motion.h2>
         {question.pronunciation && (
-          <p className="text-white/35 font-mono text-sm">{question.pronunciation}</p>
+          <p className="font-mono text-sm" style={{ color: 'var(--ws-faint)' }}>{question.pronunciation}</p>
         )}
       </div>
 
       {/* Choices */}
       <div className="flex flex-col gap-3">
-        {question.choices.map((choice, ci) => (
-          <motion.button
-            key={ci}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.08 + ci * 0.06, type: 'spring', stiffness: 340, damping: 28 }}
-            whileTap={locked ? {} : { scale: 0.97 }}
-            onClick={() => handleChoice(ci)}
-            className="w-full py-4 px-5 rounded-2xl text-left font-semibold text-base transition-none"
-            style={choiceStyle(states[ci])}
-          >
-            <span className="mr-3 font-black text-white/30">
-              {String.fromCharCode(65 + ci)}.
-            </span>
-            {choice}
-          </motion.button>
-        ))}
+        {question.choices.map((choice, ci) => {
+          const st = states[ci]
+          return (
+            <motion.button
+              key={ci}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.08 + ci * 0.06, type: 'spring', stiffness: 340, damping: 28 }}
+              whileTap={locked ? {} : { scale: 0.97 }}
+              onClick={() => handleChoice(ci)}
+              className="w-full py-4 px-5 rounded-btn text-left font-semibold text-base flex items-center gap-3"
+              style={choiceStyle(st)}
+            >
+              <span className="font-black tabular-nums" style={{ color: 'var(--ws-faint)' }}>
+                {String.fromCharCode(65 + ci)}
+              </span>
+              <span className="flex-1">{choice}</span>
+              {st === 'correct' || st === 'reveal' ? <Check size={18} strokeWidth={2.6} />
+                : st === 'wrong' ? <X size={18} strokeWidth={2.6} /> : null}
+            </motion.button>
+          )
+        })}
       </div>
     </motion.div>
   )
@@ -255,6 +237,7 @@ function QuestionCard({
 
 // ── Main ChallengePage ─────────────────────────────────────────────────────────
 export function ChallengePage({ onBack }: { onBack: () => void }) {
+  const { t } = useTranslation()
   const [data, setData] = useState<ChallengeData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -299,24 +282,22 @@ export function ChallengePage({ onBack }: { onBack: () => void }) {
   }
 
   return (
-    <div
-      className="h-full flex flex-col"
-      style={{ background: '#0a0a14' }}
-    >
+    <div className="h-full flex flex-col" style={{ background: 'var(--ws-bg)' }}>
       {/* Top bar */}
       <div className="flex items-center justify-between px-5 pt-4 pb-3 shrink-0">
         <motion.button
-          whileTap={{ scale: 0.95 }}
+          whileTap={{ scale: 0.92 }}
           onClick={onBack}
-          className="text-primary font-semibold text-sm flex items-center gap-1.5"
+          className="w-9 h-9 rounded-full flex items-center justify-center"
+          style={{ background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)' }}
         >
-          ← Feed
+          <ArrowLeft size={18} strokeWidth={2.2} style={{ color: 'var(--ws-muted)' }} />
         </motion.button>
         <div className="flex items-center gap-2">
-          <span className="text-xl">🎯</span>
-          <span className="text-white font-black text-base">Kunlik Challenge</span>
+          <Target size={20} strokeWidth={2} style={{ color: 'var(--ws-warning)' }} />
+          <span className="font-black text-base" style={{ color: 'var(--ws-text)' }}>{t('challenge.title')}</span>
         </div>
-        <div className="w-16" />
+        <div className="w-9" />
       </div>
 
       {/* Content area */}
@@ -332,17 +313,13 @@ export function ChallengePage({ onBack }: { onBack: () => void }) {
               className="flex-1 flex flex-col items-center justify-center gap-5"
             >
               <div className="relative w-14 h-14">
-                <div
-                  className="absolute inset-0 rounded-full"
-                  style={{ border: '2px solid rgba(245,158,11,0.15)' }}
-                />
-                <div
-                  className="absolute inset-0 rounded-full animate-spin"
-                  style={{ border: '2px solid transparent', borderTopColor: '#f59e0b' }}
-                />
-                <div className="absolute inset-0 flex items-center justify-center text-xl">🎯</div>
+                <div className="absolute inset-0 rounded-full" style={{ border: '2px solid rgba(245,158,11,0.15)' }} />
+                <div className="absolute inset-0 rounded-full animate-spin" style={{ border: '2px solid transparent', borderTopColor: '#f59e0b' }} />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Target size={18} strokeWidth={2.2} style={{ color: 'var(--ws-warning)' }} />
+                </div>
               </div>
-              <p className="text-white/35 text-sm font-medium">Challenge yuklanmoqda...</p>
+              <p className="text-sm font-medium" style={{ color: 'var(--ws-faint)' }}>{t('challenge.loading')}</p>
             </motion.div>
           )}
 
@@ -355,18 +332,20 @@ export function ChallengePage({ onBack }: { onBack: () => void }) {
               exit={{ opacity: 0 }}
               className="flex-1 flex flex-col items-center justify-center gap-5 text-center"
             >
-              <span className="text-6xl">😓</span>
+              <div className="w-20 h-20 rounded-3xl flex items-center justify-center" style={{ background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)' }}>
+                <Frown size={36} strokeWidth={1.8} style={{ color: 'var(--ws-muted)' }} />
+              </div>
               <div>
-                <p className="text-white font-bold text-lg">Challenge yuklanmadi</p>
-                <p className="text-white/35 text-sm mt-1">Internet aloqasini tekshiring</p>
+                <p className="font-bold text-lg" style={{ color: 'var(--ws-text)' }}>{t('challenge.loadError')}</p>
+                <p className="text-sm mt-1" style={{ color: 'var(--ws-muted)' }}>{t('challenge.checkConnection')}</p>
               </div>
               <motion.button
-                whileTap={{ scale: 0.95 }}
+                whileTap={{ scale: 0.96 }}
                 onClick={load}
-                className="px-6 py-3 rounded-2xl font-bold text-sm text-white"
+                className="px-6 py-3 rounded-btn font-bold text-sm text-white flex items-center gap-2"
                 style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}
               >
-                🔄 Qayta urinish
+                <RefreshCw size={16} strokeWidth={2.4} /> {t('challenge.retry')}
               </motion.button>
             </motion.div>
           )}
@@ -404,22 +383,20 @@ export function ChallengePage({ onBack }: { onBack: () => void }) {
               exit={{ opacity: 0 }}
               className="flex-1 flex flex-col items-center justify-center gap-5 text-center"
             >
-              <span className="text-6xl">📭</span>
+              <div className="w-20 h-20 rounded-3xl flex items-center justify-center" style={{ background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)' }}>
+                <Inbox size={36} strokeWidth={1.8} style={{ color: 'var(--ws-muted)' }} />
+              </div>
               <div>
-                <p className="text-white font-bold text-lg">Bugun challenge yo'q</p>
-                <p className="text-white/35 text-sm mt-1">Ertaga qaytib keling!</p>
+                <p className="font-bold text-lg" style={{ color: 'var(--ws-text)' }}>{t('challenge.emptyTitle')}</p>
+                <p className="text-sm mt-1" style={{ color: 'var(--ws-muted)' }}>{t('challenge.emptyDesc')}</p>
               </div>
               <motion.button
-                whileTap={{ scale: 0.95 }}
+                whileTap={{ scale: 0.96 }}
                 onClick={onBack}
-                className="px-6 py-3 rounded-2xl font-bold text-sm"
-                style={{
-                  background: 'rgba(255,255,255,0.06)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  color: 'rgba(255,255,255,0.6)',
-                }}
+                className="px-6 py-3 rounded-btn font-bold text-sm flex items-center gap-2 ws-card-2"
+                style={{ color: 'var(--ws-muted)' }}
               >
-                ← Feedga qaytish
+                <ArrowLeft size={16} strokeWidth={2.4} /> {t('challenge.toFeed')}
               </motion.button>
             </motion.div>
           )}

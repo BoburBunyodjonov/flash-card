@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
+import {
+  Bell, Clock, Globe, GraduationCap, User, Crown, Sparkles,
+  Gift, Share2, LogOut, Check, Flame, Zap, Users, ArrowLeft,
+} from 'lucide-react'
 import { useAuthStore } from '../../store/auth.store'
 import { profileApi, type ReferralInfo } from '../../api/profile.api'
 import { speakingApi } from '../../api/speaking.api'
@@ -9,30 +13,55 @@ import { PremiumModal } from '../../components/PremiumModal'
 import i18n from '../../i18n'
 
 const LANGUAGES = [
-  { code: 'uz', label: "O'zbek", flag: '🇺🇿' },
-  { code: 'en', label: 'English', flag: '🇬🇧' },
-  { code: 'ru', label: 'Русский', flag: '🇷🇺' },
+  { code: 'uz', label: "O'zbek" },
+  { code: 'en', label: 'English' },
+  { code: 'ru', label: 'Русский' },
 ]
 
 const CEFR_LEVELS = [
-  { value: 'A1', label: 'A1 · Boshlang\'ich', color: '#34d399' },
-  { value: 'A2', label: 'A2 · Elementar', color: '#6ee7b7' },
-  { value: 'B1', label: 'B1 · O\'rta', color: '#fbbf24' },
+  { value: 'A1', label: 'A1 · Boshlang\'ich', color: '#10b981' },
+  { value: 'A2', label: 'A2 · Elementar', color: '#34d399' },
+  { value: 'B1', label: 'B1 · O\'rta', color: '#f59e0b' },
   { value: 'B2', label: 'B2 · O\'rtadan yuqori', color: '#f97316' },
-  { value: 'C1', label: 'C1 · Ilg\'or', color: '#f87171' },
-  { value: 'C2', label: 'C2 · Mukammal', color: '#c084fc' },
+  { value: 'C1', label: 'C1 · Ilg\'or', color: '#ef4444' },
+  { value: 'C2', label: 'C2 · Mukammal', color: '#a78bfa' },
 ]
 
-const NOTIFY_TIMES = [
-  { value: '08:00', label: '08:00', hint: '🌅' },
-  { value: '12:00', label: '12:00', hint: '☀️' },
-  { value: '18:00', label: '18:00', hint: '🌆' },
-  { value: '20:00', label: '20:00', hint: '🌙' },
-  { value: '21:00', label: '21:00', hint: '🌙' },
-  { value: '22:00', label: '22:00', hint: '🌙' },
-]
+const NOTIFY_TIMES = ['08:00', '12:00', '18:00', '20:00', '21:00', '22:00']
 
-export function SettingsPage() {
+// Reusable settings section wrapper
+function SettingsSection({
+  Icon, title, hint, delay, children,
+}: {
+  Icon: typeof Bell
+  title: string
+  hint?: string
+  delay: number
+  children: React.ReactNode
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay }}
+      className="mx-5 mb-4 ws-card p-5"
+    >
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+          style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)' }}>
+          <Icon size={18} strokeWidth={2.2} style={{ color: 'var(--ws-primary-light)' }} />
+        </div>
+        <div className="min-w-0">
+          <p className="font-bold text-sm" style={{ color: 'var(--ws-text)' }}>{title}</p>
+          {hint && <p className="text-xs mt-0.5" style={{ color: 'var(--ws-muted)' }}>{hint}</p>}
+        </div>
+      </div>
+      {children}
+    </motion.div>
+  )
+}
+
+export function SettingsPage({ onBack }: { onBack?: () => void }) {
   const { t } = useTranslation()
   const { user, setUser, logout } = useAuthStore()
   const { twa, haptic } = useTelegram()
@@ -92,37 +121,42 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="h-full overflow-y-auto no-scrollbar pb-24 pt-4" style={{ background: '#0a0a14' }}>
-      <div className="px-5 mb-6">
-        <h1 className="text-2xl font-black gradient-text">{t('settings.title')}</h1>
-      </div>
+    <div className="h-full overflow-y-auto no-scrollbar pb-24 pt-4" style={{ background: 'var(--ws-bg)' }}>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="px-5 mb-6 flex items-center gap-3">
+        {onBack && (
+          <motion.button whileTap={{ scale: 0.9 }} onClick={onBack} aria-label={t('decks.back')}
+            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+            style={{ background: 'var(--ws-card)', border: '1px solid var(--ws-border)' }}>
+            <ArrowLeft size={18} strokeWidth={2.2} style={{ color: 'var(--ws-text)' }} />
+          </motion.button>
+        )}
+        <h1 className="text-3xl font-black tracking-tight" style={{ color: 'var(--ws-text)' }}>{t('settings.title')}</h1>
+      </motion.div>
 
       {/* Profile card */}
       {user && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mx-5 mb-4 rounded-2xl p-5 flex items-center gap-4"
-          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+          className="mx-5 mb-4 ws-card p-5 flex items-center gap-4"
         >
-          <div className="w-16 h-16 rounded-2xl overflow-hidden shrink-0 flex items-center justify-center text-3xl"
-            style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
+          <div className="w-16 h-16 rounded-2xl overflow-hidden shrink-0 flex items-center justify-center ws-gradient-bg">
             {user.avatarUrl
               ? <img src={user.avatarUrl} className="w-full h-full object-cover" alt="" />
-              : '👤'
+              : <User size={30} strokeWidth={2} style={{ color: '#fff' }} />
             }
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-white font-black text-lg truncate">{user.firstName} {user.lastName ?? ''}</p>
-            {user.username && <p className="text-white/40 text-sm">@{user.username}</p>}
-            <div className="flex items-center gap-3 mt-1.5">
-              <span className="text-xs font-bold px-2 py-0.5 rounded-full"
-                style={{ background: 'rgba(251,191,36,0.15)', color: '#fbbf24' }}>
-                🔥 {user.streak} streak
+            <p className="font-black text-lg truncate" style={{ color: 'var(--ws-text)' }}>{user.firstName} {user.lastName ?? ''}</p>
+            {user.username && <p className="text-sm" style={{ color: 'var(--ws-muted)' }}>@{user.username}</p>}
+            <div className="flex items-center gap-2 mt-1.5">
+              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1"
+                style={{ background: 'rgba(245,158,11,0.14)', color: 'var(--ws-warning)' }}>
+                <Flame size={12} strokeWidth={2.4} /> {user.streak}
               </span>
-              <span className="text-xs font-bold px-2 py-0.5 rounded-full"
-                style={{ background: 'rgba(99,102,241,0.15)', color: '#a78bfa' }}>
-                ⚡ {user.xp} XP
+              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1"
+                style={{ background: 'rgba(99,102,241,0.14)', color: 'var(--ws-primary-light)' }}>
+                <Zap size={12} strokeWidth={2.4} /> {user.xp} XP
               </span>
             </div>
           </div>
@@ -137,34 +171,34 @@ export function SettingsPage() {
         className="mx-5 mb-4"
       >
         {user?.isPremium ? (
-          <div className="rounded-2xl p-5 flex items-center justify-between relative overflow-hidden"
-            style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
+          <div className="rounded-card p-5 flex items-center justify-between relative overflow-hidden ws-gradient-bg ws-glow-primary">
             <div className="absolute inset-0 opacity-20"
               style={{ background: 'radial-gradient(circle at 80% 50%, rgba(255,255,255,0.3), transparent 60%)' }} />
-            <div>
-              <p className="text-white font-black text-lg">✨ {t('settings.premiumActive')}</p>
+            <div className="relative">
+              <p className="text-white font-black text-lg flex items-center gap-2">
+                <Sparkles size={20} strokeWidth={2.2} /> {t('settings.premiumActive')}
+              </p>
               {user.premiumUntil && (
-                <p className="text-white/60 text-sm mt-0.5">
+                <p className="text-white/70 text-sm mt-0.5">
                   {t('settings.premiumUntil', { date: new Date(user.premiumUntil).toLocaleDateString() })}
                 </p>
               )}
             </div>
-            <span className="text-4xl">⭐</span>
+            <Crown size={34} strokeWidth={1.8} className="relative text-white/90" />
           </div>
         ) : (
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={() => { haptic.impact('medium'); setPremiumOpen(true) }}
-            className="w-full rounded-2xl p-5 flex items-center justify-between relative overflow-hidden text-left glow-purple"
-            style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+            className="w-full rounded-card p-5 flex items-center justify-between relative overflow-hidden text-left ws-gradient-bg ws-glow-primary"
           >
             <div className="absolute inset-0 opacity-20"
               style={{ background: 'radial-gradient(circle at 80% 50%, rgba(255,255,255,0.3), transparent 60%)' }} />
-            <div>
+            <div className="relative">
               <p className="text-white font-black text-lg">{t('settings.getPremium')}</p>
-              <p className="text-white/60 text-sm mt-0.5">{t('settings.premiumDesc')}</p>
+              <p className="text-white/70 text-sm mt-0.5">{t('settings.premiumDesc')}</p>
             </div>
-            <span className="text-4xl">⚡</span>
+            <Crown size={34} strokeWidth={1.8} className="relative text-white/90" />
           </motion.button>
         )}
       </motion.div>
@@ -174,21 +208,24 @@ export function SettingsPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="mx-5 mb-4 rounded-2xl p-5"
-        style={{ background: 'rgba(52,211,153,0.06)', border: '1px solid rgba(52,211,153,0.18)' }}
+        className="mx-5 mb-4 rounded-card p-5"
+        style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.18)' }}
       >
         <div className="flex items-center justify-between mb-3">
-          <div>
-            <p className="text-white font-black text-base">🎁 Do'stlarni taklif qiling</p>
-            <p className="text-white/40 text-xs mt-0.5">
-              Har bir do'st uchun <span className="text-success font-bold">+50 XP</span> va{' '}
-              <span className="text-success font-bold">+10 bonus so'z</span>
-            </p>
+          <div className="flex items-start gap-3 min-w-0">
+            <div className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center"
+              style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.28)' }}>
+              <Gift size={18} strokeWidth={2.2} style={{ color: 'var(--ws-success)' }} />
+            </div>
+            <div className="min-w-0">
+              <p className="font-bold text-sm" style={{ color: 'var(--ws-text)' }}>{t('settings.inviteTitle')}</p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--ws-muted)' }}>{t('settings.inviteReward')}</p>
+            </div>
           </div>
           {referral && referral.count > 0 && (
             <div className="text-center shrink-0 ml-3">
-              <p className="text-success font-black text-2xl leading-none">{referral.count}</p>
-              <p className="text-white/30 text-[10px] mt-1">taklif qilingan</p>
+              <p className="font-black text-2xl leading-none" style={{ color: 'var(--ws-success)' }}>{referral.count}</p>
+              <p className="text-[10px] mt-1" style={{ color: 'var(--ws-faint)' }}>{t('settings.invited')}</p>
             </div>
           )}
         </div>
@@ -198,15 +235,17 @@ export function SettingsPage() {
             {referral.referrals.slice(0, 6).map((r, i) => (
               <div
                 key={i}
-                className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center text-sm -ml-1 first:ml-0"
-                style={{ background: '#1e1e30', border: '2px solid #0a0a14' }}
+                className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center -ml-1 first:ml-0"
+                style={{ background: 'var(--ws-surface)', border: '2px solid var(--ws-bg)' }}
                 title={r.firstName}
               >
-                {r.avatarUrl ? <img src={r.avatarUrl} className="w-full h-full object-cover" alt="" /> : '👤'}
+                {r.avatarUrl
+                  ? <img src={r.avatarUrl} className="w-full h-full object-cover" alt="" />
+                  : <User size={14} strokeWidth={2} style={{ color: 'var(--ws-faint)' }} />}
               </div>
             ))}
             {referral.count > 6 && (
-              <span className="text-white/35 text-xs font-bold ml-2">+{referral.count - 6}</span>
+              <span className="text-xs font-bold ml-2" style={{ color: 'var(--ws-muted)' }}>+{referral.count - 6}</span>
             )}
           </div>
         )}
@@ -215,10 +254,10 @@ export function SettingsPage() {
           whileTap={{ scale: 0.97 }}
           onClick={shareReferral}
           disabled={!referral}
-          className="w-full py-3.5 rounded-xl font-black text-sm text-white disabled:opacity-50"
+          className="w-full py-3.5 rounded-btn font-bold text-sm text-white flex items-center justify-center gap-2 disabled:opacity-50"
           style={{ background: 'linear-gradient(135deg, #10b981, #059669)', boxShadow: '0 6px 20px rgba(16,185,129,0.22)' }}
         >
-          📤 Taklif havolasini ulashish
+          <Share2 size={17} strokeWidth={2.2} /> {t('settings.shareInvite')}
         </motion.button>
       </motion.div>
 
@@ -227,22 +266,25 @@ export function SettingsPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.12 }}
-        className="mx-5 mb-4 rounded-2xl p-5"
-        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+        className="mx-5 mb-4 ws-card p-5"
       >
         {/* Header row */}
         <div className="flex items-center justify-between mb-4">
-          <div>
-            <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest">
-              {t('settings.notifications')}
-            </p>
-            <p className="text-white/60 text-xs mt-0.5">Telegram orqali eslatma</p>
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+              style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)' }}>
+              <Bell size={18} strokeWidth={2.2} style={{ color: 'var(--ws-primary-light)' }} />
+            </div>
+            <div>
+              <p className="font-bold text-sm" style={{ color: 'var(--ws-text)' }}>{t('settings.notifications')}</p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--ws-muted)' }}>{t('settings.notifyHint')}</p>
+            </div>
           </div>
           {/* Toggle */}
           <button
             onClick={() => toggleNotify(!notifyEnabled)}
-            className="relative w-12 h-6 rounded-full transition-all duration-200"
-            style={{ background: notifyEnabled ? '#6366f1' : 'rgba(255,255,255,0.1)' }}
+            className="relative w-12 h-6 rounded-full shrink-0"
+            style={{ background: notifyEnabled ? 'var(--ws-primary)' : 'rgba(255,255,255,0.1)' }}
           >
             <motion.div
               className="absolute top-1 w-4 h-4 rounded-full bg-white"
@@ -261,22 +303,24 @@ export function SettingsPage() {
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.2 }}
             >
-              <p className="text-white/30 text-xs mb-2">{t('settings.notifyTime')}</p>
+              <p className="text-xs mb-2 flex items-center gap-1.5" style={{ color: 'var(--ws-muted)' }}>
+                <Clock size={13} strokeWidth={2.2} /> {t('settings.notifyTime')}
+              </p>
               <div className="grid grid-cols-3 gap-2">
-                {NOTIFY_TIMES.map((t) => (
+                {NOTIFY_TIMES.map((time) => (
                   <button
-                    key={t.value}
-                    onClick={() => saveNotifyTime(t.value)}
-                    className="flex flex-col items-center py-2 rounded-xl transition-all"
-                    style={notifyTime === t.value
-                      ? { background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)' }
-                      : { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }
+                    key={time}
+                    onClick={() => saveNotifyTime(time)}
+                    className="flex items-center justify-center gap-1.5 py-2.5 rounded-btn"
+                    style={notifyTime === time
+                      ? { background: 'rgba(99,102,241,0.18)', border: '1px solid rgba(99,102,241,0.4)' }
+                      : { background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)' }
                     }
                   >
-                    <span className="text-base">{t.hint}</span>
-                    <span className="text-xs font-bold mt-0.5"
-                      style={{ color: notifyTime === t.value ? '#a78bfa' : 'rgba(255,255,255,0.4)' }}>
-                      {t.label}
+                    <Clock size={13} strokeWidth={2.2} style={{ color: notifyTime === time ? 'var(--ws-primary-light)' : 'var(--ws-faint)' }} />
+                    <span className="text-xs font-bold tabular-nums"
+                      style={{ color: notifyTime === time ? 'var(--ws-primary-light)' : 'var(--ws-muted)' }}>
+                      {time}
                     </span>
                   </button>
                 ))}
@@ -288,10 +332,10 @@ export function SettingsPage() {
                     initial={{ opacity: 0, y: -4 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
-                    className="text-center text-xs mt-3 font-semibold"
-                    style={{ color: '#34d399' }}
+                    className="text-center text-xs mt-3 font-semibold flex items-center justify-center gap-1.5"
+                    style={{ color: 'var(--ws-success)' }}
                   >
-                    ✓ Saqlandi — {notifyTime} da eslatma yuboriladi
+                    <Check size={13} strokeWidth={2.6} /> {t('settings.notifySaved', { time: notifyTime })}
                   </motion.p>
                 )}
               </AnimatePresence>
@@ -301,109 +345,82 @@ export function SettingsPage() {
       </motion.div>
 
       {/* Language picker */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.16 }}
-        className="mx-5 mb-4 rounded-2xl p-5"
-        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
-      >
-        <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-3">
-          {t('settings.language')}
-        </p>
+      <SettingsSection Icon={Globe} title={t('settings.language')} delay={0.16}>
         <div className="flex flex-col gap-1">
           {LANGUAGES.map((l) => (
             <button
               key={l.code}
               onClick={() => changeLang(l.code)}
-              className="flex items-center justify-between py-2.5 px-3 rounded-xl transition-all"
+              className="flex items-center justify-between py-2.5 px-3 rounded-btn"
               style={lang === l.code
                 ? { background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)' }
                 : { border: '1px solid transparent' }
               }
             >
               <div className="flex items-center gap-3">
-                <span className="text-xl">{l.flag}</span>
-                <span className="text-white font-semibold">{l.label}</span>
+                <span className="text-xs font-black uppercase tracking-wider w-7"
+                  style={{ color: lang === l.code ? 'var(--ws-primary-light)' : 'var(--ws-faint)' }}>{l.code}</span>
+                <span className="font-semibold" style={{ color: 'var(--ws-text)' }}>{l.label}</span>
               </div>
-              {lang === l.code && (
-                <span className="text-sm font-black" style={{ color: '#6366f1' }}>✓</span>
-              )}
+              {lang === l.code && <Check size={17} strokeWidth={2.6} style={{ color: 'var(--ws-primary-light)' }} />}
             </button>
           ))}
         </div>
-      </motion.div>
+      </SettingsSection>
 
       {/* CEFR level */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.18 }}
-        className="mx-5 mb-4 rounded-2xl p-5"
-        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
-      >
-        <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">
-          Ingliz tili darajasi
-        </p>
-        <p className="text-white/30 text-xs mb-3">Feed shu darajaga mos so'zlarni ko'rsatadi</p>
+      <SettingsSection Icon={GraduationCap} title={t('settings.cefrTitle')} hint={t('settings.cefrHint')} delay={0.18}>
         <div className="grid grid-cols-3 gap-2">
           {CEFR_LEVELS.map((l) => (
             <button
               key={l.value}
               onClick={() => changeLevel(l.value)}
-              className="flex flex-col items-center py-2.5 rounded-xl transition-all"
+              className="flex flex-col items-center py-2.5 rounded-btn"
               style={level === l.value
                 ? { background: `${l.color}20`, border: `1px solid ${l.color}55` }
-                : { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }
+                : { background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)' }
               }
             >
-              <span className="text-sm font-black" style={{ color: level === l.value ? l.color : 'rgba(255,255,255,0.45)' }}>
+              <span className="text-sm font-black" style={{ color: level === l.value ? l.color : 'var(--ws-muted)' }}>
                 {l.value}
               </span>
-              <span className="text-[9px] mt-0.5" style={{ color: level === l.value ? `${l.color}cc` : 'rgba(255,255,255,0.25)' }}>
+              <span className="text-[9px] mt-0.5" style={{ color: level === l.value ? `${l.color}cc` : 'var(--ws-faint)' }}>
                 {l.label.split('· ')[1]}
               </span>
             </button>
           ))}
         </div>
-      </motion.div>
+      </SettingsSection>
 
       {/* Gender (for speaking practice matching) */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="mx-5 mb-4 rounded-2xl p-5"
-        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
-      >
-        <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">
-          {t('settings.gender')}
-        </p>
-        <p className="text-white/30 text-xs mb-3">{t('settings.genderHint')}</p>
+      <SettingsSection Icon={Users} title={t('settings.gender')} hint={t('settings.genderHint')} delay={0.2}>
         <div className="grid grid-cols-3 gap-2">
           {([
-            { value: 'male' as const, label: t('settings.genderMale'), icon: '👨' },
-            { value: 'female' as const, label: t('settings.genderFemale'), icon: '👩' },
-            { value: null, label: t('settings.genderNone'), icon: '—' },
-          ]).map((g) => (
-            <button
-              key={String(g.value)}
-              onClick={() => changeGender(g.value)}
-              className="flex flex-col items-center py-2.5 rounded-xl transition-all"
-              style={(user?.gender ?? null) === g.value
-                ? { background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)' }
-                : { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }
-              }
-            >
-              <span className="text-base">{g.icon}</span>
-              <span className="text-xs font-bold mt-0.5"
-                style={{ color: (user?.gender ?? null) === g.value ? '#a78bfa' : 'rgba(255,255,255,0.4)' }}>
-                {g.label}
-              </span>
-            </button>
-          ))}
+            { value: 'male' as const, label: t('settings.genderMale') },
+            { value: 'female' as const, label: t('settings.genderFemale') },
+            { value: null, label: t('settings.genderNone') },
+          ]).map((g) => {
+            const isActive = (user?.gender ?? null) === g.value
+            return (
+              <button
+                key={String(g.value)}
+                onClick={() => changeGender(g.value)}
+                className="flex flex-col items-center gap-1.5 py-3 rounded-btn"
+                style={isActive
+                  ? { background: 'rgba(99,102,241,0.18)', border: '1px solid rgba(99,102,241,0.4)' }
+                  : { background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)' }
+                }
+              >
+                <User size={18} strokeWidth={2.2} style={{ color: isActive ? 'var(--ws-primary-light)' : 'var(--ws-faint)' }} />
+                <span className="text-xs font-bold"
+                  style={{ color: isActive ? 'var(--ws-primary-light)' : 'var(--ws-muted)' }}>
+                  {g.label}
+                </span>
+              </button>
+            )
+          })}
         </div>
-      </motion.div>
+      </SettingsSection>
 
       {/* Logout */}
       <motion.div
@@ -415,10 +432,10 @@ export function SettingsPage() {
         <motion.button
           whileTap={{ scale: 0.97 }}
           onClick={logout}
-          className="w-full rounded-2xl py-4 font-bold text-base"
-          style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171' }}
+          className="w-full rounded-card py-4 font-bold text-base flex items-center justify-center gap-2"
+          style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.22)', color: 'var(--ws-danger)' }}
         >
-          {t('settings.logout')}
+          <LogOut size={18} strokeWidth={2.2} /> {t('settings.logout')}
         </motion.button>
       </motion.div>
 

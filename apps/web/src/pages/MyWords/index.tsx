@@ -2,6 +2,10 @@ import { useCallback, useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import {
+  NotebookPen, Plus, Check, RotateCcw, X, Volume2, Target, ArrowLeft,
+  CheckCircle2, PartyPopper, Pencil,
+} from 'lucide-react'
+import {
   myWordsApi,
   getApiErrorMessage,
   isConflictError,
@@ -87,11 +91,11 @@ function SpeakerButton({ word, audioUrl }: { word: string; audioUrl?: string | n
         haptic.impact('light')
         playWordAudio(word, audioUrl)
       }}
-      className="w-9 h-9 rounded-full flex items-center justify-center text-base shrink-0"
+      className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
       style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)' }}
       aria-label="play"
     >
-      🔊
+      <Volume2 size={16} strokeWidth={2} style={{ color: 'var(--ws-primary-light)' }} />
     </motion.button>
   )
 }
@@ -183,11 +187,12 @@ function AddView({
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={onBack}
-          className="text-primary font-semibold text-sm flex items-center gap-1 mb-4"
+          className="font-semibold text-sm flex items-center gap-1 mb-4"
+          style={{ color: 'var(--ws-primary-light)' }}
         >
-          ← {t('myWords.back')}
+          <ArrowLeft size={16} strokeWidth={2.2} /> {t('myWords.back')}
         </motion.button>
-        <h2 className="text-2xl font-black text-white">{t('myWords.addTitle')}</h2>
+        <h2 className="text-2xl font-black" style={{ color: 'var(--ws-text)' }}>{t('myWords.addTitle')}</h2>
       </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar px-5 flex flex-col gap-4 pt-2">
@@ -288,8 +293,8 @@ function AddView({
 
         {/* Uzbek translation — the warm, central learning step */}
         <div className="mt-1">
-          <label className="text-success text-xs font-black uppercase tracking-widest mb-1.5 block">
-            ✍️ {t('myWords.translationLabel')}
+          <label className="text-xs font-black uppercase tracking-widest mb-1.5 flex items-center gap-1.5" style={{ color: 'var(--ws-success)' }}>
+            <Pencil size={13} strokeWidth={2.4} /> {t('myWords.translationLabel')}
           </label>
           <div
             className="rounded-2xl px-4 py-3.5 flex items-center"
@@ -326,7 +331,7 @@ function AddView({
             color: !word.trim() || !translation.trim() || saving ? 'rgba(255,255,255,0.35)' : '#fff',
           }}
         >
-          {saving ? '…' : `💾 ${t('myWords.save')}`}
+          {saving ? '…' : <><Check size={18} strokeWidth={2.4} /> {t('myWords.save')}</>}
         </motion.button>
       </div>
     </div>
@@ -404,19 +409,19 @@ function StudyView({ onBack }: { onBack: () => void }) {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 240 }}
-          className="text-7xl"
+          className="w-20 h-20 rounded-3xl flex items-center justify-center"
+          style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.28)' }}
         >
-          ✅
+          <CheckCircle2 size={38} strokeWidth={1.8} style={{ color: 'var(--ws-success)' }} />
         </motion.div>
         <div>
-          <h2 className="text-2xl font-black text-white">{t('myWords.allReviewed')}</h2>
-          <p className="text-white/35 text-sm mt-2">{t('myWords.allReviewedMsg')}</p>
+          <h2 className="text-2xl font-black" style={{ color: 'var(--ws-text)' }}>{t('myWords.allReviewed')}</h2>
+          <p className="text-sm mt-2" style={{ color: 'var(--ws-muted)' }}>{t('myWords.allReviewedMsg')}</p>
         </div>
         <motion.button
           whileTap={{ scale: 0.96 }}
           onClick={onBack}
-          className="px-6 py-3 rounded-2xl font-bold text-sm text-white"
-          style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+          className="px-6 py-3 rounded-btn font-bold text-sm text-white ws-gradient-bg"
         >
           {t('myWords.back')}
         </motion.button>
@@ -436,11 +441,12 @@ function StudyView({ onBack }: { onBack: () => void }) {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 400, damping: 18, delay: 0.1 }}
-          className="text-7xl"
+          className="w-20 h-20 rounded-3xl flex items-center justify-center"
+          style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.28)' }}
         >
-          🎉
+          <PartyPopper size={36} strokeWidth={1.8} style={{ color: 'var(--ws-primary-light)' }} />
         </motion.div>
-        <p className="text-white text-2xl font-black">{t('myWords.sessionDone')}</p>
+        <p className="text-2xl font-black" style={{ color: 'var(--ws-text)' }}>{t('myWords.sessionDone')}</p>
         <div className="flex gap-4">
           <div
             className="flex flex-col items-center rounded-2xl px-6 py-4 gap-1"
@@ -465,20 +471,15 @@ function StudyView({ onBack }: { onBack: () => void }) {
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={load}
-            className="flex-1 py-3.5 rounded-2xl font-bold text-sm text-white"
-            style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+            className="flex-1 py-3.5 rounded-btn font-bold text-sm text-white ws-gradient-bg"
           >
             {t('myWords.again')}
           </motion.button>
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={onBack}
-            className="flex-1 py-3.5 rounded-2xl font-bold text-sm"
-            style={{
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              color: 'rgba(255,255,255,0.6)',
-            }}
+            className="flex-1 py-3.5 rounded-btn font-bold text-sm ws-card-2"
+            style={{ color: 'var(--ws-muted)' }}
           >
             {t('myWords.back')}
           </motion.button>
@@ -496,11 +497,12 @@ function StudyView({ onBack }: { onBack: () => void }) {
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={onBack}
-          className="text-primary font-semibold text-sm flex items-center gap-1"
+          className="font-semibold text-sm flex items-center gap-1"
+          style={{ color: 'var(--ws-primary-light)' }}
         >
-          ← {t('myWords.back')}
+          <ArrowLeft size={16} strokeWidth={2.2} /> {t('myWords.back')}
         </motion.button>
-        <span className="text-white/40 text-xs font-bold">
+        <span className="text-xs font-bold" style={{ color: 'var(--ws-muted)' }}>
           {index + 1} / {words.length}
         </span>
       </div>
@@ -613,7 +615,7 @@ function StudyView({ onBack }: { onBack: () => void }) {
                   color: '#f87171',
                 }}
               >
-                <span>✗</span> {t('myWords.dontKnow')}
+                <X size={18} strokeWidth={2.6} /> {t('myWords.dontKnow')}
               </motion.button>
               <motion.button
                 whileTap={{ scale: 0.94 }}
@@ -626,7 +628,7 @@ function StudyView({ onBack }: { onBack: () => void }) {
                   color: '#34d399',
                 }}
               >
-                <span>✓</span> {t('myWords.know')}
+                <Check size={18} strokeWidth={2.6} /> {t('myWords.know')}
               </motion.button>
             </motion.div>
           )}
@@ -741,19 +743,23 @@ function ListView({
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={onBack}
-            className="text-primary font-semibold text-sm flex items-center gap-1 mb-3"
+            className="font-semibold text-sm flex items-center gap-1 mb-3"
+            style={{ color: 'var(--ws-primary-light)' }}
           >
-            ← {t('myWords.back')}
+            <ArrowLeft size={16} strokeWidth={2.2} /> {t('myWords.back')}
           </motion.button>
         )}
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-black text-white">{t('myWords.title')}</h1>
+          <h1 className="text-2xl font-black tracking-tight flex items-center gap-2" style={{ color: 'var(--ws-text)' }}>
+            <NotebookPen size={22} strokeWidth={2.2} style={{ color: 'var(--ws-primary-light)' }} />
+            {t('myWords.title')}
+          </h1>
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={onAdd}
-            className="bg-primary text-white font-bold px-4 py-2 rounded-xl text-sm flex items-center gap-1"
+            className="text-white font-bold px-4 py-2 rounded-btn text-sm flex items-center gap-1 ws-gradient-bg ws-glow-primary"
           >
-            <span className="text-base leading-none">+</span> {t('myWords.add')}
+            <Plus size={16} strokeWidth={2.6} /> {t('myWords.add')}
           </motion.button>
         </div>
 
@@ -792,7 +798,7 @@ function ListView({
                 }
           }
         >
-          🎯 {t('myWords.study')}
+          <Target size={18} strokeWidth={2.4} /> {t('myWords.study')}
         </motion.button>
       </div>
 
@@ -808,18 +814,20 @@ function ListView({
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center gap-3 py-16 text-center"
+            className="flex flex-col items-center gap-4 py-16 text-center"
           >
-            <span className="text-6xl">📝</span>
-            <p className="text-white/55 font-bold text-lg">{t('myWords.emptyTitle')}</p>
-            <p className="text-white/30 text-sm max-w-xs">{t('myWords.emptyMsg')}</p>
+            <div className="w-20 h-20 rounded-3xl flex items-center justify-center"
+              style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)' }}>
+              <NotebookPen size={34} strokeWidth={1.8} style={{ color: 'var(--ws-primary-light)' }} />
+            </div>
+            <p className="font-bold text-lg" style={{ color: 'var(--ws-text)' }}>{t('myWords.emptyTitle')}</p>
+            <p className="text-sm max-w-xs" style={{ color: 'var(--ws-muted)' }}>{t('myWords.emptyMsg')}</p>
             <motion.button
               whileTap={{ scale: 0.96 }}
               onClick={onAdd}
-              className="mt-2 px-6 py-3 rounded-2xl font-bold text-sm text-white"
-              style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+              className="mt-2 px-6 py-3 rounded-btn font-bold text-sm text-white flex items-center gap-2 ws-gradient-bg ws-glow-primary"
             >
-              + {t('myWords.addFirst')}
+              <Plus size={16} strokeWidth={2.6} /> {t('myWords.addFirst')}
             </motion.button>
           </motion.div>
         )}
@@ -834,14 +842,13 @@ function ListView({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: Math.min(i * 0.04, 0.4) }}
-                className="rounded-2xl px-4 py-3.5 flex items-center gap-3"
-                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
+                className="ws-card px-4 py-3.5 flex items-center gap-3"
               >
                 <SpeakerButton word={w.word} audioUrl={w.audioUrl} />
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-white font-bold truncate">{w.word}</p>
+                    <p className="font-bold truncate" style={{ color: 'var(--ws-text)' }}>{w.word}</p>
                     <span
                       className="text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wide"
                       style={{ color: sc, background: `${sc}1f` }}
@@ -878,10 +885,10 @@ function ListView({
                     onClick={() => relearn(w)}
                     aria-label={t('myWords.relearn')}
                     title={t('myWords.relearn')}
-                    className="text-sm font-black w-7 h-7 rounded-lg shrink-0 flex items-center justify-center"
+                    className="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center"
                     style={{ color: '#818cf8', background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)' }}
                   >
-                    🔄
+                    <RotateCcw size={16} strokeWidth={2.2} />
                   </motion.button>
                 ) : (
                   <motion.button
@@ -889,10 +896,10 @@ function ListView({
                     onClick={() => master(w)}
                     aria-label={t('myWords.markLearned')}
                     title={t('myWords.markLearned')}
-                    className="text-sm font-black w-7 h-7 rounded-lg shrink-0 flex items-center justify-center"
+                    className="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center"
                     style={{ color: '#34d399', background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.25)' }}
                   >
-                    ✓
+                    <Check size={16} strokeWidth={2.6} />
                   </motion.button>
                 )}
 
@@ -900,18 +907,21 @@ function ListView({
                   whileTap={{ scale: 0.9 }}
                   onClick={() => remove(w.id)}
                   aria-label={t('myWords.delete')}
-                  className="text-xs font-black px-2 py-1 rounded-lg shrink-0"
+                  className="shrink-0 flex items-center justify-center rounded-lg"
                   style={
                     confirmRemoveId === w.id
                       ? {
                           color: '#f87171',
                           background: 'rgba(239,68,68,0.15)',
                           border: '1px solid rgba(239,68,68,0.3)',
+                          padding: '4px 8px',
+                          fontSize: '12px',
+                          fontWeight: 800,
                         }
-                      : { color: 'rgba(255,255,255,0.25)' }
+                      : { color: 'var(--ws-faint)', width: 32, height: 32 }
                   }
                 >
-                  {confirmRemoveId === w.id ? t('myWords.removeConfirm') : '✕'}
+                  {confirmRemoveId === w.id ? t('myWords.removeConfirm') : <X size={16} strokeWidth={2.4} />}
                 </motion.button>
               </motion.div>
             )

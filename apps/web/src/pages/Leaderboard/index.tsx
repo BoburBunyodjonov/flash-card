@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
+import {
+  Trophy, Crown, Medal, Shield, Globe, Users, Flame,
+  TrendingUp, TrendingDown, UserPlus, UserCheck, User, ArrowLeft, type LucideIcon,
+} from 'lucide-react'
 import { api } from '../../api/client'
 import { useAuthStore } from '../../store/auth.store'
 import { leagueApi, type LeagueData } from '../../api/league.api'
@@ -16,19 +20,40 @@ interface LeaderboardUser {
   isFollowing?: boolean
 }
 
-const TIER_CONFIG = [
-  { name: 'Bronze', icon: '🥉', color: '#cd7f32' },
-  { name: 'Silver', icon: '🥈', color: '#c0c0c0' },
-  { name: 'Gold', icon: '🥇', color: '#fbbf24' },
-  { name: 'Sapphire', icon: '💎', color: '#38bdf8' },
-  { name: 'Diamond', icon: '👑', color: '#a78bfa' },
+const TIER_CONFIG: { key: string; Icon: LucideIcon; color: string }[] = [
+  { key: 'bronze',   Icon: Medal,  color: '#cd7f32' },
+  { key: 'silver',   Icon: Medal,  color: '#c0c0c0' },
+  { key: 'gold',     Icon: Trophy, color: '#fbbf24' },
+  { key: 'sapphire', Icon: Shield, color: '#38bdf8' },
+  { key: 'diamond',  Icon: Crown,  color: '#a78bfa' },
 ]
 
 function daysLeft(weekEnd: string): number {
   return Math.max(0, Math.ceil((new Date(weekEnd).getTime() - Date.now()) / 86400_000))
 }
 
+function rankColor(rank: number): string {
+  if (rank === 1) return '#fbbf24'
+  if (rank === 2) return '#c0c0c0'
+  if (rank === 3) return '#cd7f32'
+  return 'var(--ws-faint)'
+}
+
+function RankBadge({ rank }: { rank: number }) {
+  if (rank <= 3) {
+    return (
+      <span className="w-7 flex items-center justify-center">
+        {rank === 1
+          ? <Crown size={20} strokeWidth={2.2} style={{ color: rankColor(rank) }} />
+          : <Medal size={19} strokeWidth={2.2} style={{ color: rankColor(rank) }} />}
+      </span>
+    )
+  }
+  return <span className="text-base font-black w-7 text-center tabular-nums" style={{ color: 'var(--ws-faint)' }}>{rank}</span>
+}
+
 function LeagueView() {
+  const { t } = useTranslation()
   const [league, setLeague] = useState<LeagueData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -39,11 +64,11 @@ function LeagueView() {
   if (isLoading) {
     return (
       <div className="flex justify-center pt-12">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 rounded-full animate-spin" style={{ border: '2px solid transparent', borderTopColor: 'var(--ws-primary)', borderRightColor: 'var(--ws-primary)' }} />
       </div>
     )
   }
-  if (!league) return <p className="text-muted text-sm text-center pt-12">Liga yuklanmadi</p>
+  if (!league) return <p className="text-sm text-center pt-12" style={{ color: 'var(--ws-muted)' }}>{t('league.loadError')}</p>
 
   const tier = TIER_CONFIG[league.tier] ?? TIER_CONFIG[0]
   const demoteFrom = league.members.length - league.demoteCount
@@ -52,21 +77,22 @@ function LeagueView() {
     <div className="flex flex-col gap-3">
       {/* Tier header */}
       <div
-        className="rounded-3xl px-5 py-4 flex items-center gap-4"
+        className="rounded-card px-5 py-4 flex items-center gap-4"
         style={{ background: `${tier.color}14`, border: `1px solid ${tier.color}35` }}
       >
-        <span className="text-4xl">{tier.icon}</span>
-        <div className="flex-1">
-          <p className="font-black text-lg" style={{ color: tier.color }}>{tier.name} Liga</p>
-          <p className="text-white/35 text-xs mt-0.5">
-            Top {league.promoteCount} yuqoriga ko'tariladi · {daysLeft(league.weekEnd)} kun qoldi
+        <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+          style={{ background: `${tier.color}1f`, border: `1px solid ${tier.color}45` }}>
+          <tier.Icon size={26} strokeWidth={2} style={{ color: tier.color }} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-black text-lg" style={{ color: tier.color }}>{t(`league.tier.${tier.key}`)}</p>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--ws-muted)' }}>
+            {t('league.promoteInfo', { count: league.promoteCount })} · {t('league.daysLeft', { count: daysLeft(league.weekEnd) })}
           </p>
         </div>
-        <div className="flex gap-1">
+        <div className="flex gap-1.5">
           {TIER_CONFIG.map((tc, i) => (
-            <span key={tc.name} className="text-sm" style={{ opacity: i === league.tier ? 1 : 0.22 }}>
-              {tc.icon}
-            </span>
+            <tc.Icon key={tc.key} size={15} strokeWidth={2.2} style={{ color: tc.color, opacity: i === league.tier ? 1 : 0.25 }} />
           ))}
         </div>
       </div>
@@ -76,18 +102,18 @@ function LeagueView() {
         <div key={m.userId}>
           {i === league.promoteCount && league.members.length > league.promoteCount && (
             <div className="flex items-center gap-2 py-1">
-              <div className="flex-1 h-px" style={{ background: 'rgba(52,211,153,0.3)' }} />
-              <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: '#34d399' }}>
-                ↑ Ko'tarilish chizig'i
+              <div className="flex-1 h-px" style={{ background: 'rgba(16,185,129,0.3)' }} />
+              <span className="text-[10px] font-black uppercase tracking-wider flex items-center gap-1" style={{ color: 'var(--ws-success)' }}>
+                <TrendingUp size={12} strokeWidth={2.6} /> {t('league.promoteLine')}
               </span>
-              <div className="flex-1 h-px" style={{ background: 'rgba(52,211,153,0.3)' }} />
+              <div className="flex-1 h-px" style={{ background: 'rgba(16,185,129,0.3)' }} />
             </div>
           )}
           {i === demoteFrom && league.members.length > league.demoteCount && demoteFrom > league.promoteCount && (
             <div className="flex items-center gap-2 py-1">
               <div className="flex-1 h-px" style={{ background: 'rgba(239,68,68,0.3)' }} />
-              <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: '#f87171' }}>
-                ↓ Tushish chizig'i
+              <span className="text-[10px] font-black uppercase tracking-wider flex items-center gap-1" style={{ color: 'var(--ws-danger)' }}>
+                <TrendingDown size={12} strokeWidth={2.6} /> {t('league.demoteLine')}
               </span>
               <div className="flex-1 h-px" style={{ background: 'rgba(239,68,68,0.3)' }} />
             </div>
@@ -96,21 +122,28 @@ function LeagueView() {
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: i * 0.03 }}
-            className={`flex items-center gap-4 rounded-2xl px-4 py-3 ${m.isMe ? 'bg-primary/20 border border-primary/30' : 'bg-card'}`}
+            className="flex items-center gap-3 rounded-card px-4 py-3"
+            style={m.isMe
+              ? { background: 'rgba(99,102,241,0.16)', border: '1px solid rgba(99,102,241,0.3)' }
+              : { background: 'var(--ws-card)', border: '1px solid var(--ws-border)' }
+            }
           >
-            <span className={`text-lg font-black w-7 text-center ${i === 0 ? 'text-warning' : 'text-muted'}`}>
-              {m.rank}
-            </span>
-            <div className="w-10 h-10 rounded-full bg-surface flex items-center justify-center text-xl overflow-hidden shrink-0">
-              {m.avatarUrl ? <img src={m.avatarUrl} className="w-full h-full object-cover" /> : '👤'}
+            <RankBadge rank={m.rank} />
+            <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden shrink-0"
+              style={{ background: 'var(--ws-surface)' }}>
+              {m.avatarUrl
+                ? <img src={m.avatarUrl} className="w-full h-full object-cover" />
+                : <User size={18} strokeWidth={2} style={{ color: 'var(--ws-faint)' }} />}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-white font-semibold truncate">{m.firstName} {m.lastName ?? ''}</p>
-              <p className="text-muted text-xs">🔥 {m.streak} streak</p>
+              <p className="font-semibold truncate" style={{ color: 'var(--ws-text)' }}>{m.firstName} {m.lastName ?? ''}</p>
+              <p className="text-xs flex items-center gap-1" style={{ color: 'var(--ws-muted)' }}>
+                <Flame size={12} strokeWidth={2.2} style={{ color: 'var(--ws-warning)' }} /> {m.streak}
+              </p>
             </div>
             <div className="text-right">
-              <p className="text-primary font-black">{m.weeklyXp.toLocaleString()}</p>
-              <p className="text-muted text-xs">XP / hafta</p>
+              <p className="font-black tabular-nums" style={{ color: 'var(--ws-primary-light)' }}>{m.weeklyXp.toLocaleString()}</p>
+              <p className="text-[10px]" style={{ color: 'var(--ws-faint)' }}>{t('league.xpWeek')}</p>
             </div>
           </motion.div>
         </div>
@@ -119,7 +152,13 @@ function LeagueView() {
   )
 }
 
-export function LeaderboardPage() {
+const TABS: { key: 'league' | 'global' | 'friends'; Icon: LucideIcon }[] = [
+  { key: 'league', Icon: Shield },
+  { key: 'global', Icon: Globe },
+  { key: 'friends', Icon: Users },
+]
+
+export function LeaderboardPage({ onBack }: { onBack?: () => void }) {
   const { t } = useTranslation()
   const { user } = useAuthStore()
   const [tab, setTab] = useState<'league' | 'global' | 'friends'>('league')
@@ -147,20 +186,40 @@ export function LeaderboardPage() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-bg pt-4 pb-20">
-      <h1 className="text-2xl font-black text-white px-5 mb-4">{t('nav.leaderboard')}</h1>
+    <div className="h-full flex flex-col pt-4 pb-20" style={{ background: 'var(--ws-bg)' }}>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+        className="flex items-center gap-3 px-5 mb-4">
+        {onBack && (
+          <motion.button whileTap={{ scale: 0.9 }} onClick={onBack} aria-label={t('decks.back')}
+            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+            style={{ background: 'var(--ws-card)', border: '1px solid var(--ws-border)' }}>
+            <ArrowLeft size={18} strokeWidth={2.2} style={{ color: 'var(--ws-text)' }} />
+          </motion.button>
+        )}
+        <h1 className="text-3xl font-black tracking-tight" style={{ color: 'var(--ws-text)' }}>
+          {t('nav.leaderboard')}
+        </h1>
+      </motion.div>
 
       {/* Tabs */}
       <div className="flex gap-2 px-5 mb-4">
-        {(['league', 'global', 'friends'] as const).map((t2) => (
-          <button
-            key={t2}
-            onClick={() => setTab(t2)}
-            className={`flex-1 py-2.5 rounded-2xl text-sm font-bold transition-colors ${tab === t2 ? 'bg-primary text-white' : 'bg-surface text-muted'}`}
-          >
-            {t2 === 'league' ? '🛡 Liga' : t2 === 'global' ? '🌍 Global' : '👥 Friends'}
-          </button>
-        ))}
+        {TABS.map(({ key, Icon }) => {
+          const isActive = tab === key
+          return (
+            <button
+              key={key}
+              onClick={() => setTab(key)}
+              className="flex-1 py-2.5 rounded-btn text-sm font-bold flex items-center justify-center gap-1.5"
+              style={isActive
+                ? { background: 'var(--ws-gradient)', color: '#fff', boxShadow: '0 4px 14px rgba(99,102,241,0.3)' }
+                : { background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)', color: 'var(--ws-muted)' }
+              }
+            >
+              <Icon size={16} strokeWidth={2.2} />
+              {t(`leaderboard.${key}`)}
+            </button>
+          )
+        })}
       </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar px-5">
@@ -168,7 +227,7 @@ export function LeaderboardPage() {
           <LeagueView />
         ) : isLoading ? (
           <div className="flex justify-center pt-12">
-            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 rounded-full animate-spin" style={{ border: '2px solid transparent', borderTopColor: 'var(--ws-primary)', borderRightColor: 'var(--ws-primary)' }} />
           </div>
         ) : (
           <div className="flex flex-col gap-2">
@@ -178,33 +237,41 @@ export function LeaderboardPage() {
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.03 }}
-                className={`flex items-center gap-4 rounded-2xl px-4 py-3 ${u.id === user?.id ? 'bg-primary/20 border border-primary/30' : 'bg-card'}`}
+                className="flex items-center gap-3 rounded-card px-4 py-3"
+                style={u.id === user?.id
+                  ? { background: 'rgba(99,102,241,0.16)', border: '1px solid rgba(99,102,241,0.3)' }
+                  : { background: 'var(--ws-card)', border: '1px solid var(--ws-border)' }
+                }
               >
-                <span className={`text-lg font-black w-7 text-center ${i === 0 ? 'text-warning' : i === 1 ? 'text-white/60' : i === 2 ? 'text-amber-600' : 'text-muted'}`}>
-                  {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
-                </span>
-                <div className="w-10 h-10 rounded-full bg-surface flex items-center justify-center text-xl overflow-hidden shrink-0">
-                  {u.avatarUrl ? <img src={u.avatarUrl} className="w-full h-full object-cover" /> : '👤'}
+                <RankBadge rank={i + 1} />
+                <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden shrink-0"
+                  style={{ background: 'var(--ws-surface)' }}>
+                  {u.avatarUrl
+                    ? <img src={u.avatarUrl} className="w-full h-full object-cover" />
+                    : <User size={18} strokeWidth={2} style={{ color: 'var(--ws-faint)' }} />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-white font-semibold truncate">{u.firstName} {u.lastName ?? ''}</p>
-                  <p className="text-muted text-xs">🔥 {u.streak} streak</p>
+                  <p className="font-semibold truncate" style={{ color: 'var(--ws-text)' }}>{u.firstName} {u.lastName ?? ''}</p>
+                  <p className="text-xs flex items-center gap-1" style={{ color: 'var(--ws-muted)' }}>
+                    <Flame size={12} strokeWidth={2.2} style={{ color: 'var(--ws-warning)' }} /> {u.streak}
+                  </p>
                 </div>
                 {tab === 'global' && u.id !== user?.id && (
                   <button
                     onClick={() => toggleFollow(u)}
-                    className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-sm font-black transition-colors"
+                    aria-label={u.isFollowing ? t('leaderboard.following') : t('leaderboard.follow')}
+                    className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center"
                     style={u.isFollowing
-                      ? { background: 'rgba(52,211,153,0.15)', border: '1px solid rgba(52,211,153,0.35)', color: '#34d399' }
-                      : { background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.3)', color: '#a78bfa' }
+                      ? { background: 'rgba(16,185,129,0.14)', border: '1px solid rgba(16,185,129,0.35)', color: 'var(--ws-success)' }
+                      : { background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.3)', color: 'var(--ws-primary-light)' }
                     }
                   >
-                    {u.isFollowing ? '✓' : '+'}
+                    {u.isFollowing ? <UserCheck size={17} strokeWidth={2.2} /> : <UserPlus size={17} strokeWidth={2.2} />}
                   </button>
                 )}
                 <div className="text-right">
-                  <p className="text-primary font-black">{u.xp.toLocaleString()}</p>
-                  <p className="text-muted text-xs">XP</p>
+                  <p className="font-black tabular-nums" style={{ color: 'var(--ws-primary-light)' }}>{u.xp.toLocaleString()}</p>
+                  <p className="text-[10px]" style={{ color: 'var(--ws-faint)' }}>{t('leaderboard.xp')}</p>
                 </div>
               </motion.div>
             ))}

@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
+import {
+  Flame, Zap, BookOpen, Trophy, Award, Activity, Target,
+  ArrowLeft, X, Check, PartyPopper, type LucideIcon,
+} from 'lucide-react'
 import { progressApi } from '../../api/progress.api'
 
 interface ProgressData {
@@ -15,25 +19,25 @@ interface ProgressData {
 
 interface Achievement {
   id: string
-  icon: string
+  Icon: LucideIcon
   title: string
   desc: string
   unlocked: (p: ProgressData & { savedWords?: number }) => boolean
 }
 
 const ACHIEVEMENTS: Achievement[] = [
-  { id: 'first_word',  icon: '🌱', title: 'Birinchi qadam',     desc: 'Birinchi so\'z o\'rgandim',         unlocked: p => p.totalWordsEncountered >= 1 },
-  { id: 'streak_3',    icon: '🔥', title: '3 kunlik olov',       desc: '3 kun ketma-ket o\'rgandim',         unlocked: p => p.streak >= 3 },
-  { id: 'streak_7',    icon: '⚡', title: 'Haftalik qahramonlik', desc: '7 kun streak',                      unlocked: p => p.streak >= 7 },
-  { id: 'streak_30',   icon: '💎', title: 'Oylik ustoz',          desc: '30 kun streak',                     unlocked: p => p.streak >= 30 },
-  { id: 'words_10',    icon: '📚', title: '10 so\'z',             desc: '10 ta so\'z o\'rgandim',             unlocked: p => (p.learned + p.mastered) >= 10 },
-  { id: 'words_50',    icon: '🎓', title: '50 so\'z',             desc: '50 ta so\'z o\'rgandim',             unlocked: p => (p.learned + p.mastered) >= 50 },
-  { id: 'words_100',   icon: '🏆', title: '100 so\'z',            desc: '100 ta so\'z o\'rgandim',            unlocked: p => (p.learned + p.mastered) >= 100 },
-  { id: 'xp_100',      icon: '⭐', title: '100 XP',               desc: '100 XP to\'pladim',                  unlocked: p => p.xp >= 100 },
-  { id: 'xp_1000',     icon: '🌟', title: '1000 XP',              desc: '1000 XP to\'pladim',                 unlocked: p => p.xp >= 1000 },
-  { id: 'master_10',   icon: '🎯', title: 'Master',               desc: '10 ta so\'z mustahkamlandi',         unlocked: p => p.mastered >= 10 },
-  { id: 'saved_5',     icon: '🔖', title: 'Kolleksioner',          desc: '5 ta so\'z saqlandi',                unlocked: p => (p as any).savedWords >= 5 },
-  { id: 'b1_reached',  icon: '🏅', title: 'B1 daraja',            desc: '50 ta B1 darajali so\'z o\'rgandim', unlocked: p => (p.learned + p.mastered) >= 50 },
+  { id: 'first_word',  Icon: BookOpen,  title: 'Birinchi qadam',      desc: 'Birinchi so\'z o\'rgandim',         unlocked: p => p.totalWordsEncountered >= 1 },
+  { id: 'streak_3',    Icon: Flame,     title: '3 kunlik olov',       desc: '3 kun ketma-ket o\'rgandim',         unlocked: p => p.streak >= 3 },
+  { id: 'streak_7',    Icon: Zap,       title: 'Haftalik qahramonlik', desc: '7 kun streak',                      unlocked: p => p.streak >= 7 },
+  { id: 'streak_30',   Icon: Award,     title: 'Oylik ustoz',          desc: '30 kun streak',                     unlocked: p => p.streak >= 30 },
+  { id: 'words_10',    Icon: BookOpen,  title: '10 so\'z',             desc: '10 ta so\'z o\'rgandim',             unlocked: p => (p.learned + p.mastered) >= 10 },
+  { id: 'words_50',    Icon: Award,     title: '50 so\'z',             desc: '50 ta so\'z o\'rgandim',             unlocked: p => (p.learned + p.mastered) >= 50 },
+  { id: 'words_100',   Icon: Trophy,    title: '100 so\'z',            desc: '100 ta so\'z o\'rgandim',            unlocked: p => (p.learned + p.mastered) >= 100 },
+  { id: 'xp_100',      Icon: Zap,       title: '100 XP',               desc: '100 XP to\'pladim',                  unlocked: p => p.xp >= 100 },
+  { id: 'xp_1000',     Icon: Zap,       title: '1000 XP',              desc: '1000 XP to\'pladim',                 unlocked: p => p.xp >= 1000 },
+  { id: 'master_10',   Icon: Target,    title: 'Master',               desc: '10 ta so\'z mustahkamlandi',         unlocked: p => p.mastered >= 10 },
+  { id: 'saved_5',     Icon: BookOpen,  title: 'Kolleksioner',          desc: '5 ta so\'z saqlandi',                unlocked: p => (p as any).savedWords >= 5 },
+  { id: 'b1_reached',  Icon: Award,     title: 'B1 daraja',            desc: '50 ta B1 darajali so\'z o\'rgandim', unlocked: p => (p.learned + p.mastered) >= 50 },
 ]
 
 interface WeakWord {
@@ -50,11 +54,11 @@ interface WeakWord {
   }
 }
 
-const STAT_CONFIG = [
-  { key: 'streak',   icon: '🔥', color: '#fbbf24', bg: 'rgba(251,191,36,0.12)',  glow: 'rgba(251,191,36,0.2)' },
-  { key: 'xp',       icon: '⚡', color: '#6366f1', bg: 'rgba(99,102,241,0.12)',  glow: 'rgba(99,102,241,0.2)' },
-  { key: 'total',    icon: '📚', color: '#38bdf8', bg: 'rgba(56,189,248,0.12)',  glow: 'rgba(56,189,248,0.2)' },
-  { key: 'mastered', icon: '🏆', color: '#34d399', bg: 'rgba(52,211,153,0.12)', glow: 'rgba(52,211,153,0.2)' },
+const STAT_CONFIG: { key: string; Icon: LucideIcon; color: string }[] = [
+  { key: 'streak',   Icon: Flame,    color: '#f59e0b' },
+  { key: 'xp',       Icon: Zap,      color: '#6366f1' },
+  { key: 'total',    Icon: BookOpen, color: '#38bdf8' },
+  { key: 'mastered', Icon: Trophy,   color: '#10b981' },
 ]
 
 function buildHeatmapCells(history: Record<string, { reviewed: number }>, weeks = 12) {
@@ -85,7 +89,7 @@ function buildHeatmapCells(history: Record<string, { reviewed: number }>, weeks 
 
 function heatColor(count: number, isFuture: boolean) {
   if (isFuture) return 'rgba(255,255,255,0.03)'
-  if (count === 0) return 'rgba(255,255,255,0.07)'
+  if (count === 0) return 'rgba(255,255,255,0.06)'
   if (count <= 2) return 'rgba(99,102,241,0.3)'
   if (count <= 5) return 'rgba(99,102,241,0.55)'
   if (count <= 9) return 'rgba(99,102,241,0.8)'
@@ -112,42 +116,50 @@ function WeakWordsReview({ words, onClose }: { words: WeakWord[]; onClose: () =>
     const total = score.know + score.dontKnow
     const pct = total > 0 ? Math.round((score.know / total) * 100) : 0
     return (
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 px-6 text-center" style={{ background: '#0a0a14', zIndex: 50 }}>
-        <div className="text-7xl">{pct >= 70 ? '🎉' : pct >= 40 ? '💪' : '📚'}</div>
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-7 px-6 text-center" style={{ background: 'var(--ws-bg)', zIndex: 50 }}>
+        <motion.div
+          initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 220 }}
+          className="w-20 h-20 rounded-3xl flex items-center justify-center"
+          style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.28)' }}
+        >
+          <PartyPopper size={36} strokeWidth={1.8} style={{ color: 'var(--ws-primary-light)' }} />
+        </motion.div>
         <div>
-          <p className="text-white text-2xl font-black">{pct}% to'g'ri</p>
-          <p className="text-white/35 text-sm mt-1">Zaif so'zlar mashqi tugadi</p>
+          <p className="text-3xl font-black ws-gradient-text">{pct}%</p>
+          <p className="text-sm mt-1.5" style={{ color: 'var(--ws-muted)' }}>{t('progress.weakReviewDone')}</p>
         </div>
         <div className="flex gap-4">
-          <div className="flex flex-col items-center rounded-2xl px-5 py-3 gap-1" style={{ background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.25)' }}>
-            <span className="text-2xl font-black" style={{ color: '#34d399' }}>{score.know}</span>
-            <span className="text-xs text-white/35">Bildim</span>
+          <div className="flex flex-col items-center rounded-card px-6 py-4 gap-1.5" style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)' }}>
+            <span className="text-2xl font-black" style={{ color: 'var(--ws-success)' }}>{score.know}</span>
+            <span className="text-xs font-medium" style={{ color: 'var(--ws-faint)' }}>{t('progress.knew')}</span>
           </div>
-          <div className="flex flex-col items-center rounded-2xl px-5 py-3 gap-1" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }}>
-            <span className="text-2xl font-black" style={{ color: '#ef4444' }}>{score.dontKnow}</span>
-            <span className="text-xs text-white/35">Bilmadim</span>
+          <div className="flex flex-col items-center rounded-card px-6 py-4 gap-1.5" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }}>
+            <span className="text-2xl font-black" style={{ color: 'var(--ws-danger)' }}>{score.dontKnow}</span>
+            <span className="text-xs font-medium" style={{ color: 'var(--ws-faint)' }}>{t('progress.didntKnow')}</span>
           </div>
         </div>
-        <motion.button whileTap={{ scale: 0.95 }} onClick={onClose}
-          className="px-8 py-3.5 rounded-2xl font-bold text-sm"
-          style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff' }}>
-          ← Progress ga qaytish
+        <motion.button whileTap={{ scale: 0.96 }} onClick={onClose}
+          className="px-8 py-3.5 rounded-btn font-bold text-sm text-white flex items-center gap-2 ws-gradient-bg ws-glow-primary">
+          <ArrowLeft size={16} strokeWidth={2.4} /> {t('progress.backToProgress')}
         </motion.button>
       </div>
     )
   }
 
   return (
-    <div className="absolute inset-0 flex flex-col pt-4 pb-8 px-5" style={{ background: '#0a0a14', zIndex: 50 }}>
+    <div className="absolute inset-0 flex flex-col pt-4 pb-8 px-5" style={{ background: 'var(--ws-bg)', zIndex: 50 }}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4 shrink-0">
-        <motion.button whileTap={{ scale: 0.95 }} onClick={onClose} className="text-primary font-semibold text-sm">← Chiqish</motion.button>
-        <span className="text-white/35 text-xs font-bold">{index + 1} / {words.length}</span>
+        <motion.button whileTap={{ scale: 0.95 }} onClick={onClose}
+          className="font-semibold text-sm flex items-center gap-1.5" style={{ color: 'var(--ws-primary-light)' }}>
+          <ArrowLeft size={16} strokeWidth={2.2} /> {t('progress.exit')}
+        </motion.button>
+        <span className="text-xs font-bold tabular-nums" style={{ color: 'var(--ws-faint)' }}>{index + 1} / {words.length}</span>
       </div>
 
       {/* Progress bar */}
-      <div className="h-1.5 rounded-full overflow-hidden mb-5 shrink-0" style={{ background: 'rgba(255,255,255,0.07)' }}>
-        <motion.div className="h-full rounded-full" style={{ background: 'linear-gradient(90deg, #ef4444, #f97316)' }}
+      <div className="h-1.5 rounded-full overflow-hidden mb-6 shrink-0" style={{ background: 'rgba(255,255,255,0.06)' }}>
+        <motion.div className="h-full rounded-full ws-gradient-bg"
           animate={{ width: `${(index / words.length) * 100}%` }}
           transition={{ type: 'spring', stiffness: 200, damping: 28 }} />
       </div>
@@ -162,35 +174,32 @@ function WeakWordsReview({ words, onClose }: { words: WeakWord[]; onClose: () =>
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 340, damping: 30 }}
             onClick={() => !flipped && setFlipped(true)}
-            className="rounded-3xl p-7 flex flex-col gap-3 cursor-pointer select-none min-h-56"
-            style={{
-              background: flipped
-                ? 'linear-gradient(135deg, rgba(16,185,129,0.08), rgba(52,211,153,0.04))'
-                : 'linear-gradient(135deg, rgba(239,68,68,0.08), rgba(249,115,22,0.04))',
-              border: `1px solid ${flipped ? 'rgba(52,211,153,0.2)' : 'rgba(239,68,68,0.2)'}`,
-            }}
+            className="rounded-card p-7 flex flex-col gap-3 cursor-pointer select-none min-h-56 ws-card"
+            style={{ borderColor: flipped ? 'rgba(16,185,129,0.25)' : 'var(--ws-border)' }}
           >
             {!flipped ? (
               <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center">
-                <span className="text-xs font-black uppercase tracking-widest" style={{ color: '#f87171', opacity: 0.6 }}>Zaif so'z</span>
-                <h2 className="font-black text-white" style={{ fontSize: 'clamp(2rem, 7vw, 3.5rem)' }}>{current.word.word}</h2>
-                {current.word.pronunciation && <p className="text-white/30 font-mono text-sm">{current.word.pronunciation}</p>}
+                <span className="text-[11px] font-black uppercase tracking-widest flex items-center gap-1.5" style={{ color: 'var(--ws-danger)' }}>
+                  <Target size={13} strokeWidth={2.4} /> {t('progress.weakWords')}
+                </span>
+                <h2 className="font-black" style={{ color: 'var(--ws-text)', fontSize: 'clamp(2rem, 7vw, 3.5rem)' }}>{current.word.word}</h2>
+                {current.word.pronunciation && <p className="font-mono text-sm" style={{ color: 'var(--ws-faint)' }}>{current.word.pronunciation}</p>}
                 {current.word.partOfSpeech && (
-                  <span className="text-xs font-bold px-3 py-1 rounded-full" style={{ color: '#a5b4fc', background: 'rgba(99,102,241,0.12)' }}>
+                  <span className="text-xs font-bold px-3 py-1 rounded-full" style={{ color: 'var(--ws-primary-light)', background: 'rgba(99,102,241,0.12)' }}>
                     {current.word.partOfSpeech}
                   </span>
                 )}
-                <p className="text-white/20 text-xs mt-1">👆 {t('progress.tapToFlip')}</p>
+                <p className="text-xs mt-1" style={{ color: 'var(--ws-faint)' }}>{t('progress.tapToFlip')}</p>
               </div>
             ) : (
               <div className="flex-1 flex flex-col gap-3">
-                <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">Tarjima</p>
-                <h3 className="font-black text-3xl" style={{ color: '#34d399' }}>{translation?.translation ?? '—'}</h3>
+                <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--ws-faint)' }}>{t('progress.translation')}</p>
+                <h3 className="font-black text-3xl" style={{ color: 'var(--ws-success)' }}>{translation?.translation ?? '—'}</h3>
                 {translation?.definitionEn && (
-                  <p className="text-white/55 text-sm leading-relaxed">{translation.definitionEn}</p>
+                  <p className="text-sm leading-relaxed" style={{ color: 'var(--ws-muted)' }}>{translation.definitionEn}</p>
                 )}
                 {translation?.exampleEn && (
-                  <p className="text-white/30 text-xs italic">"{translation.exampleEn}"</p>
+                  <p className="text-xs italic" style={{ color: 'var(--ws-faint)' }}>"{translation.exampleEn}"</p>
                 )}
               </div>
             )}
@@ -204,14 +213,14 @@ function WeakWordsReview({ words, onClose }: { words: WeakWord[]; onClose: () =>
           {flipped && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex gap-3 w-full">
               <motion.button whileTap={{ scale: 0.94 }} onClick={() => advance(false)}
-                className="flex-1 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2"
-                style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>
-                ✗ Bilmadim
+                className="flex-1 py-4 rounded-btn font-bold text-sm flex items-center justify-center gap-2"
+                style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.28)', color: 'var(--ws-danger)' }}>
+                <X size={17} strokeWidth={2.6} /> {t('progress.didntKnow')}
               </motion.button>
               <motion.button whileTap={{ scale: 0.94 }} onClick={() => advance(true)}
-                className="flex-1 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2"
-                style={{ background: 'rgba(52,211,153,0.15)', border: '1px solid rgba(52,211,153,0.3)', color: '#34d399' }}>
-                ✓ Bildim!
+                className="flex-1 py-4 rounded-btn font-bold text-sm flex items-center justify-center gap-2"
+                style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.28)', color: 'var(--ws-success)' }}>
+                <Check size={17} strokeWidth={2.6} /> {t('progress.knew')}
               </motion.button>
             </motion.div>
           )}
@@ -221,7 +230,7 @@ function WeakWordsReview({ words, onClose }: { words: WeakWord[]; onClose: () =>
   )
 }
 
-export function ProgressPage() {
+export function ProgressPage({ onBack }: { onBack?: () => void }) {
   const { t } = useTranslation()
   const [data, setData] = useState<ProgressData | null>(null)
   const [period, setPeriod] = useState<'week' | 'month'>('week')
@@ -239,39 +248,52 @@ export function ProgressPage() {
   const maxVal = Math.max(...Object.values(history).map((h) => h.reviewed), 1)
 
   const statusBars = data ? [
-    { label: t('progress.mastered'), val: data.mastered, color: '#34d399' },
+    { label: t('progress.mastered'), val: data.mastered, color: '#10b981' },
     { label: t('progress.learned'),  val: data.learned,  color: '#6366f1' },
-    { label: t('progress.learning'), val: data.learning,  color: '#fbbf24' },
+    { label: t('progress.learning'), val: data.learning, color: '#f59e0b' },
   ] : []
 
   return (
-    <div className="relative h-full overflow-y-auto no-scrollbar pb-24 pt-4" style={{ background: '#0a0a14' }}>
+    <div className="relative h-full overflow-y-auto no-scrollbar pb-24 pt-4" style={{ background: 'var(--ws-bg)' }}>
       {/* Weak words review overlay */}
       {showReview && (
         <WeakWordsReview words={weakWords} onClose={() => setShowReview(false)} />
       )}
 
       {/* Header */}
-      <div className="px-5 mb-6">
-        <h1 className="text-2xl font-black gradient-text">{t('progress.title')}</h1>
-      </div>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="px-5 mb-6 flex items-center gap-3">
+        {onBack && (
+          <motion.button whileTap={{ scale: 0.9 }} onClick={onBack} aria-label={t('decks.back')}
+            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+            style={{ background: 'var(--ws-card)', border: '1px solid var(--ws-border)' }}>
+            <ArrowLeft size={18} strokeWidth={2.2} style={{ color: 'var(--ws-text)' }} />
+          </motion.button>
+        )}
+        <h1 className="text-3xl font-black tracking-tight" style={{ color: 'var(--ws-text)' }}>{t('progress.title')}</h1>
+      </motion.div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 gap-3 px-5 mb-5">
+      <div className="grid grid-cols-2 gap-3 px-5 mb-4">
         {STAT_CONFIG.map((cfg, i) => (
           <motion.div
             key={cfg.key}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.07 }}
-            className="rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden"
-            style={{ background: cfg.bg, border: `1px solid ${cfg.color}25`, boxShadow: `0 4px 20px ${cfg.glow}` }}
+            className="ws-card p-4 flex flex-col gap-3 relative overflow-hidden"
           >
-            <div className="absolute top-3 right-3 text-2xl opacity-40">{cfg.icon}</div>
-            <span className="text-3xl font-black" style={{ color: cfg.color }}>
-              {statValues[i].toLocaleString()}
-            </span>
-            <span className="text-white/40 text-xs font-semibold">{t(`progress.${cfg.key}`)}</span>
+            <div
+              className="w-10 h-10 rounded-2xl flex items-center justify-center"
+              style={{ background: `${cfg.color}1f`, border: `1px solid ${cfg.color}3a` }}
+            >
+              <cfg.Icon size={20} strokeWidth={2.2} style={{ color: cfg.color }} />
+            </div>
+            <div>
+              <span className="text-3xl font-black tabular-nums" style={{ color: 'var(--ws-text)' }}>
+                {statValues[i].toLocaleString()}
+              </span>
+              <p className="text-xs font-medium mt-0.5" style={{ color: 'var(--ws-muted)' }}>{t(`progress.${cfg.key}`)}</p>
+            </div>
           </motion.div>
         ))}
       </div>
@@ -282,13 +304,14 @@ export function ProgressPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="mx-5 rounded-2xl p-5 mb-5"
-          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+          className="mx-5 ws-card p-5 mb-4"
         >
-          <h3 className="text-white font-bold mb-4 text-sm uppercase tracking-wider opacity-60">Word Status</h3>
+          <h3 className="font-bold mb-4 text-xs uppercase tracking-widest flex items-center gap-2" style={{ color: 'var(--ws-faint)' }}>
+            <Activity size={14} strokeWidth={2.4} style={{ color: 'var(--ws-muted)' }} /> {t('progress.wordStatus')}
+          </h3>
           {statusBars.map((item, idx) => (
             <div key={item.label} className="flex items-center gap-3 mb-3 last:mb-0">
-              <span className="text-white/40 text-xs w-20 shrink-0">{item.label}</span>
+              <span className="text-xs w-20 shrink-0" style={{ color: 'var(--ws-muted)' }}>{item.label}</span>
               <div className="flex-1 rounded-full h-2 overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
                 <motion.div
                   className="h-full rounded-full"
@@ -298,7 +321,7 @@ export function ProgressPage() {
                   transition={{ duration: 0.9, delay: 0.4 + idx * 0.1 }}
                 />
               </div>
-              <span className="font-black text-sm w-8 text-right" style={{ color: item.color }}>{item.val}</span>
+              <span className="font-black text-sm w-8 text-right tabular-nums" style={{ color: item.color }}>{item.val}</span>
             </div>
           ))}
         </motion.div>
@@ -310,32 +333,38 @@ export function ProgressPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.38 }}
-          className="mx-5 rounded-2xl p-5 mb-5"
+          className="mx-5 rounded-card p-5 mb-4"
           style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.18)' }}
         >
           <div className="flex items-center justify-between mb-3">
-            <div>
-              <h3 className="text-white font-bold text-sm">Zaif so'zlar</h3>
-              <p className="text-white/35 text-xs mt-0.5">{weakWords.length} ta so'z qayta o'rganishni talab qiladi</p>
+            <div className="flex items-start gap-3 min-w-0">
+              <div className="shrink-0 w-10 h-10 rounded-2xl flex items-center justify-center"
+                style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.28)' }}>
+                <Target size={20} strokeWidth={2.2} style={{ color: 'var(--ws-danger)' }} />
+              </div>
+              <div className="min-w-0">
+                <h3 className="font-bold text-sm" style={{ color: 'var(--ws-text)' }}>{t('progress.weakWords')}</h3>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--ws-muted)' }}>{t('progress.weakWordsCount', { count: weakWords.length })}</p>
+              </div>
             </div>
             <motion.button
               whileTap={{ scale: 0.93 }}
               onClick={() => setShowReview(true)}
-              className="px-4 py-2 rounded-xl font-bold text-sm"
-              style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}
+              className="shrink-0 px-4 py-2 rounded-btn font-bold text-sm"
+              style={{ background: 'rgba(239,68,68,0.16)', border: '1px solid rgba(239,68,68,0.3)', color: 'var(--ws-danger)' }}
             >
-              Boshlash →
+              {t('progress.startReview')}
             </motion.button>
           </div>
           <div className="flex gap-2 flex-wrap">
             {weakWords.slice(0, 4).map(w => (
               <span key={w.id} className="text-xs px-2.5 py-1 rounded-lg font-medium"
-                style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171' }}>
+                style={{ background: 'rgba(239,68,68,0.1)', color: 'var(--ws-danger)' }}>
                 {w.word.word}
               </span>
             ))}
             {weakWords.length > 4 && (
-              <span className="text-xs px-2.5 py-1 rounded-lg text-white/25">+{weakWords.length - 4} ta</span>
+              <span className="text-xs px-2.5 py-1 rounded-lg" style={{ color: 'var(--ws-faint)' }}>+{weakWords.length - 4}</span>
             )}
           </div>
         </motion.div>
@@ -346,23 +375,24 @@ export function ProgressPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
-        className="mx-5 rounded-2xl p-5 mb-5"
-        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+        className="mx-5 ws-card p-5 mb-4"
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-white font-bold text-sm uppercase tracking-wider opacity-60">Faollik</h3>
-          <span className="text-xs font-bold" style={{ color: '#6366f1' }}>
-            {Object.values(heatmapData).filter(d => d.reviewed > 0).length} kun
+          <h3 className="font-bold text-xs uppercase tracking-widest flex items-center gap-2" style={{ color: 'var(--ws-faint)' }}>
+            <Activity size={14} strokeWidth={2.4} style={{ color: 'var(--ws-muted)' }} /> {t('progress.activity')}
+          </h3>
+          <span className="text-xs font-bold" style={{ color: 'var(--ws-primary-light)' }}>
+            {t('progress.daysCount', { count: Object.values(heatmapData).filter(d => d.reviewed > 0).length })}
           </span>
         </div>
 
         <div className="flex gap-1 items-start">
           {/* Day labels column */}
           <div className="flex flex-col gap-0.5 mr-1 shrink-0">
-            {['Д', 'С', 'Ч', 'П', 'Ж', 'Ш', 'Я'].map((day, i) => (
-              <div key={i} className="h-3 w-4 flex items-center">
+            {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="h-3 w-5 flex items-center">
                 {(i === 0 || i === 2 || i === 4) && (
-                  <span className="text-white/20 text-[9px] leading-none">{day}</span>
+                  <span className="text-[9px] leading-none" style={{ color: 'var(--ws-faint)' }}>{t(`progress.dow.${i}`)}</span>
                 )}
               </div>
             ))}
@@ -395,14 +425,14 @@ export function ProgressPage() {
 
         {/* Legend */}
         <div className="flex items-center gap-1.5 mt-3 justify-end">
-          <span className="text-white/20 text-[9px]">Kam</span>
+          <span className="text-[9px]" style={{ color: 'var(--ws-faint)' }}>{t('progress.less')}</span>
           {[0, 1, 2, 3, 4].map(level => (
             <div key={level} style={{
               width: '10px', height: '10px', borderRadius: '2px',
               background: heatColor(level === 0 ? 0 : level === 1 ? 1 : level === 2 ? 4 : level === 3 ? 7 : 12, false),
             }} />
           ))}
-          <span className="text-white/20 text-[9px]">Ko'p</span>
+          <span className="text-[9px]" style={{ color: 'var(--ws-faint)' }}>{t('progress.more')}</span>
         </div>
       </motion.div>
 
@@ -411,20 +441,21 @@ export function ProgressPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.45 }}
-        className="mx-5 rounded-2xl p-5"
-        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+        className="mx-5 ws-card p-5 mb-4"
       >
         <div className="flex items-center justify-between mb-5">
-          <h3 className="text-white font-bold text-sm uppercase tracking-wider opacity-60">{t('progress.history')}</h3>
-          <div className="flex gap-1 rounded-xl p-1" style={{ background: 'rgba(255,255,255,0.06)' }}>
+          <h3 className="font-bold text-xs uppercase tracking-widest flex items-center gap-2" style={{ color: 'var(--ws-faint)' }}>
+            <Activity size={14} strokeWidth={2.4} style={{ color: 'var(--ws-muted)' }} /> {t('progress.history')}
+          </h3>
+          <div className="flex gap-1 rounded-btn p-1" style={{ background: 'rgba(255,255,255,0.06)' }}>
             {(['week', 'month'] as const).map((p) => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
-                className="text-xs font-bold px-3 py-1 rounded-lg transition-all"
+                className="text-xs font-bold px-3 py-1 rounded-lg"
                 style={period === p
-                  ? { background: '#6366f1', color: '#fff' }
-                  : { color: 'rgba(255,255,255,0.3)' }
+                  ? { background: 'var(--ws-primary)', color: '#fff' }
+                  : { color: 'var(--ws-faint)' }
                 }
               >
                 {t(`progress.${p}`)}
@@ -439,8 +470,8 @@ export function ProgressPage() {
             return (
               <motion.div
                 key={date}
-                className="flex-1 rounded-t-sm"
-                style={{ background: 'linear-gradient(to top, #6366f1, #a78bfa)', height: h }}
+                className="flex-1 rounded-t-sm ws-gradient-bg"
+                style={{ height: h }}
                 initial={{ scaleY: 0, originY: 1 }}
                 animate={{ scaleY: 1 }}
                 transition={{ duration: 0.4, delay: i * 0.03 }}
@@ -456,12 +487,13 @@ export function ProgressPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.55 }}
-          className="mx-5 rounded-2xl p-5 mt-5 mb-2"
-          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+          className="mx-5 ws-card p-5 mb-2"
         >
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-white font-bold text-sm uppercase tracking-wider opacity-60">Yutuqlar</h3>
-            <span className="text-xs font-bold" style={{ color: '#fbbf24' }}>
+            <h3 className="font-bold text-xs uppercase tracking-widest flex items-center gap-2" style={{ color: 'var(--ws-faint)' }}>
+              <Award size={14} strokeWidth={2.4} style={{ color: 'var(--ws-muted)' }} /> {t('progress.achievements')}
+            </h3>
+            <span className="text-xs font-bold" style={{ color: 'var(--ws-warning)' }}>
               {ACHIEVEMENTS.filter(a => a.unlocked(data)).length}/{ACHIEVEMENTS.length}
             </span>
           </div>
@@ -478,27 +510,27 @@ export function ProgressPage() {
                   title={`${achievement.title}: ${achievement.desc}`}
                 >
                   <div
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl relative"
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center relative"
                     style={isUnlocked
-                      ? { background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.35)' }
-                      : { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', filter: 'grayscale(1)', opacity: 0.4 }
+                      ? { background: 'rgba(245,158,11,0.14)', border: '1px solid rgba(245,158,11,0.35)' }
+                      : { background: 'rgba(255,255,255,0.04)', border: '1px solid var(--ws-border)', opacity: 0.45 }
                     }
                   >
-                    {achievement.icon}
+                    <achievement.Icon size={22} strokeWidth={2} style={{ color: isUnlocked ? 'var(--ws-warning)' : 'var(--ws-faint)' }} />
                     {isUnlocked && (
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ type: 'spring', delay: 0.6 + i * 0.04 }}
-                        className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[8px]"
-                        style={{ background: '#fbbf24', color: '#000' }}
+                        className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center"
+                        style={{ background: 'var(--ws-warning)' }}
                       >
-                        ✓
+                        <Check size={9} strokeWidth={3.5} style={{ color: '#000' }} />
                       </motion.div>
                     )}
                   </div>
                   <p className="text-[9px] font-bold text-center leading-tight"
-                    style={{ color: isUnlocked ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)' }}>
+                    style={{ color: isUnlocked ? 'var(--ws-muted)' : 'var(--ws-faint)' }}>
                     {achievement.title}
                   </p>
                 </motion.div>

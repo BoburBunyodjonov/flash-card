@@ -38,7 +38,20 @@
       "Bash(ssh root@46.225.113.117 'cd /opt/wordswipe && docker compose -f docker-compose.prod.yml ps postgres --format \"{{.Names}} {{.Ports}}\"; echo \"--- prod DB still has data? ---\"; docker compose -f docker-compose.prod.yml exec -T postgres psql -U postgres -d wordswipe -tAc \"select \\(select count\\(*\\) from users\\) as users, \\(select count\\(*\\) from words\\) as words\"')",
       "Bash(grep -oE \"setCategory\\\\\\(.{0,15}personal|myWords|categoryId.{0,20}personal\")",
       "Bash(node -e \"['uz','en','ru'].forEach\\(l=>JSON.parse\\(require\\('fs'\\).readFileSync\\('apps/web/src/i18n/'+l+'.json'\\)\\)\\)\")",
-      "Bash(pnpm --filter web exec tsc --noEmit)"
+      "Bash(pnpm --filter web exec tsc --noEmit)",
+      "Bash(pnpm --filter web add lucide-react)",
+      "Bash(pnpm --filter web build)",
+      "Bash(ssh root@46.225.113.117 'cd /opt/wordswipe && docker compose -f docker-compose.prod.yml exec -T postgres psql -U postgres -d wordswipe -tAc \" *)",
+      "Bash(node -e \"const j=require\\('./en.json'\\); console.log\\('top keys:', Object.keys\\(j\\).join\\(', '\\)\\); console.log\\('quiz raw:', JSON.stringify\\(j.quiz\\)\\); console.log\\('duel raw:', JSON.stringify\\(j.duel\\)\\); console.log\\('challenge raw:', JSON.stringify\\(j.challenge\\)\\);\")",
+      "Bash(grep -ohE \"\\(progress\\\\.dow|leaderboard|league\\\\.tier\\)\\\\.[a-zA-Z0-9{}.\\\\`]+\" pages/Leaderboard/index.tsx pages/Progress/index.tsx)",
+      "Bash(grep -oE \"t\\\\\\(\\\\`[^\\\\`]+\\\\`\" pages/Leaderboard/index.tsx pages/Progress/index.tsx)",
+      "Bash(node /tmp/claude-1002/-home-kahero-bobur-flash-card/db2603b8-82bb-4e11-baa3-34401f95c709/scratchpad/i18n-merge.cjs)",
+      "Bash(node -e \"['uz','en','ru'].forEach\\(l=>{JSON.parse\\(require\\('fs'\\).readFileSync\\('apps/web/src/i18n/'+l+'.json'\\)\\);console.log\\(l,'OK'\\)}\\)\")",
+      "Bash(node -e \"const u=require\\('./apps/web/src/i18n/uz.json'\\);console.log\\('quiz.modes.mcq.title:',u.quiz.modes.mcq.title,'| league.tier.gold:',u.league.tier.gold,'| onboarding.levels.B1.title:',u.onboarding.levels.B1.title,'| duel.result.won:',u.duel.result.won\\)\")",
+      "Bash(node -e \"const u=require\\('./apps/web/src/i18n/uz.json'\\);console.log\\('nav:',JSON.stringify\\(u.nav\\)\\);console.log\\('practice keys:',u.practice?Object.keys\\(u.practice\\):'MISSING'\\)\")",
+      "Bash(node -e \"const u=require\\('./apps/web/src/i18n/en.json'\\);console.log\\('nav.practice:',u.nav?.practice,'| practice.title:',u.practice?.title,'| practice.quiz:',JSON.stringify\\(u.practice?.quiz\\)\\)\")",
+      "Bash(node /tmp/claude-1002/-home-kahero-bobur-flash-card/db2603b8-82bb-4e11-baa3-34401f95c709/scratchpad/i18n-phase1.cjs)",
+      "Bash(node -e \"['uz','en','ru'].forEach\\(l=>{const j=JSON.parse\\(require\\('fs'\\).readFileSync\\('apps/web/src/i18n/'+l+'.json'\\)\\);console.log\\(l,'practice.title:',j.practice.title,'nav.practice:',j.nav.practice\\)}\\)\")"
     ]
   }
 }

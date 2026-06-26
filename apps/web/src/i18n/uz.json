@@ -4,14 +4,24 @@
     "subtitle": "So'z yodlashni o'yinga aylantir",
     "button": "Telegram bilan kirish",
     "connecting": "Telegram'ga ulanmoqda...",
-    "retry": "Qayta urinish"
+    "retry": "Qayta urinish",
+    "statsWords": "So'zlar",
+    "statsLearners": "O'quvchilar",
+    "statsRating": "Reyting",
+    "featStreak": "Streak tizimi",
+    "featSrs": "Interval takrorlash",
+    "featLeaderboard": "Reyting jadvali",
+    "featOffline": "Oflayn rejim"
   },
   "nav": {
     "feed": "O'rgan",
     "dictionary": "Lug'at",
     "decks": "To'plamlar",
     "progress": "Natija",
-    "leaderboard": "Reyting"
+    "leaderboard": "Reyting",
+    "practice": "Mashqlar",
+    "speaking": "Suhbat",
+    "profile": "Profil"
   },
   "feed": {
     "know": "Bilaman",
@@ -36,7 +46,17 @@
     "definition": "Ta'rif",
     "example": "Misol",
     "saveHint": "↑ saqlash",
-    "skipHint": "↓ o'tkazish"
+    "skipHint": "↓ o'tkazish",
+    "saveLabel": "Saqlash",
+    "skipLabel": "O'tkazish",
+    "loading": "Yuklanmoqda...",
+    "learnedToday": "bugun o'rgandim",
+    "unlockIn": "Yangi so'zlar ochilishiga",
+    "hours": "soat",
+    "minutes": "daqiqa",
+    "shared": "Ulashildi!",
+    "shareFriends": "Do'stlarga ulash",
+    "unlimitedPremium": "Cheksiz o'rganish — Premium"
   },
   "difficulty": {
     "A1": "Boshlang'ich",
@@ -58,7 +78,30 @@
     "history": "Tarix",
     "week": "Hafta",
     "month": "Oy",
-    "tapToFlip": "Ag'darish uchun bosing"
+    "tapToFlip": "Ag'darish uchun bosing",
+    "translation": "Tarjima",
+    "weakWordsCount": "{{count}} ta so'z qayta o'rganishni talab qiladi",
+    "startReview": "Boshlash",
+    "weakReviewDone": "Zaif so'zlar mashqi tugadi",
+    "knew": "Bildim",
+    "didntKnow": "Bilmadim",
+    "exit": "Chiqish",
+    "backToProgress": "Natijaga qaytish",
+    "wordStatus": "So'zlar holati",
+    "activity": "Faollik",
+    "daysCount": "{{count}} kun",
+    "less": "Kam",
+    "more": "Ko'p",
+    "achievements": "Yutuqlar",
+    "dow": {
+      "0": "Du",
+      "1": "Se",
+      "2": "Ch",
+      "3": "Pa",
+      "4": "Ju",
+      "5": "Sh",
+      "6": "Ya"
+    }
   },
   "settings": {
     "title": "Sozlamalar",
@@ -75,7 +118,15 @@
     "genderHint": "Speaking amaliyotida sherik tanlash uchun ishlatiladi",
     "genderMale": "Erkak",
     "genderFemale": "Ayol",
-    "genderNone": "Ko'rsatilmagan"
+    "genderNone": "Ko'rsatilmagan",
+    "notifyHint": "Telegram orqali eslatma",
+    "notifySaved": "Saqlandi — {{time}} da eslatma yuboriladi",
+    "inviteTitle": "Do'stlarni taklif qiling",
+    "inviteReward": "Har bir do'st uchun +50 XP va +10 bonus so'z",
+    "invited": "taklif qilingan",
+    "shareInvite": "Taklif havolasini ulashish",
+    "cefrTitle": "Ingliz tili darajasi",
+    "cefrHint": "Feed shu darajaga mos so'zlarni ko'rsatadi"
   },
   "premium": {
     "title": "WordSwipe Premium",
@@ -207,5 +258,191 @@
     "reviewed": "Takrorlandi",
     "again": "Yana",
     "loading": "Yuklanmoqda..."
+  },
+  "onboarding": {
+    "welcomeTitle": "Darajangizni aniqlaymiz",
+    "welcomeDesc": "10 ta savol orqali ingliz tili darajangizni bilib olamiz va sizga mos so'zlarni tavsiya qilamiz",
+    "featTime": "~2 daqiqa vaqt ketadi",
+    "featChoose": "So'zning ma'nosini tanlang",
+    "featPlan": "Darajangizga mos o'quv rejasi",
+    "start": "Boshlash",
+    "loading": "Yuklanmoqda...",
+    "questionPrompt": "Bu so'z o'zbekchada nima?",
+    "yourLevel": "Sizning darajangiz",
+    "correct": "To'g'ri",
+    "total": "Jami",
+    "begin": "Boshlash!",
+    "levels": {
+      "A1": {
+        "title": "Boshlang'ich",
+        "desc": "Siz ingliz tilini endigina o'rganmoqdasiz. Ajoyib boshlang'ich!"
+      },
+      "A2": {
+        "title": "Asosiy",
+        "desc": "Siz asosiy so'zlarni bilasiz. Ko'proq o'rganing!"
+      },
+      "B1": {
+        "title": "O'rta",
+        "desc": "Yaxshi! Siz o'rta darajaga erishdingiz."
+      },
+      "B2": {
+        "title": "O'rta yuqori",
+        "desc": "Zo'r! Siz ingliz tilini yaxshi bilasiz."
+      },
+      "C1": {
+        "title": "Ilg'or",
+        "desc": "Ajoyib! Siz ilg'or darajagasiz."
+      },
+      "C2": {
+        "title": "Usta",
+        "desc": "Zo'r! Siz so'z boyligingiz juda yuqori."
+      }
+    }
+  },
+  "leaderboard": {
+    "league": "Liga",
+    "global": "Global",
+    "friends": "Do'stlar",
+    "xp": "XP",
+    "follow": "Kuzatish",
+    "following": "Kuzatilmoqda"
+  },
+  "league": {
+    "loadError": "Liga yuklanmadi",
+    "promoteInfo": "Top {{count}} yuqoriga ko'tariladi",
+    "daysLeft": "{{count}} kun qoldi",
+    "promoteLine": "Ko'tarilish chizig'i",
+    "demoteLine": "Tushish chizig'i",
+    "xpWeek": "XP / hafta",
+    "tier": {
+      "bronze": "Bronza Liga",
+      "silver": "Kumush Liga",
+      "gold": "Oltin Liga",
+      "sapphire": "Safir Liga",
+      "diamond": "Olmos Liga"
+    }
+  },
+  "quiz": {
+    "pickMode": "Qaysi usulda mashq qilamiz? Zaif va takrorlash vaqti kelgan so'zlar tanlanadi.",
+    "typePlaceholder": "So'zni yozing...",
+    "check": "Tekshirish",
+    "correctAnswer": "To'g'ri javob",
+    "correctCount": "ta to'g'ri javob",
+    "retry": "Yana mashq",
+    "back": "Orqaga",
+    "preparing": "Savollar tayyorlanmoqda...",
+    "loadError": "Savollar yuklanmadi",
+    "checkConnection": "Internet aloqasini tekshiring",
+    "noWords": "Mashq uchun so'zlar yo'q",
+    "learnFirst": "Avval feed'da so'zlarni o'rganing",
+    "prompt": {
+      "mcq": "Bu so'z o'zbekchada nima?",
+      "reverse": "Bu tarjimaning inglizchasi qaysi?",
+      "typing": "Inglizcha so'zni yozing",
+      "listening": "Eshitganingiz qaysi so'z?",
+      "cloze": "Bo'sh joyga qaysi so'z mos keladi?",
+      "mixed": "Savolga javob bering"
+    },
+    "modes": {
+      "mixed": {
+        "title": "Aralash",
+        "desc": "Har xil savol turlari"
+      },
+      "mcq": {
+        "title": "Tarjimani top",
+        "desc": "Inglizcha so'z → o'zbekcha"
+      },
+      "reverse": {
+        "title": "So'zni top",
+        "desc": "O'zbekcha → inglizcha so'z"
+      },
+      "typing": {
+        "title": "Yozish",
+        "desc": "So'zni o'zingiz yozing"
+      },
+      "listening": {
+        "title": "Tinglash",
+        "desc": "Eshiting va so'zni toping"
+      },
+      "cloze": {
+        "title": "Bo'sh joyni to'ldir",
+        "desc": "Gapdagi tushgan so'zni top"
+      }
+    }
+  },
+  "duel": {
+    "questionPrompt": "Bu so'z o'zbekchada nima?",
+    "creating": "Yaratilmoqda...",
+    "challengeFriend": "Do'stni duelga chaqirish",
+    "myDuels": "Mening duellarim",
+    "emptyTitle": "Hali duellar yo'q.",
+    "emptyDesc": "Do'stingizni chaqiring!",
+    "withName": "{{name}} bilan",
+    "openInvite": "Ochiq taklif",
+    "ready": "Duel tayyor!",
+    "readyDesc": "Havolani do'stingizga yuboring. U ham xuddi shu {{count}} ta savolga javob beradi.",
+    "shareTelegram": "Telegram'da ulashish",
+    "playNow": "O'zim hozir o'ynayman",
+    "backToList": "Duellar ro'yxati",
+    "notFound": "Duel topilmadi",
+    "result": {
+      "waiting": "Raqib o'ynashini kuting",
+      "waitingDesc": "Natija raqib o'ynagach chiqadi",
+      "draw": "Durang!",
+      "won": "G'alaba!",
+      "lost": "Mag'lubiyat"
+    },
+    "status": {
+      "pending": "Raqib kutilmoqda",
+      "expired": "Muddati tugagan",
+      "completed": "Tugagan",
+      "opponentPlaying": "Raqib o'ynamoqda",
+      "yourTurn": "Sizning navbatingiz"
+    }
+  },
+  "challenge": {
+    "title": "Kunlik Challenge",
+    "questionPrompt": "Bu so'z o'zbekchada nima?",
+    "correctCount": "ta to'g'ri javob",
+    "comeBack": "Ertaga qaytib keling!",
+    "onceADay": "Kunlik challenge bir marta beriladi",
+    "retry": "Qayta urinish",
+    "toFeed": "Feed",
+    "loading": "Challenge yuklanmoqda...",
+    "loadError": "Challenge yuklanmadi",
+    "checkConnection": "Internet aloqasini tekshiring",
+    "emptyTitle": "Bugun challenge yo'q",
+    "emptyDesc": "Ertaga qaytib keling!"
+  },
+  "practice": {
+    "title": "Mashqlar",
+    "subtitle": "Bilganlaringizni mustahkamlang",
+    "quiz": {
+      "title": "Test",
+      "desc": "Bilimni sinab ko'r"
+    },
+    "duel": {
+      "title": "Duel",
+      "desc": "Do'st bilan bellash"
+    },
+    "speaking": {
+      "title": "Speaking",
+      "desc": "Ovozli suhbat"
+    },
+    "challenge": {
+      "title": "Kunlik challenge",
+      "desc": "Har kunlik sinov"
+    },
+    "myWords": {
+      "title": "Mening so'zlarim",
+      "desc": "O'z so'zlaringizni o'rganing"
+    }
+  },
+  "profile": {
+    "title": "Profil",
+    "progress": "Natija",
+    "leaderboard": "Reyting",
+    "decks": "To'plamlar",
+    "settings": "Sozlamalar"
   }
 }

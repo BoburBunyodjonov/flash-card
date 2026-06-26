@@ -1,10 +1,15 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
+import {
+  Bookmark, FolderOpen, Inbox, Plus, Target, ArrowLeft, Check, X,
+  ChevronRight, Volume2, Search, PartyPopper, Pencil, Trash2, MoreHorizontal,
+} from 'lucide-react'
 import { decksApi, getApiErrorMessage } from '../../api/decks.api'
 import { wordsApi } from '../../api/words.api'
 import { feedApi } from '../../api/feed.api'
 import { useTelegram } from '../../hooks/useTelegram'
+import { playWordAudio } from '../../lib/tts'
 
 interface Deck {
   id: string
@@ -135,7 +140,6 @@ function DeckQuiz({ words, onExit }: { words: DeckWord[]; onExit: () => void }) 
   if (done) {
     const total = score.know + score.dontKnow
     const pct = total > 0 ? (score.know / total) * 100 : 0
-    const emoji = pct >= 80 ? '🎉' : pct >= 50 ? '💪' : '📚'
 
     return (
       <motion.div
@@ -148,13 +152,14 @@ function DeckQuiz({ words, onExit }: { words: DeckWord[]; onExit: () => void }) 
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 400, damping: 18, delay: 0.1 }}
-          className="text-7xl"
+          className="w-20 h-20 rounded-3xl flex items-center justify-center"
+          style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.28)' }}
         >
-          {emoji}
+          <PartyPopper size={36} strokeWidth={1.8} style={{ color: 'var(--ws-primary-light)' }} />
         </motion.div>
         <div className="text-center">
-          <p className="text-white text-2xl font-black mb-1">Mashq tugadi!</p>
-          <p className="text-white/40 text-sm">{Math.round(pct)}% to'g'ri</p>
+          <p className="text-2xl font-black mb-1" style={{ color: 'var(--ws-text)' }}>Mashq tugadi!</p>
+          <p className="text-sm" style={{ color: 'var(--ws-muted)' }}>{Math.round(pct)}% to'g'ri</p>
         </div>
         <div className="flex gap-4">
           <div
@@ -180,20 +185,15 @@ function DeckQuiz({ words, onExit }: { words: DeckWord[]; onExit: () => void }) 
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={restart}
-            className="flex-1 py-3.5 rounded-2xl font-bold text-sm"
-            style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff' }}
+            className="flex-1 py-3.5 rounded-btn font-bold text-sm text-white ws-gradient-bg"
           >
             Qayta sinash
           </motion.button>
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={onExit}
-            className="flex-1 py-3.5 rounded-2xl font-bold text-sm"
-            style={{
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              color: 'rgba(255,255,255,0.6)',
-            }}
+            className="flex-1 py-3.5 rounded-btn font-bold text-sm ws-card-2"
+            style={{ color: 'var(--ws-muted)' }}
           >
             Orqaga
           </motion.button>
@@ -211,11 +211,12 @@ function DeckQuiz({ words, onExit }: { words: DeckWord[]; onExit: () => void }) 
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={onExit}
-          className="text-primary font-semibold text-sm flex items-center gap-1"
+          className="font-semibold text-sm flex items-center gap-1"
+          style={{ color: 'var(--ws-primary-light)' }}
         >
-          ← Orqaga
+          <ArrowLeft size={16} strokeWidth={2.2} /> Orqaga
         </motion.button>
-        <span className="text-white/40 text-xs font-bold">
+        <span className="text-xs font-bold" style={{ color: 'var(--ws-muted)' }}>
           {index + 1} / {words.length}
         </span>
       </div>
@@ -326,7 +327,7 @@ function DeckQuiz({ words, onExit }: { words: DeckWord[]; onExit: () => void }) 
                 color: '#f87171',
               }}
             >
-              <span>✗</span> Bilmadim
+              <X size={18} strokeWidth={2.6} /> Bilmadim
             </motion.button>
             <motion.button
               whileTap={{ scale: 0.94 }}
@@ -338,7 +339,7 @@ function DeckQuiz({ words, onExit }: { words: DeckWord[]; onExit: () => void }) 
                 color: '#34d399',
               }}
             >
-              <span>✓</span> Bildim!
+              <Check size={18} strokeWidth={2.6} /> Bildim!
             </motion.button>
           </motion.div>
         )}
@@ -467,16 +468,22 @@ function DeckDetail({ deck, onBack }: { deck: Deck; onBack: () => void }) {
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={onBack}
-          className="text-primary font-semibold text-sm flex items-center gap-1 mb-4"
+          className="font-semibold text-sm flex items-center gap-1 mb-4"
+          style={{ color: 'var(--ws-primary-light)' }}
         >
-          ← {t('decks.back')}
+          <ArrowLeft size={16} strokeWidth={2.2} /> {t('decks.back')}
         </motion.button>
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <span className="text-2xl">{deck.isDefault ? '🔖' : '🗂'}</span>
+            <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
+              style={{ background: 'rgba(99,102,241,0.14)', border: '1px solid rgba(99,102,241,0.28)' }}>
+              {deck.isDefault
+                ? <Bookmark size={20} strokeWidth={2} style={{ color: 'var(--ws-primary-light)' }} />
+                : <FolderOpen size={20} strokeWidth={2} style={{ color: 'var(--ws-primary-light)' }} />}
+            </div>
             <div className="min-w-0">
-              <h2 className="text-xl font-black text-white truncate">{deck.name}</h2>
-              <p className="text-white/35 text-xs">
+              <h2 className="text-xl font-black truncate" style={{ color: 'var(--ws-text)' }}>{deck.name}</h2>
+              <p className="text-xs" style={{ color: 'var(--ws-muted)' }}>
                 {words.length} {t('decks.words')}
               </p>
             </div>
@@ -486,14 +493,16 @@ function DeckDetail({ deck, onBack }: { deck: Deck; onBack: () => void }) {
               whileTap={{ scale: 0.95 }}
               onClick={toggleAdd}
               aria-label={t('decks.addWord')}
-              className="w-10 h-10 rounded-xl font-black text-lg flex items-center justify-center"
+              className="w-10 h-10 rounded-btn flex items-center justify-center"
               style={{
                 background: showAdd ? 'rgba(99,102,241,0.25)' : 'rgba(99,102,241,0.12)',
                 border: '1px solid rgba(99,102,241,0.3)',
-                color: '#a5b4fc',
+                color: 'var(--ws-primary-light)',
               }}
             >
-              {showAdd ? '✕' : '+'}
+              <motion.div animate={{ rotate: showAdd ? 45 : 0 }} transition={{ type: 'spring', stiffness: 400, damping: 24 }}>
+                <Plus size={20} strokeWidth={2.4} />
+              </motion.div>
             </motion.button>
             {words.length > 0 && !showAdd && (
               <motion.button
@@ -501,13 +510,9 @@ function DeckDetail({ deck, onBack }: { deck: Deck; onBack: () => void }) {
                 animate={{ opacity: 1, scale: 1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setQuizMode(true)}
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-black text-sm text-white"
-                style={{
-                  background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                  boxShadow: '0 4px 16px rgba(99,102,241,0.3)',
-                }}
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-btn font-black text-sm text-white ws-gradient-bg ws-glow-primary"
               >
-                🎯 Mashq
+                <Target size={16} strokeWidth={2.4} /> Mashq
               </motion.button>
             )}
           </div>
@@ -525,14 +530,15 @@ function DeckDetail({ deck, onBack }: { deck: Deck; onBack: () => void }) {
             className="overflow-hidden shrink-0"
           >
             <div className="px-5 pb-3 flex flex-col gap-2">
-              <div className="bg-surface rounded-2xl px-4 py-3 flex items-center gap-2">
-                <span className="text-white/30 text-sm">🔍</span>
+              <div className="rounded-btn px-4 py-3 flex items-center gap-2" style={{ background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)' }}>
+                <Search size={17} strokeWidth={2} style={{ color: 'var(--ws-faint)' }} className="shrink-0" />
                 <input
                   value={query}
                   onChange={e => setQuery(e.target.value)}
                   placeholder={t('decks.searchPlaceholder')}
                   autoFocus
-                  className="flex-1 bg-transparent text-white outline-none placeholder-muted text-sm"
+                  className="flex-1 bg-transparent outline-none placeholder-muted text-sm font-medium"
+                  style={{ color: 'var(--ws-text)' }}
                 />
                 {searching && (
                   <div className="w-4 h-4 rounded-full border-2 border-primary border-t-transparent animate-spin shrink-0" />
@@ -540,10 +546,10 @@ function DeckDetail({ deck, onBack }: { deck: Deck; onBack: () => void }) {
               </div>
 
               {!query.trim() && (
-                <p className="text-white/25 text-xs text-center py-1">{t('decks.searchHint')}</p>
+                <p className="text-xs text-center py-1" style={{ color: 'var(--ws-faint)' }}>{t('decks.searchHint')}</p>
               )}
               {query.trim() !== '' && !searching && results.length === 0 && (
-                <p className="text-white/30 text-xs text-center py-2">{t('decks.noResults')}</p>
+                <p className="text-xs text-center py-2" style={{ color: 'var(--ws-muted)' }}>{t('decks.noResults')}</p>
               )}
 
               {results.length > 0 && (
@@ -583,14 +589,16 @@ function DeckDetail({ deck, onBack }: { deck: Deck; onBack: () => void }) {
                           )}
                         </div>
                         <span
-                          className="shrink-0 ml-3 text-xs font-black px-2.5 py-1 rounded-lg"
+                          className="shrink-0 ml-3 text-xs font-black px-2.5 py-1.5 rounded-lg flex items-center gap-1"
                           style={
                             inDeck
                               ? { color: '#34d399', background: 'rgba(52,211,153,0.12)' }
                               : { color: '#a5b4fc', background: 'rgba(99,102,241,0.15)' }
                           }
                         >
-                          {inDeck ? `✓ ${t('decks.inDeck')}` : addingId === rw.id ? '…' : '+'}
+                          {inDeck
+                            ? <><Check size={13} strokeWidth={2.6} /> {t('decks.inDeck')}</>
+                            : addingId === rw.id ? '…' : <Plus size={15} strokeWidth={2.6} />}
                         </span>
                       </motion.button>
                     )
@@ -616,11 +624,14 @@ function DeckDetail({ deck, onBack }: { deck: Deck; onBack: () => void }) {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center gap-3 py-16 text-center"
+            className="flex flex-col items-center gap-4 py-16 text-center"
           >
-            <span className="text-5xl">📭</span>
-            <p className="text-white/50 font-semibold">Bu deck bo'sh</p>
-            <p className="text-white/25 text-sm">So'zlarni saqlang va bu yerda ko'rsatiladi</p>
+            <div className="w-20 h-20 rounded-3xl flex items-center justify-center"
+              style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.22)' }}>
+              <Inbox size={34} strokeWidth={1.8} style={{ color: 'var(--ws-primary-light)' }} />
+            </div>
+            <p className="font-semibold" style={{ color: 'var(--ws-text)' }}>Bu deck bo'sh</p>
+            <p className="text-sm" style={{ color: 'var(--ws-muted)' }}>So'zlarni saqlang va bu yerda ko'rsatiladi</p>
           </motion.div>
         )}
 
@@ -634,69 +645,83 @@ function DeckDetail({ deck, onBack }: { deck: Deck; onBack: () => void }) {
                 key={w.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="rounded-2xl overflow-hidden"
+                transition={{ delay: Math.min(i * 0.02, 0.25) }}
+                className="rounded-card overflow-hidden"
                 style={{
-                  background: 'rgba(255,255,255,0.04)',
+                  background: 'var(--ws-card)',
                   border: isExpanded
-                    ? `1px solid ${dc}30`
-                    : '1px solid rgba(255,255,255,0.07)',
+                    ? `1px solid ${dc}40`
+                    : '1px solid var(--ws-border)',
                 }}
               >
                 {/* Row */}
                 <motion.div
-                  className="w-full flex items-center justify-between px-5 py-4 text-left cursor-pointer"
-                  whileTap={{ scale: 0.98 }}
+                  className="w-full flex items-center gap-3 px-4 py-3.5 text-left cursor-pointer"
+                  whileTap={{ scale: 0.99 }}
                   onClick={() => setExpandedId(isExpanded ? null : w.id)}
                 >
+                  {/* Audio */}
+                  <motion.button
+                    whileTap={{ scale: 0.85 }}
+                    onClick={e => { e.stopPropagation(); playWordAudio(w.word, undefined) }}
+                    aria-label="Play"
+                    className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
+                    style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)' }}
+                  >
+                    <Volume2 size={15} strokeWidth={2} style={{ color: 'var(--ws-primary-light)' }} />
+                  </motion.button>
+
+                  {/* Word + translation — always visible */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-white font-bold">{w.word}</p>
+                      <p className="font-bold text-[15px] truncate" style={{ color: 'var(--ws-text)' }}>{w.word}</p>
                       {w.pronunciation && (
-                        <span className="text-white/30 font-mono text-xs">{w.pronunciation}</span>
+                        <span className="font-mono text-xs" style={{ color: 'var(--ws-faint)' }}>{w.pronunciation}</span>
                       )}
                     </div>
-                    {w.translation?.translation && (
-                      <p className="text-white/50 text-sm mt-0.5 truncate">
-                        {w.translation.translation}
-                      </p>
-                    )}
+                    <p className="text-sm mt-0.5 truncate" style={{ color: 'var(--ws-muted)' }}>
+                      {w.translation?.translation || '—'}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0 ml-3">
-                    <span
-                      className="text-xs font-black px-2.5 py-1 rounded-lg"
-                      style={{ color: dc, background: `${dc}18` }}
-                    >
-                      {w.difficulty}
-                    </span>
-                    <motion.button
-                      whileTap={{ scale: 0.9 }}
-                      onClick={e => {
-                        e.stopPropagation()
-                        handleRemove(w.id)
-                      }}
-                      aria-label={t('decks.delete')}
-                      className="text-xs font-black px-2 py-1 rounded-lg"
-                      style={
-                        confirmRemoveId === w.id
-                          ? {
-                              color: '#f87171',
-                              background: 'rgba(239,68,68,0.15)',
-                              border: '1px solid rgba(239,68,68,0.3)',
-                            }
-                          : { color: 'rgba(255,255,255,0.25)' }
-                      }
-                    >
-                      {confirmRemoveId === w.id ? t('decks.removeConfirm') : '✕'}
-                    </motion.button>
-                    <motion.span
-                      animate={{ rotate: isExpanded ? 90 : 0 }}
-                      transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-                      className="text-white/25 text-lg"
-                    >
-                      ›
-                    </motion.span>
-                  </div>
+
+                  {/* Difficulty */}
+                  <span
+                    className="text-[11px] font-black px-2 py-1 rounded-lg shrink-0"
+                    style={{ color: dc, background: `${dc}1f` }}
+                  >
+                    {w.difficulty}
+                  </span>
+
+                  {/* Remove */}
+                  <motion.button
+                    whileTap={{ scale: 0.9 }}
+                    onClick={e => { e.stopPropagation(); handleRemove(w.id) }}
+                    aria-label={t('decks.delete')}
+                    className="shrink-0 flex items-center justify-center rounded-lg"
+                    style={
+                      confirmRemoveId === w.id
+                        ? {
+                            color: '#f87171',
+                            background: 'rgba(239,68,68,0.15)',
+                            border: '1px solid rgba(239,68,68,0.3)',
+                            padding: '4px 8px',
+                            fontSize: '12px',
+                            fontWeight: 800,
+                          }
+                        : { color: 'var(--ws-faint)', width: 30, height: 30 }
+                    }
+                  >
+                    {confirmRemoveId === w.id ? t('decks.removeConfirm') : <X size={15} strokeWidth={2.4} />}
+                  </motion.button>
+
+                  {/* Chevron */}
+                  <motion.span
+                    animate={{ rotate: isExpanded ? 90 : 0 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+                    className="shrink-0 flex items-center"
+                  >
+                    <ChevronRight size={18} strokeWidth={2} style={{ color: 'var(--ws-faint)' }} />
+                  </motion.span>
                 </motion.div>
 
                 {/* Expanded definition */}
@@ -722,39 +747,33 @@ function DeckDetail({ deck, onBack }: { deck: Deck; onBack: () => void }) {
                           </span>
                         )}
                         {w.translation?.definitionEn && (
-                          <div
-                            className="rounded-xl p-3"
-                            style={{
-                              background: 'rgba(255,255,255,0.03)',
-                              border: '1px solid rgba(255,255,255,0.06)',
-                            }}
-                          >
-                            <p className="text-white/25 text-[10px] font-black uppercase tracking-widest mb-1.5">
+                          <div className="ws-card-2 rounded-btn p-3">
+                            <p className="text-[10px] font-black uppercase tracking-widest mb-1.5" style={{ color: 'var(--ws-faint)' }}>
                               Ta'rif
                             </p>
-                            <p className="text-white/65 text-sm leading-relaxed">
+                            <p className="text-sm leading-relaxed" style={{ color: 'var(--ws-muted)' }}>
                               {w.translation.definitionEn}
                             </p>
                           </div>
                         )}
                         {w.translation?.exampleEn && (
                           <div
-                            className="rounded-xl p-3"
+                            className="rounded-btn p-3"
                             style={{
                               background: 'rgba(99,102,241,0.06)',
                               border: '1px solid rgba(99,102,241,0.15)',
                             }}
                           >
-                            <p className="text-primary/40 text-[10px] font-black uppercase tracking-widest mb-1.5">
+                            <p className="text-[10px] font-black uppercase tracking-widest mb-1.5" style={{ color: 'var(--ws-primary-light)' }}>
                               Misol
                             </p>
-                            <p className="text-white/55 text-xs italic leading-relaxed">
+                            <p className="text-xs italic leading-relaxed" style={{ color: 'var(--ws-muted)' }}>
                               "{w.translation.exampleEn}"
                             </p>
                           </div>
                         )}
                         {w.category && (
-                          <p className="text-white/20 text-xs">
+                          <p className="text-xs" style={{ color: 'var(--ws-faint)' }}>
                             Kategoriya: {w.category.name}
                           </p>
                         )}
@@ -771,7 +790,7 @@ function DeckDetail({ deck, onBack }: { deck: Deck; onBack: () => void }) {
 }
 
 // ── Main Decks page ────────────────────────────────────────────────────────────
-export function DecksPage() {
+export function DecksPage({ onBack }: { onBack?: () => void }) {
   const { t } = useTranslation()
   const { haptic } = useTelegram()
   const toast = useErrorToast()
@@ -893,13 +912,22 @@ export function DecksPage() {
         <ErrorToast message={toast.message} />
 
         <div className="flex items-center justify-between px-5 mb-5">
-          <h1 className="text-2xl font-black text-white">{t('nav.decks')}</h1>
+          <div className="flex items-center gap-3 min-w-0">
+            {onBack && (
+              <motion.button whileTap={{ scale: 0.9 }} onClick={onBack} aria-label={t('decks.back')}
+                className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                style={{ background: 'var(--ws-card)', border: '1px solid var(--ws-border)' }}>
+                <ArrowLeft size={18} strokeWidth={2.2} style={{ color: 'var(--ws-text)' }} />
+              </motion.button>
+            )}
+            <h1 className="text-2xl font-black tracking-tight truncate" style={{ color: 'var(--ws-text)' }}>{t('nav.decks')}</h1>
+          </div>
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowCreate(true)}
-            className="bg-primary text-white font-bold px-4 py-2 rounded-xl text-sm"
+            className="text-white font-bold pl-3 pr-4 py-2 rounded-btn text-sm flex items-center gap-1 ws-gradient-bg ws-glow-primary"
           >
-            {t('decks.new')}
+            <Plus size={16} strokeWidth={2.6} /> {t('decks.new').replace(/^\+\s*/, '')}
           </motion.button>
         </div>
 
@@ -907,21 +935,22 @@ export function DecksPage() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mx-5 mb-4 bg-surface rounded-2xl p-4 flex gap-3"
+            className="mx-5 mb-4 ws-card-2 rounded-card p-4 flex items-center gap-3"
           >
             <input
               value={newName}
               onChange={e => setNewName(e.target.value)}
               placeholder={t('decks.namePlaceholder')}
-              className="flex-1 bg-transparent text-white outline-none placeholder-muted"
+              className="flex-1 bg-transparent outline-none placeholder-muted font-medium"
+              style={{ color: 'var(--ws-text)' }}
               autoFocus
               onKeyDown={e => e.key === 'Enter' && create()}
             />
-            <button onClick={create} className="text-primary font-bold">
+            <button onClick={create} className="font-bold text-sm shrink-0" style={{ color: 'var(--ws-primary-light)' }}>
               {t('decks.create')}
             </button>
-            <button onClick={() => setShowCreate(false)} className="text-muted font-bold">
-              ✕
+            <button onClick={() => setShowCreate(false)} aria-label="Cancel" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.06)' }}>
+              <X size={14} strokeWidth={2.4} style={{ color: 'var(--ws-muted)' }} />
             </button>
           </motion.div>
         )}
@@ -933,42 +962,51 @@ export function DecksPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.06 }}
-              className="bg-card rounded-2xl overflow-hidden"
+              className="ws-card rounded-card overflow-hidden"
             >
               {renamingId === deck.id ? (
                 /* Inline rename */
-                <div className="px-5 py-4 flex items-center gap-3">
-                  <span className="text-2xl">🗂</span>
+                <div className="px-4 py-4 flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
+                    style={{ background: 'rgba(99,102,241,0.14)', border: '1px solid rgba(99,102,241,0.28)' }}>
+                    <FolderOpen size={20} strokeWidth={2} style={{ color: 'var(--ws-primary-light)' }} />
+                  </div>
                   <input
                     value={renameValue}
                     onChange={e => setRenameValue(e.target.value)}
                     autoFocus
-                    className="flex-1 min-w-0 bg-transparent text-white outline-none border-b border-primary/40 pb-0.5"
+                    className="flex-1 min-w-0 bg-transparent outline-none border-b border-primary/40 pb-0.5"
+                    style={{ color: 'var(--ws-text)' }}
                     onKeyDown={e => e.key === 'Enter' && saveRename(deck)}
                   />
-                  <button onClick={() => saveRename(deck)} className="text-primary font-bold text-sm">
+                  <button onClick={() => saveRename(deck)} className="font-bold text-sm shrink-0" style={{ color: 'var(--ws-primary-light)' }}>
                     {t('decks.save')}
                   </button>
-                  <button onClick={() => setRenamingId(null)} className="text-muted font-bold text-sm">
-                    ✕
+                  <button onClick={() => setRenamingId(null)} aria-label="Cancel" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                    <X size={14} strokeWidth={2.4} style={{ color: 'var(--ws-muted)' }} />
                   </button>
                 </div>
               ) : (
                 <div className="flex items-center">
                   <motion.div
-                    whileTap={{ scale: 0.98 }}
+                    whileTap={{ scale: 0.99 }}
                     onClick={() => setSelectedDeck(deck)}
-                    className="flex-1 flex items-center gap-3 px-5 py-4 cursor-pointer min-w-0"
+                    className="flex-1 flex items-center gap-3 pl-4 pr-2 py-4 cursor-pointer min-w-0"
                   >
-                    <span className="text-2xl">{deck.isDefault ? '🔖' : '🗂'}</span>
+                    <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
+                      style={{ background: 'rgba(99,102,241,0.14)', border: '1px solid rgba(99,102,241,0.28)' }}>
+                      {deck.isDefault
+                        ? <Bookmark size={20} strokeWidth={2} style={{ color: 'var(--ws-primary-light)' }} />
+                        : <FolderOpen size={20} strokeWidth={2} style={{ color: 'var(--ws-primary-light)' }} />}
+                    </div>
                     <div className="min-w-0">
-                      <p className="text-white font-semibold truncate">{deck.name}</p>
-                      <p className="text-muted text-xs mt-0.5">
+                      <p className="font-bold truncate" style={{ color: 'var(--ws-text)' }}>{deck.name}</p>
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--ws-muted)' }}>
                         {deck._count.words} {t('decks.words')}
                       </p>
                     </div>
                   </motion.div>
-                  <div className="flex items-center gap-1 pr-4 shrink-0">
+                  <div className="flex items-center gap-0.5 pr-3 shrink-0">
                     {!deck.isDefault && (
                       <motion.button
                         whileTap={{ scale: 0.9 }}
@@ -977,22 +1015,23 @@ export function DecksPage() {
                           setMenuDeckId(menuDeckId === deck.id ? null : deck.id)
                         }}
                         aria-label={t('decks.rename')}
-                        className="w-9 h-9 rounded-xl flex items-center justify-center text-white/40 text-lg font-black"
+                        className="w-9 h-9 rounded-btn flex items-center justify-center"
                         style={
                           menuDeckId === deck.id
-                            ? { background: 'rgba(255,255,255,0.07)' }
-                            : undefined
+                            ? { background: 'rgba(255,255,255,0.07)', color: 'var(--ws-muted)' }
+                            : { color: 'var(--ws-faint)' }
                         }
                       >
-                        ⋯
+                        <MoreHorizontal size={20} strokeWidth={2} />
                       </motion.button>
                     )}
-                    <span
-                      className="text-primary text-xl cursor-pointer px-1"
+                    <button
+                      aria-label={deck.name}
+                      className="w-8 h-8 flex items-center justify-center cursor-pointer"
                       onClick={() => setSelectedDeck(deck)}
                     >
-                      ›
-                    </span>
+                      <ChevronRight size={20} strokeWidth={2} style={{ color: 'var(--ws-primary-light)' }} />
+                    </button>
                   </div>
                 </div>
               )}
@@ -1014,19 +1053,19 @@ export function DecksPage() {
                       <motion.button
                         whileTap={{ scale: 0.96 }}
                         onClick={() => startRename(deck)}
-                        className="flex-1 py-2.5 rounded-xl text-sm font-bold"
+                        className="flex-1 py-2.5 rounded-btn text-sm font-bold flex items-center justify-center gap-1.5"
                         style={{
                           background: 'rgba(99,102,241,0.12)',
                           border: '1px solid rgba(99,102,241,0.25)',
                           color: '#a5b4fc',
                         }}
                       >
-                        ✏️ {t('decks.rename')}
+                        <Pencil size={15} strokeWidth={2.2} /> {t('decks.rename')}
                       </motion.button>
                       <motion.button
                         whileTap={{ scale: 0.96 }}
                         onClick={() => handleDelete(deck)}
-                        className="flex-1 py-2.5 rounded-xl text-sm font-bold"
+                        className="flex-1 py-2.5 rounded-btn text-sm font-bold flex items-center justify-center gap-1.5"
                         style={{
                           background:
                             confirmDeleteId === deck.id
@@ -1038,7 +1077,7 @@ export function DecksPage() {
                       >
                         {confirmDeleteId === deck.id
                           ? t('decks.confirmDelete')
-                          : `🗑 ${t('decks.delete')}`}
+                          : <><Trash2 size={15} strokeWidth={2.2} /> {t('decks.delete')}</>}
                       </motion.button>
                     </div>
                   </motion.div>

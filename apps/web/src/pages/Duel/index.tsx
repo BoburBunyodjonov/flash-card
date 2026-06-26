@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
+import {
+  Swords, Share2, Clock, Trophy, Check, X, ArrowLeft, Play, User, Handshake, Frown,
+} from 'lucide-react'
 import { duelApi, type Duel, type DuelQuestion } from '../../api/duel.api'
 import { useAuthStore } from '../../store/auth.store'
 import { useTelegram } from '../../hooks/useTelegram'
@@ -9,33 +13,35 @@ type ChoiceState = 'default' | 'correct' | 'wrong' | 'reveal'
 function choiceStyle(state: ChoiceState): React.CSSProperties {
   switch (state) {
     case 'correct':
-      return { background: 'rgba(16,185,129,0.2)', border: '1px solid rgba(16,185,129,0.4)', color: '#34d399' }
+      return { background: 'rgba(16,185,129,0.18)', border: '1px solid rgba(16,185,129,0.4)', color: 'var(--ws-success)' }
     case 'wrong':
-      return { background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)', color: '#f87171' }
+      return { background: 'rgba(239,68,68,0.18)', border: '1px solid rgba(239,68,68,0.4)', color: 'var(--ws-danger)' }
     case 'reveal':
-      return { background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#34d399' }
+      return { background: 'rgba(16,185,129,0.13)', border: '1px solid rgba(16,185,129,0.3)', color: 'var(--ws-success)' }
     default:
-      return { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.85)' }
+      return { background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)', color: 'var(--ws-text)' }
   }
 }
 
 function Avatar({ url, size = 12 }: { url: string | null; size?: number }) {
   return (
     <div
-      className={`w-${size} h-${size} rounded-full bg-surface flex items-center justify-center text-2xl overflow-hidden shrink-0`}
-      style={{ width: size * 4, height: size * 4 }}
+      className="rounded-full flex items-center justify-center overflow-hidden shrink-0"
+      style={{ width: size * 4, height: size * 4, background: 'var(--ws-surface)', border: '1px solid var(--ws-border)' }}
     >
-      {url ? <img src={url} className="w-full h-full object-cover" /> : '👤'}
+      {url
+        ? <img src={url} className="w-full h-full object-cover" alt="" />
+        : <User size={size * 1.8} strokeWidth={2} style={{ color: 'var(--ws-faint)' }} />}
     </div>
   )
 }
 
-function statusBadge(d: Duel): { text: string; color: string } {
-  if (d.status === 'pending') return { text: '⏳ Raqib kutilmoqda', color: '#f59e0b' }
-  if (d.status === 'expired') return { text: '⌛ Muddati tugagan', color: '#6b7280' }
-  if (d.status === 'completed') return { text: '✓ Tugagan', color: '#34d399' }
-  if (d.myScore !== null) return { text: '⏳ Raqib o\'ynamoqda', color: '#38bdf8' }
-  return { text: '⚡ Sizning navbatingiz', color: '#6366f1' }
+function statusBadge(d: Duel, t: (k: string) => string): { text: string; color: string } {
+  if (d.status === 'pending') return { text: t('duel.status.pending'), color: '#f59e0b' }
+  if (d.status === 'expired') return { text: t('duel.status.expired'), color: '#6b7280' }
+  if (d.status === 'completed') return { text: t('duel.status.completed'), color: '#34d399' }
+  if (d.myScore !== null) return { text: t('duel.status.opponentPlaying'), color: '#38bdf8' }
+  return { text: t('duel.status.yourTurn'), color: '#6366f1' }
 }
 
 // ── Duel question runner (same questions for both players) ────────────────────
@@ -46,6 +52,7 @@ function DuelPlay({
   duel: Duel
   onFinished: (updated: Duel) => void
 }) {
+  const { t } = useTranslation()
   const { haptic } = useTelegram()
   const [index, setIndex] = useState(0)
   const [correctCount, setCorrectCount] = useState(0)
@@ -103,43 +110,48 @@ function DuelPlay({
       className="flex-1 flex flex-col gap-5"
     >
       <div className="flex items-center gap-3">
-        <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.07)' }}>
+        <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
           <motion.div
             className="h-full rounded-full"
             style={{ background: 'linear-gradient(90deg, #ef4444, #f97316)' }}
             animate={{ width: `${(index / questions.length) * 100}%` }}
           />
         </div>
-        <span className="text-white/35 text-xs font-bold shrink-0 tabular-nums">{index + 1} / {questions.length}</span>
+        <span className="text-xs font-bold shrink-0 tabular-nums" style={{ color: 'var(--ws-faint)' }}>{index + 1} / {questions.length}</span>
       </div>
 
       <div
-        className="rounded-3xl p-6 flex flex-col items-center gap-3 text-center"
-        style={{ background: 'linear-gradient(135deg, rgba(239,68,68,0.1), rgba(249,115,22,0.06))', border: '1px solid rgba(239,68,68,0.2)' }}
+        className="rounded-card p-6 flex flex-col items-center gap-3 text-center"
+        style={{ background: 'linear-gradient(135deg, rgba(239,68,68,0.1), rgba(249,115,22,0.05))', border: '1px solid rgba(239,68,68,0.2)' }}
       >
-        <p className="text-white/30 text-xs font-black uppercase tracking-widest">Bu so'z o'zbekchada nima?</p>
-        <h2 className="font-black text-white" style={{ fontSize: 'clamp(2rem, 8vw, 3.4rem)', lineHeight: 1.1 }}>
+        <p className="text-xs font-black uppercase tracking-widest" style={{ color: 'var(--ws-muted)' }}>{t('duel.questionPrompt')}</p>
+        <h2 className="font-black" style={{ color: 'var(--ws-text)', fontSize: 'clamp(2rem, 8vw, 3.4rem)', lineHeight: 1.1 }}>
           {q.word}
         </h2>
-        {q.pronunciation && <p className="text-white/35 font-mono text-sm">{q.pronunciation}</p>}
+        {q.pronunciation && <p className="font-mono text-sm" style={{ color: 'var(--ws-faint)' }}>{q.pronunciation}</p>}
       </div>
 
       <div className="flex flex-col gap-3">
-        {q.choices.map((choice, ci) => (
-          <motion.button
-            key={ci}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.08 + ci * 0.06 }}
-            whileTap={locked ? {} : { scale: 0.97 }}
-            onClick={() => handleChoice(ci)}
-            className="w-full py-4 px-5 rounded-2xl text-left font-semibold text-base"
-            style={choiceStyle(states[ci] ?? 'default')}
-          >
-            <span className="mr-3 font-black text-white/30">{String.fromCharCode(65 + ci)}.</span>
-            {choice}
-          </motion.button>
-        ))}
+        {q.choices.map((choice, ci) => {
+          const st = states[ci] ?? 'default'
+          return (
+            <motion.button
+              key={ci}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.08 + ci * 0.06 }}
+              whileTap={locked ? {} : { scale: 0.97 }}
+              onClick={() => handleChoice(ci)}
+              className="w-full py-4 px-5 rounded-btn text-left font-semibold text-base flex items-center gap-3"
+              style={choiceStyle(st)}
+            >
+              <span className="font-black tabular-nums" style={{ color: 'var(--ws-faint)' }}>{String.fromCharCode(65 + ci)}</span>
+              <span className="flex-1">{choice}</span>
+              {st === 'correct' || st === 'reveal' ? <Check size={18} strokeWidth={2.6} />
+                : st === 'wrong' ? <X size={18} strokeWidth={2.6} /> : null}
+            </motion.button>
+          )
+        })}
       </div>
     </motion.div>
   )
@@ -147,10 +159,14 @@ function DuelPlay({
 
 // ── Result view ────────────────────────────────────────────────────────────────
 function DuelResult({ duel, onBack }: { duel: Duel; onBack: () => void }) {
+  const { t } = useTranslation()
   const { user } = useAuthStore()
   const iWon = duel.winnerId === user?.id
   const draw = duel.status === 'completed' && !duel.winnerId
   const waiting = duel.status !== 'completed'
+
+  const heroTint = waiting ? '#6366f1' : draw ? '#38bdf8' : iWon ? '#f59e0b' : '#ef4444'
+  const HeroIcon = waiting ? Clock : draw ? Handshake : iWon ? Trophy : Frown
 
   return (
     <motion.div
@@ -158,43 +174,48 @@ function DuelResult({ duel, onBack }: { duel: Duel; onBack: () => void }) {
       animate={{ opacity: 1, scale: 1 }}
       className="flex-1 flex flex-col items-center justify-center gap-6 px-6 text-center"
     >
-      <div className="text-7xl">{waiting ? '⏳' : draw ? '🤝' : iWon ? '🏆' : '😔'}</div>
+      <motion.div
+        initial={{ scale: 0, rotate: -15 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ type: 'spring', stiffness: 220 }}
+        className="w-24 h-24 rounded-3xl flex items-center justify-center"
+        style={{ background: `${heroTint}1f`, border: `1px solid ${heroTint}3a` }}
+      >
+        <HeroIcon size={46} strokeWidth={1.8} style={{ color: heroTint }} />
+      </motion.div>
       <div>
-        <p className="text-2xl font-black text-white">
-          {waiting ? "Raqib o'ynashini kuting" : draw ? 'Durang!' : iWon ? "G'alaba!" : 'Mag\'lubiyat'}
+        <p className="text-2xl font-black" style={{ color: 'var(--ws-text)' }}>
+          {waiting ? t('duel.result.waiting') : draw ? t('duel.result.draw') : iWon ? t('duel.result.won') : t('duel.result.lost')}
         </p>
-        {waiting && <p className="text-white/35 text-sm mt-1">Natija raqib o'ynagach chiqadi</p>}
+        {waiting && <p className="text-sm mt-1" style={{ color: 'var(--ws-muted)' }}>{t('duel.result.waitingDesc')}</p>}
       </div>
 
       {/* Scoreboard */}
-      <div
-        className="rounded-3xl px-6 py-5 flex items-center gap-6 w-full max-w-xs justify-center"
-        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
-      >
+      <div className="ws-card px-6 py-5 flex items-center gap-6 w-full max-w-xs justify-center">
         <div className="flex flex-col items-center gap-2">
           <Avatar url={duel.challenger.avatarUrl} />
-          <p className="text-white/60 text-xs font-bold truncate max-w-[80px]">{duel.challenger.firstName}</p>
-          <p className="text-2xl font-black text-white">{duel.challengerScore ?? '–'}</p>
+          <p className="text-xs font-bold truncate max-w-[80px]" style={{ color: 'var(--ws-muted)' }}>{duel.challenger.firstName}</p>
+          <p className="text-2xl font-black" style={{ color: 'var(--ws-text)' }}>{duel.challengerScore ?? '–'}</p>
         </div>
-        <span className="text-white/20 font-black text-xl">VS</span>
+        <span className="font-black text-xl" style={{ color: 'var(--ws-faint)' }}>VS</span>
         <div className="flex flex-col items-center gap-2">
           <Avatar url={duel.opponent?.avatarUrl ?? null} />
-          <p className="text-white/60 text-xs font-bold truncate max-w-[80px]">{duel.opponent?.firstName ?? '???'}</p>
-          <p className="text-2xl font-black text-white">{duel.opponentScore ?? '–'}</p>
+          <p className="text-xs font-bold truncate max-w-[80px]" style={{ color: 'var(--ws-muted)' }}>{duel.opponent?.firstName ?? '???'}</p>
+          <p className="text-2xl font-black" style={{ color: 'var(--ws-text)' }}>{duel.opponentScore ?? '–'}</p>
         </div>
       </div>
 
       {!waiting && !draw && (
-        <p className="text-white/40 text-sm">{iWon ? '+50 XP' : '+15 XP'}</p>
+        <p className="text-sm font-bold" style={{ color: 'var(--ws-muted)' }}>{iWon ? '+50 XP' : '+15 XP'}</p>
       )}
 
       <motion.button
-        whileTap={{ scale: 0.95 }}
+        whileTap={{ scale: 0.96 }}
         onClick={onBack}
-        className="w-full max-w-xs py-4 rounded-2xl font-bold text-sm"
-        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.55)' }}
+        className="w-full max-w-xs py-4 rounded-btn font-bold text-sm flex items-center justify-center gap-2 ws-card-2"
+        style={{ color: 'var(--ws-muted)' }}
       >
-        ← Duellar ro'yxati
+        <ArrowLeft size={17} strokeWidth={2.2} /> {t('duel.backToList')}
       </motion.button>
     </motion.div>
   )
@@ -202,6 +223,7 @@ function DuelResult({ duel, onBack }: { duel: Duel; onBack: () => void }) {
 
 // ── Main DuelPage ──────────────────────────────────────────────────────────────
 export function DuelPage({ onBack, deepLinkDuelId }: { onBack: () => void; deepLinkDuelId?: string | null }) {
+  const { t } = useTranslation()
   const { user } = useAuthStore()
   const { twa } = useTelegram()
   const [duels, setDuels] = useState<Duel[]>([])
@@ -237,7 +259,7 @@ export function DuelPage({ onBack, deepLinkDuelId }: { onBack: () => void; deepL
           setView('result')
         }
       })
-      .catch((e) => setJoinError(e?.response?.data?.error ?? 'Duel topilmadi'))
+      .catch((e) => setJoinError(e?.response?.data?.error ?? t('duel.notFound')))
   }, [deepLinkDuelId])
 
   const createDuel = async () => {
@@ -276,21 +298,22 @@ export function DuelPage({ onBack, deepLinkDuelId }: { onBack: () => void; deepL
   }
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#0a0a14' }}>
+    <div className="h-full flex flex-col" style={{ background: 'var(--ws-bg)' }}>
       {/* Top bar */}
       <div className="flex items-center justify-between px-5 pt-4 pb-3 shrink-0">
         <motion.button
-          whileTap={{ scale: 0.95 }}
+          whileTap={{ scale: 0.92 }}
           onClick={() => (view === 'list' ? onBack() : backToList())}
-          className="text-primary font-semibold text-sm"
+          className="w-9 h-9 rounded-full flex items-center justify-center"
+          style={{ background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)' }}
         >
-          ← Orqaga
+          <ArrowLeft size={18} strokeWidth={2.2} style={{ color: 'var(--ws-muted)' }} />
         </motion.button>
         <div className="flex items-center gap-2">
-          <span className="text-xl">⚔️</span>
-          <span className="text-white font-black text-base">Duel</span>
+          <Swords size={20} strokeWidth={2} style={{ color: 'var(--ws-danger)' }} />
+          <span className="font-black text-base" style={{ color: 'var(--ws-text)' }}>{t('practice.duel.title')}</span>
         </div>
-        <div className="w-16" />
+        <div className="w-9" />
       </div>
 
       <div className="flex-1 flex flex-col overflow-hidden px-5 pb-8">
@@ -300,7 +323,8 @@ export function DuelPage({ onBack, deepLinkDuelId }: { onBack: () => void; deepL
               key="join-error"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-danger text-sm text-center mb-2"
+              className="text-sm text-center mb-2"
+              style={{ color: 'var(--ws-danger)' }}
             >
               {joinError}
             </motion.p>
@@ -319,27 +343,33 @@ export function DuelPage({ onBack, deepLinkDuelId }: { onBack: () => void; deepL
                 whileTap={{ scale: 0.97 }}
                 onClick={createDuel}
                 disabled={creating}
-                className="w-full py-4 rounded-2xl font-black text-base text-white flex items-center justify-center gap-2 shrink-0 disabled:opacity-60"
-                style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)', boxShadow: '0 8px 32px rgba(239,68,68,0.25)' }}
+                className="w-full py-4 rounded-btn font-black text-base text-white flex items-center justify-center gap-2 shrink-0 disabled:opacity-60"
+                style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)', boxShadow: '0 8px 28px rgba(239,68,68,0.25)' }}
               >
-                {creating ? 'Yaratilmoqda...' : "⚔️ Do'stni duelga chaqirish"}
+                <Swords size={18} strokeWidth={2.4} />
+                {creating ? t('duel.creating') : t('duel.challengeFriend')}
               </motion.button>
 
-              <p className="text-white/30 text-xs font-bold uppercase tracking-wider mt-2">Mening duellarim</p>
+              <p className="text-xs font-bold uppercase tracking-wider mt-2" style={{ color: 'var(--ws-faint)' }}>{t('duel.myDuels')}</p>
 
               <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-2">
                 {loading ? (
                   <div className="flex justify-center pt-8">
-                    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    <div className="w-8 h-8 rounded-full animate-spin" style={{ border: '2px solid transparent', borderTopColor: 'var(--ws-primary)', borderRightColor: 'var(--ws-primary)' }} />
                   </div>
                 ) : duels.length === 0 ? (
-                  <div className="flex flex-col items-center gap-3 pt-10 text-center">
-                    <span className="text-5xl">🥊</span>
-                    <p className="text-white/35 text-sm">Hali duellar yo'q.<br />Do'stingizni chaqiring!</p>
+                  <div className="flex flex-col items-center gap-4 pt-12 text-center">
+                    <div
+                      className="w-20 h-20 rounded-3xl flex items-center justify-center"
+                      style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }}
+                    >
+                      <Swords size={36} strokeWidth={1.8} style={{ color: 'var(--ws-danger)' }} />
+                    </div>
+                    <p className="text-sm" style={{ color: 'var(--ws-muted)' }}>{t('duel.emptyTitle')}<br />{t('duel.emptyDesc')}</p>
                   </div>
                 ) : (
                   duels.map((d) => {
-                    const badge = statusBadge(d)
+                    const badge = statusBadge(d, t)
                     const rival = d.isChallenger ? d.opponent : d.challenger
                     const iWon = d.winnerId === user?.id
                     return (
@@ -347,20 +377,23 @@ export function DuelPage({ onBack, deepLinkDuelId }: { onBack: () => void; deepL
                         key={d.id}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => openDuel(d)}
-                        className="w-full rounded-2xl p-4 flex items-center gap-3 text-left"
-                        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+                        className="w-full ws-card p-4 flex items-center gap-3 text-left"
                       >
                         <Avatar url={rival?.avatarUrl ?? null} size={10} />
                         <div className="flex-1 min-w-0">
-                          <p className="text-white font-bold text-sm truncate">
-                            {rival ? `${rival.firstName} bilan` : 'Ochiq taklif'}
+                          <p className="font-bold text-sm truncate" style={{ color: 'var(--ws-text)' }}>
+                            {rival ? t('duel.withName', { name: rival.firstName }) : t('duel.openInvite')}
                           </p>
                           <p className="text-xs font-semibold mt-0.5" style={{ color: badge.color }}>{badge.text}</p>
                         </div>
                         {d.status === 'completed' && (
-                          <span className="text-lg">{!d.winnerId ? '🤝' : iWon ? '🏆' : '😔'}</span>
+                          !d.winnerId
+                            ? <Handshake size={18} strokeWidth={2} style={{ color: '#38bdf8' }} />
+                            : iWon
+                              ? <Trophy size={18} strokeWidth={2} style={{ color: '#f59e0b' }} />
+                              : <Frown size={18} strokeWidth={2} style={{ color: 'var(--ws-danger)' }} />
                         )}
-                        <span className="text-white/40 font-black text-sm tabular-nums">
+                        <span className="font-black text-sm tabular-nums" style={{ color: 'var(--ws-muted)' }}>
                           {d.challengerScore ?? '–'} : {d.opponentScore ?? '–'}
                         </span>
                       </motion.button>
@@ -380,37 +413,46 @@ export function DuelPage({ onBack, deepLinkDuelId }: { onBack: () => void; deepL
               exit={{ opacity: 0 }}
               className="flex-1 flex flex-col items-center justify-center gap-6 px-4 text-center"
             >
-              <div className="text-7xl">⚔️</div>
+              <motion.div
+                initial={{ scale: 0, rotate: -15 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: 'spring', stiffness: 220 }}
+                className="w-24 h-24 rounded-3xl flex items-center justify-center"
+                style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)' }}
+              >
+                <Swords size={46} strokeWidth={1.8} style={{ color: 'var(--ws-danger)' }} />
+              </motion.div>
               <div>
-                <p className="text-2xl font-black text-white">Duel tayyor!</p>
-                <p className="text-white/35 text-sm mt-1.5 max-w-[260px]">
-                  Havolani do'stingizga yuboring. U ham xuddi shu {active.questions.length} ta savolga javob beradi.
+                <p className="text-2xl font-black" style={{ color: 'var(--ws-text)' }}>{t('duel.ready')}</p>
+                <p className="text-sm mt-1.5 max-w-[260px]" style={{ color: 'var(--ws-muted)' }}>
+                  {t('duel.readyDesc', { count: active.questions.length })}
                 </p>
               </div>
               <motion.button
-                whileTap={{ scale: 0.95 }}
+                whileTap={{ scale: 0.96 }}
                 onClick={() => shareDuel(active)}
-                className="w-full max-w-xs py-4 rounded-2xl font-black text-base text-white"
-                style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)', boxShadow: '0 8px 32px rgba(239,68,68,0.25)' }}
+                className="w-full max-w-xs py-4 rounded-btn font-black text-base text-white flex items-center justify-center gap-2"
+                style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)', boxShadow: '0 8px 28px rgba(239,68,68,0.25)' }}
               >
-                📤 Telegram'da ulashish
+                <Share2 size={18} strokeWidth={2.2} /> {t('duel.shareTelegram')}
               </motion.button>
               {active.myScore === null && (
                 <motion.button
-                  whileTap={{ scale: 0.95 }}
+                  whileTap={{ scale: 0.96 }}
                   onClick={() => setView('play')}
-                  className="w-full max-w-xs py-4 rounded-2xl font-bold text-sm text-white"
-                  style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)' }}
+                  className="w-full max-w-xs py-4 rounded-btn font-bold text-sm flex items-center justify-center gap-2"
+                  style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)', color: 'var(--ws-primary-light)' }}
                 >
-                  ▶️ O'zim hozir o'ynayman
+                  <Play size={17} strokeWidth={2.4} /> {t('duel.playNow')}
                 </motion.button>
               )}
               <motion.button
-                whileTap={{ scale: 0.95 }}
+                whileTap={{ scale: 0.96 }}
                 onClick={backToList}
-                className="text-white/40 text-sm font-semibold"
+                className="text-sm font-semibold flex items-center gap-1.5"
+                style={{ color: 'var(--ws-faint)' }}
               >
-                ← Ro'yxatga qaytish
+                <ArrowLeft size={15} strokeWidth={2.2} /> {t('duel.backToList')}
               </motion.button>
             </motion.div>
           )}
