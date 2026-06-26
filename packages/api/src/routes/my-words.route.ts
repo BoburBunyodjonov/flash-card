@@ -103,6 +103,40 @@ export async function myWordsRoutes(fastify: FastifyInstance) {
     }
   })
 
+  // POST /:id/master — mark a word as fully memorized (graduates it out)
+  fastify.post('/:id/master', async (req, reply) => {
+    const params = idParamSchema.safeParse(req.params)
+    if (!params.success) return reply.code(400).send({ success: false, error: 'Invalid id' })
+
+    const user = req.user as JwtPayload
+    try {
+      const word = await myWordsService.masterUserWord(user.userId, params.data.id)
+      return reply.send({ success: true, data: word })
+    } catch (err) {
+      if (err instanceof UserWordNotFoundError) {
+        return reply.code(404).send({ success: false, error: 'Word not found' })
+      }
+      throw err
+    }
+  })
+
+  // POST /:id/relearn — bring a mastered word back into learning
+  fastify.post('/:id/relearn', async (req, reply) => {
+    const params = idParamSchema.safeParse(req.params)
+    if (!params.success) return reply.code(400).send({ success: false, error: 'Invalid id' })
+
+    const user = req.user as JwtPayload
+    try {
+      const word = await myWordsService.relearnUserWord(user.userId, params.data.id)
+      return reply.send({ success: true, data: word })
+    } catch (err) {
+      if (err instanceof UserWordNotFoundError) {
+        return reply.code(404).send({ success: false, error: 'Word not found' })
+      }
+      throw err
+    }
+  })
+
   // PUT /:id — update a word
   fastify.put('/:id', async (req, reply) => {
     const params = idParamSchema.safeParse(req.params)

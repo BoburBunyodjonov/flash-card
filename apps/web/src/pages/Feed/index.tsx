@@ -96,23 +96,54 @@ export function FeedPage({ onChallenge, onQuiz, onDuel, onSpeaking, onMyWords }:
 
   // ── EMPTY ──
   if (isEmpty) {
+    const isPersonal = selectedCategoryId === 'personal'
     return (
       <div className="h-full flex flex-col items-center justify-center animated-gradient px-8 text-center gap-5">
         <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 220 }} className="text-7xl">
-          📚
+          {isPersonal ? '📝' : '📚'}
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
-          <h2 className="text-2xl font-black text-white">So'zlar topilmadi</h2>
-          <p className="text-white/35 text-sm mt-2">Hozircha o'rganadigan so'z yo'q</p>
+          <h2 className="text-2xl font-black text-white">
+            {isPersonal ? t('feed.myWordsEmptyTitle') : t('feed.emptyTitle')}
+          </h2>
+          <p className="text-white/35 text-sm mt-2">
+            {isPersonal ? t('feed.myWordsEmptyDesc') : t('feed.emptyDesc')}
+          </p>
         </motion.div>
-        <motion.button
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => loadFeed()}
-          className="glass rounded-2xl px-6 py-3 text-white/60 font-semibold text-sm"
-        >
-          🔄 Qayta yuklash
-        </motion.button>
+
+        {/* Personal filter with no words → let the user add one right away */}
+        {isPersonal && (
+          <motion.button
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onMyWords}
+            className="w-full max-w-xs py-4 rounded-2xl font-black text-base text-white"
+            style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', boxShadow: '0 8px 32px rgba(99,102,241,0.35)' }}
+          >
+            ➕ {t('feed.addWord')}
+          </motion.button>
+        )}
+
+        {/* Always offer a way out: back to the full feed if filtered, else reload */}
+        {selectedCategoryId ? (
+          <motion.button
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.28 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setCategory(null)}
+            className="glass rounded-2xl px-6 py-3 text-white/60 font-semibold text-sm"
+          >
+            ← {t('feed.backToAll')}
+          </motion.button>
+        ) : (
+          <motion.button
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.28 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => loadFeed()}
+            className="glass rounded-2xl px-6 py-3 text-white/60 font-semibold text-sm"
+          >
+            🔄 {t('feed.reload')}
+          </motion.button>
+        )}
       </div>
     )
   }
@@ -304,6 +335,19 @@ export function FeedPage({ onChallenge, onQuiz, onDuel, onSpeaking, onMyWords }:
             }
           >
             {t('feed.all')}
+          </motion.button>
+          {/* "My Words" chip — switches the feed to only the user's own added words */}
+          <motion.button
+            whileTap={{ scale: 0.93 }}
+            onClick={() => selectedCategoryId !== 'personal' && setCategory('personal')}
+            className="shrink-0 px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1.5"
+            style={selectedCategoryId === 'personal'
+              ? { background: '#6366f1', color: '#fff' }
+              : { background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.35)', color: 'rgba(165,180,252,0.9)' }
+            }
+          >
+            <span>📝</span>
+            {t('feed.myWords')}
           </motion.button>
           {categories.map(cat => (
             <motion.button

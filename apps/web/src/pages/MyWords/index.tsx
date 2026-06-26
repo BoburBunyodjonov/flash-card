@@ -686,6 +686,30 @@ function ListView({
     }
   }
 
+  const master = async (w: UserWord) => {
+    const prev = words
+    onChanged(words.map((x) => (x.id === w.id ? { ...x, status: 'mastered' } : x)))
+    haptic.success()
+    try {
+      await myWordsApi.master(w.id)
+    } catch (e) {
+      onChanged(prev)
+      toast.show(e)
+    }
+  }
+
+  const relearn = async (w: UserWord) => {
+    const prev = words
+    onChanged(words.map((x) => (x.id === w.id ? { ...x, status: 'new', strength: 0 } : x)))
+    haptic.impact('medium')
+    try {
+      await myWordsApi.relearn(w.id)
+    } catch (e) {
+      onChanged(prev)
+      toast.show(e)
+    }
+  }
+
   const startEdit = (w: UserWord) => {
     setConfirmRemoveId(null)
     setEditId(w.id)
@@ -750,12 +774,12 @@ function ListView({
         </div>
 
         <motion.button
-          whileTap={{ scale: dueCount === 0 ? 1 : 0.97 }}
-          onClick={() => dueCount > 0 && onStudy()}
-          disabled={dueCount === 0}
+          whileTap={{ scale: words.length === 0 ? 1 : 0.97 }}
+          onClick={() => words.length > 0 && onStudy()}
+          disabled={words.length === 0}
           className="w-full mt-3 py-3.5 rounded-2xl font-black text-base flex items-center justify-center gap-2"
           style={
-            dueCount === 0
+            words.length === 0
               ? {
                   background: 'rgba(255,255,255,0.06)',
                   border: '1px solid rgba(255,255,255,0.08)',
@@ -846,6 +870,31 @@ function ListView({
                     </p>
                   )}
                 </div>
+
+                {/* Mastered → bring back to learning; otherwise → mark as memorized */}
+                {w.status === 'mastered' ? (
+                  <motion.button
+                    whileTap={{ scale: 0.88 }}
+                    onClick={() => relearn(w)}
+                    aria-label={t('myWords.relearn')}
+                    title={t('myWords.relearn')}
+                    className="text-sm font-black w-7 h-7 rounded-lg shrink-0 flex items-center justify-center"
+                    style={{ color: '#818cf8', background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)' }}
+                  >
+                    🔄
+                  </motion.button>
+                ) : (
+                  <motion.button
+                    whileTap={{ scale: 0.88 }}
+                    onClick={() => master(w)}
+                    aria-label={t('myWords.markLearned')}
+                    title={t('myWords.markLearned')}
+                    className="text-sm font-black w-7 h-7 rounded-lg shrink-0 flex items-center justify-center"
+                    style={{ color: '#34d399', background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.25)' }}
+                  >
+                    ✓
+                  </motion.button>
+                )}
 
                 <motion.button
                   whileTap={{ scale: 0.9 }}

@@ -172,19 +172,43 @@ export async function deleteUserWord(userId: string, id: string): Promise<void> 
 
 export async function getStudyBatch(userId: string, limit = 20): Promise<{ words: UserWordDTO[] }> {
   const cap = Math.min(Math.max(limit, 1), 100)
-  const now = new Date()
 
+  // Practice every word the user is still learning — not just SM-2-"due" ones,
+  // so nothing disappears mid-learning — but EXCLUDE mastered words (once fully
+  // memorized, a word graduates out). Due/overdue sort first via nextReview asc.
   const rows = await prisma.userWord.findMany({
-    where: {
-      userId,
-      status: { not: 'mastered' },
-      OR: [{ nextReview: { lte: now } }, { status: 'new' }],
-    },
+    where: { userId, status: { not: 'mastered' } },
     orderBy: { nextReview: 'asc' },
     take: cap,
   })
 
   return { words: rows.map(toDTO) }
+}
+
+/** Marks a word as fully memorized — it graduates out of the feed/practice. */
+export async function masterUserWord(userId: string, id: string): Promise<UserWordDTO> {
+  const existing = await prisma.userWord.findFirst({ where: { id, userId } })
+  if (!existing) throw new UserWordNotFoundError()
+
+  const row = await prisma.userWord.update({
+    where: { id },
+    data: { status: 'mastered', strength: 100, lastReviewed: new Date() },
+  })
+  await invalidateFeedCache(userId)
+  return toDTO(row)
+}
+
+/** Brings a (usually mastered) word back into learning — a fresh SM-2 restart. */
+export async function relearnUserWord(userId: string, id: string): Promise<UserWordDTO> {
+  const existing = await prisma.userWord.findFirst({ where: { id, userId } })
+  if (!existing) throw new UserWordNotFoundError()
+
+  const row = await prisma.userWord.update({
+    where: { id },
+    data: { status: 'new', strength: 0, reviewCount: 0, nextReview: new Date(), lastReviewed: null },
+  })
+  await invalidateFeedCache(userId)
+  return toDTO(row)
 }
 
 export async function reviewUserWord(
@@ -195,8 +219,22 @@ export async function reviewUserWord(
   const existing = await prisma.userWord.findFirst({ where: { id, userId } })
   if (!existing) throw new UserWordNotFoundError()
 
+  // Personal words are user-curated: a right swipe ("Bilaman / Bildim") means
+  // the user explicitly knows it, so graduate it out immediately (mastered)
+  // rather than a gradual SM-2 step — it won't appear in feed/practice again.
+  if (direction === 'right') {
+    await prisma.userWord.update({
+      where: { id },
+      data: { status: 'mastered', strength: 100, lastReviewed: new Date() },
+    })
+    const xpEarned = await awardXp(userId, XP_PER_WORD)
+    await invalidateFeedCache(userId)
+    return { xpEarned, status: 'mastered' as WordStatus, nextReview: existing.nextReview, strength: 100 }
+  }
+
+  // Left swipe ("Bilmadim") — a lapse: keep it in rotation, due again soon
   const { strength, nextReview, reviewCount, status } = calculateNextReview(
-    direction,
+    'left',
     existing.strength,
     existing.reviewCount,
   )
@@ -206,12 +244,7 @@ export async function reviewUserWord(
     data: { strength, nextReview, reviewCount, status, lastReviewed: new Date() },
   })
 
-  let xpEarned = 0
-  if (direction === 'right') {
-    xpEarned = await awardXp(userId, XP_PER_WORD)
-  }
-
-  return { xpEarned, status: status as WordStatus, nextReview, strength }
+  return { xpEarned: 0, status: status as WordStatus, nextReview, strength }
 }
 
 /**

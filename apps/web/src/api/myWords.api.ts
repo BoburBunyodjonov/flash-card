@@ -63,6 +63,10 @@ export const myWordsApi = {
   update: (id: string, input: UpdateWordInput): Promise<UserWord> =>
     api.put(`/api/my-words/${id}`, input).then((r) => r.data.data),
   remove: (id: string) => api.delete(`/api/my-words/${id}`).then((r) => r.data),
+  master: (id: string): Promise<UserWord> =>
+    api.post(`/api/my-words/${id}/master`).then((r) => r.data.data),
+  relearn: (id: string): Promise<UserWord> =>
+    api.post(`/api/my-words/${id}/relearn`).then((r) => r.data.data),
   study: (limit = 20): Promise<{ words: UserWord[] }> =>
     api.get('/api/my-words/study', { params: { limit } }).then((r) => r.data.data),
   review: (id: string, direction: 'left' | 'right'): Promise<ReviewResult> =>

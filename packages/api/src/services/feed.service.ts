@@ -7,6 +7,9 @@ import { reviewUserWord } from './my-words.service'
 import { XP_PER_WORD, XP_STREAK_MULTIPLIER, DIFFICULTIES } from '@wordswipe/shared'
 import type { Language, Difficulty } from '@wordswipe/shared'
 
+// Reserved categoryId that switches the feed to "only my added words" mode.
+const PERSONAL_CATEGORY_ID = 'personal'
+
 // Label shown on the category chip for the user's own added words.
 const PERSONAL_CATEGORY_NAME: Record<Language, string> = {
   uz: "Mening so'zlarim",
@@ -54,69 +57,72 @@ export async function getDailyFeed(userId: string, isPremium: boolean, language:
 
   const queueKey = `feed:queue:${userId}:${todayKey()}:${categoryId || 'all'}`
 
-  const cachedQueue = await redis.get(queueKey)
-  if (cachedQueue) {
-    const queue = JSON.parse(cachedQueue)
-    return { words: queue.slice(0, remaining), remaining, dailyLimit, usedToday }
+  // The personal "My Words" list is small and changes often (add/remove/review),
+  // so it's never cached — always served fresh to avoid stale results.
+  const useCache = categoryId !== PERSONAL_CATEGORY_ID
+  if (useCache) {
+    const cachedQueue = await redis.get(queueKey)
+    if (cachedQueue) {
+      const queue = JSON.parse(cachedQueue)
+      return { words: queue.slice(0, remaining), remaining, dailyLimit, usedToday }
+    }
   }
 
   const batchSize = isPremium ? 50 : dailyLimit
-  const reviewCount = Math.floor(batchSize * 0.4)
-  const newCount = batchSize - reviewCount
 
-  const reviewWords = await prisma.userWordProgress.findMany({
-    where: {
-      userId,
-      nextReview: { lte: new Date() },
-      status: { not: 'mastered' },
-      ...(categoryId ? { word: { categoryId } } : {}),
-    },
-    take: reviewCount,
-    orderBy: { nextReview: 'asc' },
-    include: { word: { include: { translations: { where: { language } }, category: true } } },
-  })
-
-  const seenWordIds = await prisma.userWordProgress.findMany({
-    where: { userId },
-    select: { wordId: true },
-  })
-  const seenIds = seenWordIds.map((r: { wordId: string }) => r.wordId)
-
-  const userRow = await prisma.user.findUnique({ where: { id: userId }, select: { cefrLevel: true } })
-  const levels = allowedDifficulties((userRow?.cefrLevel as Difficulty | null) ?? null)
-
-  const newWords = await prisma.word.findMany({
-    where: {
-      id: { notIn: seenIds },
-      ...(categoryId ? { categoryId } : {}),
-      ...(levels ? { difficulty: { in: levels } } : {}),
-    },
-    take: newCount,
-    orderBy: [{ category: { order: 'asc' } }, { difficulty: 'asc' }],
-    include: { translations: { where: { language } }, category: true },
-  })
-
-  const reviewFormatted = (reviewWords as any[]).map((p) => formatWord(p.word, p, language))
-  const newFormatted = (newWords as any[]).map((w) => formatWord(w, null, language))
-
-  // The user's own added words (My Words) join the same feed — but only on the
-  // unfiltered "all" feed, since they don't belong to a global category.
-  let personalFormatted: any[] = []
-  if (!categoryId) {
+  let queue: any[]
+  if (categoryId === PERSONAL_CATEGORY_ID) {
+    // "My Words" filter — all of the user's words EXCEPT mastered ones (a word
+    // the user has fully memorized graduates out and stops appearing). Not gated
+    // by SM-2 due date, so still-learning words always show. Due/overdue first.
     const personalWords = await prisma.userWord.findMany({
+      where: { userId, status: { not: 'mastered' } },
+      orderBy: { nextReview: 'asc' },
+      take: batchSize,
+    })
+    queue = (personalWords as any[]).map((w) => formatPersonalWord(w, language))
+  } else {
+    const reviewCount = Math.floor(batchSize * 0.4)
+    const newCount = batchSize - reviewCount
+
+    const reviewWords = await prisma.userWordProgress.findMany({
       where: {
         userId,
-        OR: [{ status: 'new' }, { nextReview: { lte: new Date() } }],
+        nextReview: { lte: new Date() },
+        status: { not: 'mastered' },
+        ...(categoryId ? { word: { categoryId } } : {}),
       },
+      take: reviewCount,
       orderBy: { nextReview: 'asc' },
-      take: 20,
+      include: { word: { include: { translations: { where: { language } }, category: true } } },
     })
-    personalFormatted = (personalWords as any[]).map((w) => formatPersonalWord(w, language))
+
+    const seenWordIds = await prisma.userWordProgress.findMany({
+      where: { userId },
+      select: { wordId: true },
+    })
+    const seenIds = seenWordIds.map((r: { wordId: string }) => r.wordId)
+
+    const userRow = await prisma.user.findUnique({ where: { id: userId }, select: { cefrLevel: true } })
+    const levels = allowedDifficulties((userRow?.cefrLevel as Difficulty | null) ?? null)
+
+    const newWords = await prisma.word.findMany({
+      where: {
+        id: { notIn: seenIds },
+        ...(categoryId ? { categoryId } : {}),
+        ...(levels ? { difficulty: { in: levels } } : {}),
+      },
+      take: newCount,
+      orderBy: [{ category: { order: 'asc' } }, { difficulty: 'asc' }],
+      include: { translations: { where: { language } }, category: true },
+    })
+
+    const reviewFormatted = (reviewWords as any[]).map((p) => formatWord(p.word, p, language))
+    const newFormatted = (newWords as any[]).map((w) => formatWord(w, null, language))
+    queue = shuffle([...reviewFormatted, ...newFormatted])
   }
 
-  const queue = shuffle([...reviewFormatted, ...newFormatted, ...personalFormatted])
-
-  await redis.setex(queueKey, 86400, JSON.stringify(queue))
+  if (useCache) await redis.setex(queueKey, 86400, JSON.stringify(queue))
 
   return {
     words: queue.slice(0, remaining),
