@@ -88,9 +88,13 @@ export async function createDuel(challengerId: string, language: Language) {
     include: { challenger: { select: userSelect }, opponent: { select: userSelect } },
   })
 
-  const link = config.telegram.webAppUrl
-    ? `${config.telegram.webAppUrl}?startapp=${DUEL_PREFIX}${duel.id}`
-    : null
+  // Route invites through the bot's /start so they work regardless of the
+  // Mini App's named-app config; the bot replies with an "Open" web_app button.
+  const link = config.telegram.botUsername
+    ? `https://t.me/${config.telegram.botUsername}?start=${DUEL_PREFIX}${duel.id}`
+    : config.telegram.webAppUrl
+      ? `${config.telegram.webAppUrl}?startapp=${DUEL_PREFIX}${duel.id}`
+      : null
 
   return { ...serialize(duel, challengerId), link, startParam: `${DUEL_PREFIX}${duel.id}` }
 }

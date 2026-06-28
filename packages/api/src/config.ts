@@ -24,6 +24,11 @@ export const config = {
     webhookUrl: process.env.TELEGRAM_WEBHOOK_URL ?? '',
     // Mini App URL (e.g. https://t.me/YourBot/app) used for the "Open" button in reminders
     webAppUrl: process.env.WEB_APP_URL ?? '',
+    // Bot username (without @) — parsed from WEB_APP_URL if not set explicitly
+    botUsername:
+      process.env.BOT_USERNAME ?? (process.env.WEB_APP_URL ?? '').match(/t\.me\/([^/?]+)/)?.[1] ?? '',
+    // Public https URL of the web app (Mini App), for bot "Open" web_app buttons
+    appUrl: process.env.APP_URL ?? 'https://bunyodjonov.uz',
   },
 
   admin: {
@@ -52,6 +57,9 @@ export const config = {
 
   turn: {
     url: process.env.TURN_URL ?? '',
+    // Ephemeral-credential mode (coturn use-auth-secret): preferred, more secure
+    secret: process.env.TURN_SECRET ?? '',
+    // Static-credential fallback
     username: process.env.TURN_USERNAME ?? '',
     password: process.env.TURN_PASSWORD ?? '',
   },

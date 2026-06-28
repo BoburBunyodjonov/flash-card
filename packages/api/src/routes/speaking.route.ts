@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify'
+import { createHmac } from 'node:crypto'
 import { z } from 'zod'
 import { requireAuth } from '../middlewares/auth.middleware'
 import { prisma } from '../lib/prisma'
@@ -70,16 +71,32 @@ export async function speakingRoutes(fastify: FastifyInstance) {
     authed.addHook('onRequest', requireAuth)
 
     authed.get('/ice', async (req, reply) => {
-      const iceServers: Array<{ urls: string; username?: string; credential?: string }> = [
+      const iceServers: Array<{ urls: string | string[]; username?: string; credential?: string }> = [
         { urls: 'stun:stun.l.google.com:19302' },
       ]
-      if (config.turn.url && config.turn.username && config.turn.password) {
+
+      if (config.turn.url && config.turn.secret) {
+        // coturn use-auth-secret: time-limited credentials.
+        // username = "<unix-expiry>", password = base64(HMAC-SHA1(secret, username))
+        const ttlSec = 24 * 3600
+        const username = String(Math.floor(Date.now() / 1000) + ttlSec)
+        const credential = createHmac('sha1', config.turn.secret).update(username).digest('base64')
+        // Offer both UDP and TCP transports for the widest reachability
+        const base = config.turn.url.replace(/\?.*$/, '')
+        iceServers.push({
+          urls: [`${base}?transport=udp`, `${base}?transport=tcp`],
+          username,
+          credential,
+        })
+      } else if (config.turn.url && config.turn.username && config.turn.password) {
+        // Static-credential fallback
         iceServers.push({
           urls: config.turn.url,
           username: config.turn.username,
           credential: config.turn.password,
         })
       }
+
       return reply.send({ success: true, data: { iceServers } })
     })
 

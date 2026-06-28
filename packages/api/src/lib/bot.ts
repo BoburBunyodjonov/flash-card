@@ -38,6 +38,27 @@ export async function startBotUpdates(): Promise<void> {
   const { message } = await import('telegraf/filters')
   const { handleSuccessfulPayment } = await import('../services/payments.service')
 
+  // /start [payload] — greets the user and opens the Mini App. The payload
+  // (e.g. "duel_<id>", "ref_<id>") is passed through to the app via ?sp=.
+  bot.start(async (ctx) => {
+    try {
+      const payload = (ctx.startPayload ?? '').trim()
+      const base = config.telegram.appUrl
+      const openUrl = payload ? `${base}/?sp=${encodeURIComponent(payload)}` : base
+      const isDuel = payload.startsWith('duel_')
+      const text = isDuel
+        ? "⚔️ Sizni WordsVibe'da duelga chaqirishdi!\nTugmani bosib qabul qiling va g'olib bo'ling 🏆"
+        : "WordsVibe'ga xush kelibsiz! 🚀\n\nInglizcha so'zlarni o'yin tarzida o'rganing:\n\n📚 Swipe bilan yangi so'zlar\n🎙️ Jonli ovozli suhbat — speaking mashq\n⚔️ Do'stlar bilan duel\n🧠 Quiz va kunlik challenge\n🔥 Streak va reyting\n\nBoshlash uchun tugmani bosing 👇"
+      await ctx.reply(text, {
+        reply_markup: {
+          inline_keyboard: [[{ text: isDuel ? '⚔️ Duelni boshlash' : '🚀 Ochish', web_app: { url: openUrl } }]],
+        },
+      })
+    } catch (err) {
+      console.error('[Bot] /start handler failed:', err)
+    }
+  })
+
   // Telegram requires an answer within 10s, otherwise the payment is cancelled.
   bot.on('pre_checkout_query', async (ctx) => {
     try {

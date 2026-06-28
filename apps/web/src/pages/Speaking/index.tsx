@@ -42,14 +42,16 @@ function fmtDuration(sec: number): string {
   return `${m}:${String(s).padStart(2, '0')}`
 }
 
-export function SpeakingPage({ onBack }: { onBack: () => void }) {
+export function SpeakingPage({ onBack, autoStart }: { onBack: () => void; autoStart?: boolean }) {
   const { t } = useTranslation()
   const { user, setUser } = useAuthStore()
   const { haptic, isInsideTelegram } = useTelegram()
 
   const [stage, setStage] = useState<Stage>('intro')
   const [sameGender, setSameGender] = useState(false)
-  const [anyLevel, setAnyLevel] = useState(false)
+  // Default ON: match partners of ANY level. With a small user base, the ±1
+  // CEFR constraint leaves people unable to find each other.
+  const [anyLevel, setAnyLevel] = useState(true)
   const [savingGender, setSavingGender] = useState(false)
 
   const [partner, setPartner] = useState<SpeakingPartner | null>(null)
@@ -227,7 +229,7 @@ export function SpeakingPage({ onBack }: { onBack: () => void }) {
   }
 
   // ── Find partner (mic check → WS → queue) ────────────────────────────────
-  const startSearch = async () => {
+  const startSearch = async (override?: { sameGender?: boolean; anyLevel?: boolean }) => {
     haptic.impact('light')
     // Reset per-session state
     setPartner(null)
@@ -257,7 +259,11 @@ export function SpeakingPage({ onBack }: { onBack: () => void }) {
       intentionalCloseRef.current = false
       const ws = new WebSocket(buildWsUrl(token))
       wsRef.current = ws
-      ws.onopen = () => sendWs({ type: 'find', filters: { sameGender, anyLevel } })
+      const filters = {
+        sameGender: override?.sameGender ?? sameGender,
+        anyLevel: override?.anyLevel ?? anyLevel,
+      }
+      ws.onopen = () => sendWs({ type: 'find', filters })
       ws.onmessage = handleMessage
       ws.onclose = () => {
         if (intentionalCloseRef.current) return
@@ -272,6 +278,17 @@ export function SpeakingPage({ onBack }: { onBack: () => void }) {
       fail()
     }
   }
+
+  // Opened via the bot's "Start Practice" ping → jump straight into matchmaking
+  const autoStartedRef = useRef(false)
+  useEffect(() => {
+    if (autoStart && !autoStartedRef.current) {
+      autoStartedRef.current = true
+      // Joining from the broadcast → match the searcher regardless of level/gender
+      startSearch({ sameGender: false, anyLevel: true })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart])
 
   const cancelSearch = () => {
     haptic.impact('light')
@@ -455,7 +472,7 @@ export function SpeakingPage({ onBack }: { onBack: () => void }) {
               {/* Find partner */}
               <motion.button
                 whileTap={{ scale: 0.96 }}
-                onClick={startSearch}
+                onClick={() => startSearch()}
                 className="w-full py-4 rounded-btn font-black text-base text-white flex items-center justify-center gap-2 ws-gradient-bg ws-glow-primary"
               >
                 <Mic size={18} strokeWidth={2.2} /> {t('speaking.findPartner')}
@@ -484,7 +501,7 @@ export function SpeakingPage({ onBack }: { onBack: () => void }) {
               {!isInsideTelegram && (
                 <motion.button
                   whileTap={{ scale: 0.95 }}
-                  onClick={startSearch}
+                  onClick={() => startSearch()}
                   className="ws-card-2 rounded-btn px-6 py-3 font-bold text-sm flex items-center gap-2"
                   style={{ color: 'var(--ws-muted)' }}
                 >
@@ -779,7 +796,7 @@ export function SpeakingPage({ onBack }: { onBack: () => void }) {
               <motion.button
                 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
                 whileTap={{ scale: 0.96 }}
-                onClick={startSearch}
+                onClick={() => startSearch()}
                 className="w-full max-w-xs py-4 rounded-btn font-black text-base text-white flex items-center justify-center gap-2 ws-gradient-bg ws-glow-primary"
               >
                 <Mic size={18} strokeWidth={2.2} /> {t('speaking.findAnother')}
@@ -816,7 +833,7 @@ export function SpeakingPage({ onBack }: { onBack: () => void }) {
               <p className="text-sm max-w-xs" style={{ color: 'var(--ws-muted)' }}>{errorMsg || t('speaking.errorMsg')}</p>
               <motion.button
                 whileTap={{ scale: 0.95 }}
-                onClick={startSearch}
+                onClick={() => startSearch()}
                 className="rounded-btn px-8 py-3.5 font-black text-sm text-white mt-2 flex items-center gap-2 ws-gradient-bg ws-glow-primary"
               >
                 <RefreshCw size={16} strokeWidth={2.4} /> {t('speaking.retry')}

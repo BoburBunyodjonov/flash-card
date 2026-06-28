@@ -1,6 +1,8 @@
 import { z } from 'zod'
 import { prisma } from '../lib/prisma'
 import { redis } from '../lib/redis'
+import { getBot } from '../lib/bot'
+import { config } from '../config'
 import { addLeagueXp } from './league.service'
 import {
   DIFFICULTIES,
@@ -204,6 +206,78 @@ async function endCall(fastify: FastifyInstance, call: Call) {
 // Message handlers
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// "Someone wants to speak" broadcast — pings other users (dating-app style) so
+// the searcher doesn't wait alone. Throttled + quiet-hours + opt-out aware.
+// ---------------------------------------------------------------------------
+
+const TASHKENT_OFFSET_H = 5
+const BROADCAST_COOLDOWN_SEC = 300 // at most one ping every 5 min globally
+
+function levelLabel(level: string | null): string {
+  if (level === 'A1' || level === 'A2') return 'Beginner'
+  if (level === 'C1' || level === 'C2') return 'Advanced'
+  if (level === 'B1' || level === 'B2') return 'Intermediate'
+  return 'Learner'
+}
+
+/** Fires a one-off broadcast inviting other users to join the searcher. */
+async function maybeBroadcastSearch(fastify: FastifyInstance, userId: string): Promise<void> {
+  // Quiet hours (Asia/Tashkent 22:00–08:00) — never ping people at night
+  const hour = (new Date().getUTCHours() + TASHKENT_OFFSET_H) % 24
+  if (hour < 8 || hour >= 22) return
+
+  // Global cooldown so users are never spammed (SET NX EX)
+  const ok = await redis.set('speaking:bcast', '1', 'EX', BROADCAST_COOLDOWN_SEC, 'NX')
+  if (ok !== 'OK') return
+
+  const bot = await getBot()
+  if (!bot) return
+
+  const searcher = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { firstName: true, lastName: true, gender: true, cefrLevel: true, xp: true },
+  })
+  if (!searcher) return
+
+  const fullName = `${searcher.firstName}${searcher.lastName ? ' ' + searcher.lastName : ''}`
+  const obj = searcher.gender === 'female' ? 'her' : searcher.gender === 'male' ? 'him' : 'them'
+  const subj = searcher.gender === 'female' ? "she's" : searcher.gender === 'male' ? "he's" : "they're"
+  const speaker = (searcher.xp ?? 0) >= 300 ? 'Top Speaker' : 'Speaker'
+  const level = levelLabel(searcher.cefrLevel as string | null)
+  const openUrl = `${config.telegram.appUrl}/?sp=speaking`
+
+  // Eligible: opted-in users with a Telegram chat, excluding the searcher and
+  // anyone already in a call or the queue.
+  const recipients = await prisma.user.findMany({
+    where: { notifyEnabled: true, id: { not: userId } },
+    select: { id: true, telegramId: true, firstName: true },
+    take: 1000,
+  })
+
+  let sent = 0
+  for (const r of recipients) {
+    if (calls.has(r.id) || queue.has(r.id)) continue // already busy — skip the ping
+    const rid = r.telegramId.toString()
+    const text =
+      `${r.firstName}, <b>${fullName}</b> won't be online much longer\n\n` +
+      `Catch ${obj} while ${subj} here\n\n` +
+      `${speaker} • ${level}\n\n` +
+      `<i>Ready to chat?</i>`
+    try {
+      await bot.telegram.sendMessage(rid, text, {
+        parse_mode: 'HTML',
+        reply_markup: { inline_keyboard: [[{ text: '🎙️ Start Practice', web_app: { url: openUrl } }]] },
+      })
+      sent++
+      if (sent % 20 === 0) await new Promise((res) => setTimeout(res, 1000)) // rate-limit
+    } catch {
+      // User blocked the bot / never started it — skip silently
+    }
+  }
+  fastify.log.info({ msg: 'speaking: broadcast sent', searcher: userId, recipients: sent })
+}
+
 async function handleFind(
   fastify: FastifyInstance,
   userId: string,
@@ -247,6 +321,14 @@ async function handleFind(
   if (!match) {
     queue.set(userId, me)
     send(userId, { type: 'searching' })
+    // After a short wait, if still searching, ping other users to come join.
+    setTimeout(() => {
+      if (queue.has(userId) && sockets.get(userId)?.readyState === WS_OPEN) {
+        maybeBroadcastSearch(fastify, userId).catch((err) =>
+          fastify.log.error({ msg: 'speaking: broadcast failed', userId, err }),
+        )
+      }
+    }, 8000)
     return
   }
 

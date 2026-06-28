@@ -51,7 +51,20 @@
       "Bash(node -e \"const u=require\\('./apps/web/src/i18n/uz.json'\\);console.log\\('nav:',JSON.stringify\\(u.nav\\)\\);console.log\\('practice keys:',u.practice?Object.keys\\(u.practice\\):'MISSING'\\)\")",
       "Bash(node -e \"const u=require\\('./apps/web/src/i18n/en.json'\\);console.log\\('nav.practice:',u.nav?.practice,'| practice.title:',u.practice?.title,'| practice.quiz:',JSON.stringify\\(u.practice?.quiz\\)\\)\")",
       "Bash(node /tmp/claude-1002/-home-kahero-bobur-flash-card/db2603b8-82bb-4e11-baa3-34401f95c709/scratchpad/i18n-phase1.cjs)",
-      "Bash(node -e \"['uz','en','ru'].forEach\\(l=>{const j=JSON.parse\\(require\\('fs'\\).readFileSync\\('apps/web/src/i18n/'+l+'.json'\\)\\);console.log\\(l,'practice.title:',j.practice.title,'nav.practice:',j.nav.practice\\)}\\)\")"
+      "Bash(node -e \"['uz','en','ru'].forEach\\(l=>{const j=JSON.parse\\(require\\('fs'\\).readFileSync\\('apps/web/src/i18n/'+l+'.json'\\)\\);console.log\\(l,'practice.title:',j.practice.title,'nav.practice:',j.nav.practice\\)}\\)\")",
+      "Bash(ssh root@46.225.113.117 ' *)",
+      "Bash(ssh root@46.225.113.117 'grep -iE \"WEBAPP_URL|WEB_APP_URL|BOT_TOKEN|BOT_USERNAME|TELEGRAM\" /opt/wordswipe/.env 2>/dev/null | sed \"s/\\\\\\(TOKEN=\\\\\\).*/\\\\1***hidden***/\"')",
+      "Bash(pnpm --filter api exec tsc --noEmit)",
+      "Bash(ssh root@46.225.113.117 'cd /opt/wordswipe && docker compose -f docker-compose.prod.yml logs --tail 12 api 2>&1 | grep -iE \"Bot polling\" | tail -1')",
+      "Bash(ssh root@46.225.113.117 'cd /opt/wordswipe && docker compose -f docker-compose.prod.yml logs --since 60s api 2>&1 | grep -iE \"Bot|polling\" | tail -3')",
+      "Bash(ssh root@46.225.113.117 'cd /opt/wordswipe && docker compose -f docker-compose.prod.yml logs --tail 40 api 2>&1 | grep -iE \"Bot|polling|Queue|Server\"')",
+      "Bash(ssh root@46.225.113.117 'cd /opt/wordswipe && docker compose -f docker-compose.prod.yml logs --tail 40 api 2>&1 | grep -iE \"Bot polling\"')",
+      "Bash(ssh root@46.225.113.117 'cd /opt/wordswipe && docker compose -f docker-compose.prod.yml logs --since 90s api 2>&1 | grep -iE \"Bot|polling|Queue\"')",
+      "Bash(ssh root@46.225.113.117 'cd /opt/wordswipe && docker compose -f docker-compose.prod.yml logs --tail 50 api 2>&1 | tail -20')",
+      "Bash(ssh root@46.225.113.117 'cd /opt/wordswipe && docker compose -f docker-compose.prod.yml logs --tail 40 api 2>&1 | grep -iE \"Bot polling|Server listening\"')",
+      "Bash(ssh root@46.225.113.117 'cd /opt/wordswipe && docker compose -f docker-compose.prod.yml logs --since 120s api 2>&1 | grep -iE \"Bot\" | tail -3')",
+      "Bash(ssh root@46.225.113.117 'cd /opt/wordswipe && docker compose -f docker-compose.prod.yml logs api 2>&1 | grep -iE \"Bot polling started\" | tail -1')",
+      "Bash(ssh root@46.225.113.117 'cd /opt/wordswipe && docker compose -f docker-compose.prod.yml logs --tail 60 api 2>&1 | grep -iE \"Bot|polling|telegraf|409|conflict|error\" | tail -10')"
     ]
   }
 }

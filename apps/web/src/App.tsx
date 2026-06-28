@@ -33,16 +33,26 @@ export default function App() {
   const { user, setUser } = useAuthStore()
   const [page, setPage] = useState<Page>('feed')
   const [duelId, setDuelId] = useState<string | null>(null)
+  const [speakingAuto, setSpeakingAuto] = useState(false)
   const [onboardingDone, setOnboardingDone] = useState(() => !!localStorage.getItem('ws_onboarding_done'))
 
-  // Duel invite deep link (t.me/...?startapp=duel_<id>) + replay of offline swipes
+  // Duel invite deep link + replay of offline swipes.
+  // start_param comes from a direct ?startapp= link; ?sp= is the fallback used
+  // when the app is opened via the bot's /start "Open" web_app button.
   useEffect(() => {
     if (!user) return
     flushPendingSwipes()
-    const startParam = window.Telegram?.WebApp?.initDataUnsafe?.start_param
+    const startParam =
+      window.Telegram?.WebApp?.initDataUnsafe?.start_param ||
+      new URLSearchParams(window.location.search).get('sp') ||
+      undefined
     if (startParam?.startsWith(DUEL_PREFIX)) {
       setDuelId(startParam.slice(DUEL_PREFIX.length))
       setPage('duel')
+    } else if (startParam === 'speaking') {
+      // Opened from the bot's "Start Practice" speaking ping → auto-find a partner
+      setSpeakingAuto(true)
+      setPage('speaking')
     }
   }, [user])
 
@@ -105,7 +115,7 @@ export default function App() {
             />
           )}
           {page === 'speaking' && (
-            <SpeakingPage onBack={() => setPage('feed')} />
+            <SpeakingPage onBack={() => setPage('feed')} autoStart={speakingAuto} />
           )}
           {page === 'mywords' && (
             <MyWordsPage onBack={() => setPage('feed')} />
@@ -129,7 +139,7 @@ export default function App() {
           {page === 'settings' && <SettingsPage onBack={() => setPage('profile')} />}
         </motion.div>
       </AnimatePresence>
-      <BottomNav active={navPage} onChange={(p) => setPage(p as Page)} />
+      <BottomNav active={navPage} onChange={(p) => { setSpeakingAuto(false); setPage(p as Page) }} />
       <ReferralBonusToast />
     </div>
   )
