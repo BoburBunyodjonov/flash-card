@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import {
   Bell, Clock, Globe, GraduationCap, User, Crown, Sparkles,
-  Gift, Share2, LogOut, Check, Flame, Zap, Users, ArrowLeft,
+  Gift, Share2, LogOut, Check, Flame, Zap, Users, ArrowLeft, Smartphone,
 } from 'lucide-react'
 import { useAuthStore } from '../../store/auth.store'
 import { profileApi, type ReferralInfo } from '../../api/profile.api'
@@ -64,7 +64,7 @@ function SettingsSection({
 export function SettingsPage({ onBack }: { onBack?: () => void }) {
   const { t } = useTranslation()
   const { user, setUser, logout } = useAuthStore()
-  const { twa, haptic } = useTelegram()
+  const { twa, haptic, isInsideTelegram } = useTelegram()
   const [lang, setLang] = useState(i18n.language)
   const [notifyEnabled, setNotifyEnabled] = useState(user?.notifyEnabled ?? true)
   const [notifyTime, setNotifyTime] = useState(user?.notifyAt ?? '20:00')
@@ -88,6 +88,44 @@ export function SettingsPage({ onBack }: { onBack?: () => void }) {
   }
   const [notifySaved, setNotifySaved] = useState(false)
   const [level, setLevel] = useState(() => localStorage.getItem('ws_level') ?? 'A1')
+
+  // Mobile-app credentials (phone + password) for the current account
+  const [pwPhone, setPwPhone] = useState('')
+  const [pwValue, setPwValue] = useState('')
+  const [hasPassword, setHasPassword] = useState(false)
+  const [pwSaving, setPwSaving] = useState(false)
+  const [pwSaved, setPwSaved] = useState(false)
+  const [pwError, setPwError] = useState<string | null>(null)
+
+  useEffect(() => {
+    profileApi.get().then((p) => {
+      if (p?.phone) setPwPhone(p.phone)
+      setHasPassword(!!p?.hasPassword)
+    }).catch(() => {})
+  }, [])
+
+  const savePassword = async () => {
+    if (pwSaving || !pwPhone.trim() || pwValue.length < 6) {
+      if (pwValue.length > 0 && pwValue.length < 6) setPwError(t('settings.pwTooShort'))
+      return
+    }
+    setPwSaving(true)
+    setPwError(null)
+    try {
+      await profileApi.setPassword(pwPhone.trim(), pwValue)
+      setHasPassword(true)
+      setPwValue('')
+      setPwSaved(true)
+      haptic.success()
+      setTimeout(() => setPwSaved(false), 2500)
+    } catch (e) {
+      const msg = (e as { response?: { data?: { error?: string } } })?.response?.data?.error
+      setPwError(msg ?? t('settings.pwError'))
+      haptic.error()
+    } finally {
+      setPwSaving(false)
+    }
+  }
 
   const changeLevel = async (lvl: string) => {
     setLevel(lvl)
@@ -202,6 +240,61 @@ export function SettingsPage({ onBack }: { onBack?: () => void }) {
           </motion.button>
         )}
       </motion.div>
+
+      {/* Mobile app password (link phone+password to this account) */}
+      <SettingsSection Icon={Smartphone} title={t('settings.mobilePassword')} hint={t('settings.mobilePasswordHint')} delay={0.11}>
+        {hasPassword && (
+          <p className="text-xs mb-3 flex items-center gap-1.5" style={{ color: 'var(--ws-success)' }}>
+            <Check size={13} strokeWidth={2.6} /> {t('settings.pwSet')}
+          </p>
+        )}
+        <div className="flex flex-col gap-2.5">
+          {isInsideTelegram && twa?.requestContact && (
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              onClick={() => {
+                haptic.impact('light')
+                twa.requestContact?.((shared) => {
+                  if (!shared) return
+                  // Bot saves the verified number async — refetch shortly after
+                  const refetch = () => profileApi.get().then((p) => { if (p?.phone) setPwPhone(p.phone) }).catch(() => {})
+                  setTimeout(refetch, 1500)
+                  setTimeout(refetch, 3500)
+                })
+              }}
+              className="w-full py-3 rounded-btn font-bold text-sm flex items-center justify-center gap-2"
+              style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.3)', color: 'var(--ws-primary-light)' }}
+            >
+              <Smartphone size={16} strokeWidth={2.2} /> {t('settings.pwFromTelegram')}
+            </motion.button>
+          )}
+          <input
+            value={pwPhone}
+            onChange={(e) => setPwPhone(e.target.value)}
+            inputMode="tel"
+            placeholder="+998 90 123 45 67"
+            className="w-full rounded-btn px-4 py-3 text-sm outline-none"
+            style={{ background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)', color: 'var(--ws-text)' }}
+          />
+          <input
+            value={pwValue}
+            onChange={(e) => setPwValue(e.target.value)}
+            type="password"
+            placeholder={t('settings.pwPlaceholder')}
+            className="w-full rounded-btn px-4 py-3 text-sm outline-none"
+            style={{ background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)', color: 'var(--ws-text)' }}
+          />
+          {pwError && <p className="text-xs" style={{ color: 'var(--ws-danger)' }}>{pwError}</p>}
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={savePassword}
+            disabled={pwSaving}
+            className="w-full py-3 rounded-btn font-bold text-sm text-white disabled:opacity-60 ws-gradient-bg"
+          >
+            {pwSaved ? `✓ ${t('settings.pwSaved')}` : hasPassword ? t('settings.pwUpdate') : t('settings.pwSave')}
+          </motion.button>
+        </div>
+      </SettingsSection>
 
       {/* Invite friends (referral) */}
       <motion.div

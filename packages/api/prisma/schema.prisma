@@ -67,7 +67,10 @@ enum SpeakingStatus {
 
 model User {
   id           String    @id @default(uuid())
-  telegramId   BigInt    @unique @map("telegram_id")
+  // Nullable: a user may sign up with phone+password instead of Telegram
+  telegramId   BigInt?   @unique @map("telegram_id")
+  phone        String?   @unique
+  passwordHash String?   @map("password_hash")
   username     String?
   firstName    String    @map("first_name")
   lastName     String?   @map("last_name")

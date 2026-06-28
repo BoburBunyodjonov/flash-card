@@ -64,7 +64,25 @@
       "Bash(ssh root@46.225.113.117 'cd /opt/wordswipe && docker compose -f docker-compose.prod.yml logs --tail 40 api 2>&1 | grep -iE \"Bot polling|Server listening\"')",
       "Bash(ssh root@46.225.113.117 'cd /opt/wordswipe && docker compose -f docker-compose.prod.yml logs --since 120s api 2>&1 | grep -iE \"Bot\" | tail -3')",
       "Bash(ssh root@46.225.113.117 'cd /opt/wordswipe && docker compose -f docker-compose.prod.yml logs api 2>&1 | grep -iE \"Bot polling started\" | tail -1')",
-      "Bash(ssh root@46.225.113.117 'cd /opt/wordswipe && docker compose -f docker-compose.prod.yml logs --tail 60 api 2>&1 | grep -iE \"Bot|polling|telegraf|409|conflict|error\" | tail -10')"
+      "Bash(ssh root@46.225.113.117 'cd /opt/wordswipe && docker compose -f docker-compose.prod.yml logs --tail 60 api 2>&1 | grep -iE \"Bot|polling|telegraf|409|conflict|error\" | tail -10')",
+      "Bash(pnpm --filter api add bcryptjs)",
+      "Bash(pnpm --filter api add -D @types/bcryptjs)",
+      "Bash(pnpm --filter api db:push --skip-generate)",
+      "Bash(pnpm --filter api db:generate)",
+      "Bash(pnpm --filter api exec prisma db push --skip-generate --accept-data-loss)",
+      "Bash(pnpm --filter api dev)",
+      "Bash(curl -s -X POST __TRACKED_VAR__/register -H 'Content-Type: application/json' -d '{\"phone\":\"901234567\",\"password\":\"secret123\",\"firstName\":\"Aziz\"}')",
+      "Bash(node -e 'let d=\"\";process.stdin.on\\(\"data\",c=>d+=c\\).on\\(\"end\",\\(\\)=>{const j=JSON.parse\\(d\\);console.log\\(\"profile ok:\",j.success,\"| name:\",j.data?.firstName\\)}\\)')",
+      "Bash(ssh root@46.225.113.117 'cd /opt/wordswipe && docker compose -f docker-compose.prod.yml exec -T -w /app/packages/api api npx prisma db push --skip-generate --accept-data-loss 2>&1 | grep -iE \"sync|data loss|warning|error|added\"')",
+      "Bash(ssh root@46.225.113.117 \"cd /opt/wordswipe && docker compose -f docker-compose.prod.yml exec -T postgres psql -U postgres -d wordswipe -tAc \\\\\"select \\(select count\\(*\\) from users\\) as users, \\(select count\\(*\\) from words\\) as words; select column_name from information_schema.columns where table_name='users' and column_name in \\('phone','password_hash','telegram_id'\\)\\\\\"\")",
+      "Bash(ssh root@46.225.113.117 'cd /opt/wordswipe && curl -s -o /dev/null -w \"API: %{http_code}\\\\n\" 127.0.0.1:3001/api/categories; docker compose -f docker-compose.prod.yml logs --tail 30 api 2>&1 | grep -iE \"Bot polling\" | tail -1')",
+      "Bash(curl -s -X POST \"https://bunyodjonov.uz/api/auth/register\" -H \"Content-Type: application/json\" -d '{\"phone\":\"900000001\",\"password\":\"test123456\",\"firstName\":\"PhoneTest\"}')",
+      "Bash(node -e 'let d=\"\";process.stdin.on\\(\"data\",c=>d+=c\\).on\\(\"end\",\\(\\)=>{try{const j=JSON.parse\\(d\\);console.log\\(\"success:\",j.success,\"| phone:\",j.data?.user?.phone,\"| token:\",!!j.data?.accessToken\\)}catch\\(e\\){console.log\\(\"resp:\",d.slice\\(0,200\\)\\)}}\\)')",
+      "Bash(ssh root@46.225.113.117 \"cd /opt/wordswipe && docker compose -f docker-compose.prod.yml exec -T postgres psql -U postgres -d wordswipe -tAc \\\\\"delete from users where phone='+998900000001'\\\\\"\")",
+      "Bash(ssh root@46.225.113.117 'cd /opt/wordswipe && docker compose -f docker-compose.prod.yml logs --tail 40 api 2>&1 | grep -iE \"Bot polling started\" | tail -1')",
+      "Bash(ssh root@46.225.113.117 'cd /opt/wordswipe && docker compose -f docker-compose.prod.yml logs --tail 50 api 2>&1 | grep -iE \"Bot|polling|telegraf|409|conflict|terminated|error\" | tail -12')",
+      "Bash(ssh root@46.225.113.117 'cd /opt/wordswipe && docker compose -f docker-compose.prod.yml logs --tail 60 api 2>&1 | grep -iE \"Bot polling started|Bot.*error|409\" | tail -2')",
+      "Bash(ssh root@46.225.113.117 'cd /opt/wordswipe && docker compose -f docker-compose.prod.yml logs --tail 25 api 2>&1')"
     ]
   }
 }

@@ -76,6 +76,20 @@ export async function startBotUpdates(): Promise<void> {
     }
   })
 
+  // User shared their phone via the Mini App's requestContact() — save the
+  // Telegram-verified number onto their account (only their OWN contact).
+  bot.on(message('contact'), async (ctx) => {
+    try {
+      const c = ctx.message.contact
+      if (c.user_id && c.user_id === ctx.from.id && c.phone_number) {
+        const { linkTelegramPhone } = await import('../services/auth.service')
+        await linkTelegramPhone(BigInt(ctx.from.id), c.phone_number)
+      }
+    } catch (err) {
+      console.error('[Bot] contact handling failed:', err)
+    }
+  })
+
   // launch() resolves only when polling stops, so we intentionally do NOT await
   // it — the onLaunch callback confirms startup, and the catch keeps a Telegram
   // outage from ever crashing the API process.

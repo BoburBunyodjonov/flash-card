@@ -17,7 +17,7 @@ export async function profileRoutes(fastify: FastifyInstance) {
 
   fastify.get('/', async (req, reply) => {
     const user = req.user as JwtPayload
-    const data = await prisma.user.findUnique({
+    const row = await prisma.user.findUnique({
       where: { id: user.userId },
       select: {
         id: true,
@@ -25,6 +25,8 @@ export async function profileRoutes(fastify: FastifyInstance) {
         lastName: true,
         username: true,
         avatarUrl: true,
+        phone: true,
+        passwordHash: true,
         language: true,
         isPremium: true,
         premiumUntil: true,
@@ -39,6 +41,8 @@ export async function profileRoutes(fastify: FastifyInstance) {
         _count: { select: { followers: true, following: true } },
       },
     })
+    // Never expose the hash; surface only whether a mobile-app password exists
+    const data = row && (({ passwordHash, ...rest }) => ({ ...rest, hasPassword: passwordHash != null }))(row)
     return reply.send({ success: true, data })
   })
 

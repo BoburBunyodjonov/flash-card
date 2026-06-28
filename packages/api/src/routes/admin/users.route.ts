@@ -48,7 +48,7 @@ export async function adminUsersRoutes(fastify: FastifyInstance) {
     ])
 
     // telegramId is a BigInt — JSON.stringify throws on it
-    const serializable = users.map((u) => ({ ...u, telegramId: u.telegramId.toString() }))
+    const serializable = users.map((u) => ({ ...u, telegramId: u.telegramId?.toString() ?? null }))
     return reply.send({ success: true, data: { users: serializable, total, page: query.page, limit: query.limit } })
   })
 
@@ -65,6 +65,6 @@ export async function adminUsersRoutes(fastify: FastifyInstance) {
     if (data.premiumUntil) data.premiumUntil = new Date(data.premiumUntil)
 
     const user = await prisma.user.update({ where: { id }, data })
-    return reply.send({ success: true, data: { ...user, telegramId: user.telegramId.toString() } })
+    return reply.send({ success: true, data: { ...user, telegramId: user.telegramId?.toString() ?? null } })
   })
 }

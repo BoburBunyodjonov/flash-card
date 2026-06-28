@@ -126,7 +126,17 @@
     "invited": "taklif qilingan",
     "shareInvite": "Taklif havolasini ulashish",
     "cefrTitle": "Ingliz tili darajasi",
-    "cefrHint": "Feed shu darajaga mos so'zlarni ko'rsatadi"
+    "cefrHint": "Feed shu darajaga mos so'zlarni ko'rsatadi",
+    "mobilePassword": "Mobil ilova uchun parol",
+    "mobilePasswordHint": "Mobil ilovaga shu telefon va parol bilan kirasiz (akkauntingiz saqlanadi)",
+    "pwSet": "Parol o'rnatilgan",
+    "pwPlaceholder": "Parol (kamida 6 belgi)",
+    "pwSave": "Parol o'rnatish",
+    "pwUpdate": "Parolni yangilash",
+    "pwSaved": "Saqlandi",
+    "pwTooShort": "Parol kamida 6 belgi bo'lsin",
+    "pwError": "Xatolik yuz berdi",
+    "pwFromTelegram": "Telegram'dan olish"
   },
   "premium": {
     "title": "WordSwipe Premium",

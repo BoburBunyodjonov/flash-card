@@ -1,7 +1,32 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { loginWithTelegramWidget, loginWithWebApp } from '../services/auth.service'
+import {
+  loginWithTelegramWidget,
+  loginWithWebApp,
+  registerWithPhone,
+  loginWithPhone,
+  setUserCredentials,
+  AuthError,
+} from '../services/auth.service'
+import { requireAuth } from '../middlewares/auth.middleware'
+import type { JwtPayload } from '@wordswipe/shared'
 import { config } from '../config'
+
+const setPasswordSchema = z.object({
+  phone: z.string().min(7).max(20),
+  password: z.string().min(6).max(100),
+})
+
+const registerSchema = z.object({
+  phone: z.string().min(7).max(20),
+  password: z.string().min(6).max(100),
+  firstName: z.string().min(1).max(60),
+})
+
+const loginSchema = z.object({
+  phone: z.string().min(7).max(20),
+  password: z.string().min(1).max(100),
+})
 
 const widgetSchema = z.object({
   id: z.string(),
@@ -41,6 +66,47 @@ export async function authRoutes(fastify: FastifyInstance) {
           ? e.message
           : 'Login failed. Please try again.'
       return reply.code(e.statusCode ?? 500).send({ success: false, error: clientMessage })
+    }
+  })
+
+  // Phone + password registration (native app, no Telegram)
+  fastify.post('/register', async (req, reply) => {
+    const body = registerSchema.safeParse(req.body)
+    if (!body.success) return reply.code(400).send({ success: false, error: 'Invalid body' })
+    try {
+      const result = await registerWithPhone(body.data, fastify)
+      return reply.send({ success: true, data: result })
+    } catch (err) {
+      if (err instanceof AuthError) return reply.code(err.statusCode).send({ success: false, error: err.message })
+      throw err
+    }
+  })
+
+  // Phone + password login
+  fastify.post('/login', async (req, reply) => {
+    const body = loginSchema.safeParse(req.body)
+    if (!body.success) return reply.code(400).send({ success: false, error: 'Invalid body' })
+    try {
+      const result = await loginWithPhone(body.data, fastify)
+      return reply.send({ success: true, data: result })
+    } catch (err) {
+      if (err instanceof AuthError) return reply.code(err.statusCode).send({ success: false, error: err.message })
+      throw err
+    }
+  })
+
+  // Set/update phone+password on the current account (existing Telegram users
+  // linking native-app credentials). Auth required.
+  fastify.post('/set-password', { onRequest: requireAuth }, async (req, reply) => {
+    const body = setPasswordSchema.safeParse(req.body)
+    if (!body.success) return reply.code(400).send({ success: false, error: 'Invalid body' })
+    const user = req.user as JwtPayload
+    try {
+      const result = await setUserCredentials(user.userId, body.data.phone, body.data.password)
+      return reply.send({ success: true, data: result })
+    } catch (err) {
+      if (err instanceof AuthError) return reply.code(err.statusCode).send({ success: false, error: err.message })
+      throw err
     }
   })
 

@@ -250,7 +250,7 @@ async function maybeBroadcastSearch(fastify: FastifyInstance, userId: string): P
   // Eligible: opted-in users with a Telegram chat, excluding the searcher and
   // anyone already in a call or the queue.
   const recipients = await prisma.user.findMany({
-    where: { notifyEnabled: true, id: { not: userId } },
+    where: { notifyEnabled: true, id: { not: userId }, telegramId: { not: null } },
     select: { id: true, telegramId: true, firstName: true },
     take: 1000,
   })
@@ -258,6 +258,7 @@ async function maybeBroadcastSearch(fastify: FastifyInstance, userId: string): P
   let sent = 0
   for (const r of recipients) {
     if (calls.has(r.id) || queue.has(r.id)) continue // already busy — skip the ping
+    if (!r.telegramId) continue // phone-only users have no Telegram chat
     const rid = r.telegramId.toString()
     const text =
       `${r.firstName}, <b>${fullName}</b> won't be online much longer\n\n` +

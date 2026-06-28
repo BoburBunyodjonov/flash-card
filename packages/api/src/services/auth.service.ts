@@ -128,19 +128,28 @@ async function upsertUser(
     }
   }
 
+  return buildAuthResult(fastify, user, referralBonus)
+}
+
+// ---------------------------------------------------------------------------
+// Shared token + safe-user builder (used by all login flows)
+// ---------------------------------------------------------------------------
+type UserRow = Awaited<ReturnType<typeof prisma.user.create>>
+
+function buildAuthResult(
+  fastify: FastifyInstance,
+  user: UserRow,
+  referralBonus: { xp: number; bonusWords: number } | null = null,
+) {
   const payload = {
     userId: user.id,
-    telegramId: user.telegramId.toString(),
+    telegramId: user.telegramId?.toString() ?? null,
     isAdmin: user.isAdmin,
     isPremium: user.isPremium,
     premiumUntil: user.premiumUntil?.toISOString(),
   }
-
   const accessToken = fastify.jwt.sign(payload, { expiresIn: config.jwt.expiresIn })
-  const refreshToken = fastify.jwt.sign(
-    { userId: user.id },
-    { expiresIn: config.jwt.refreshExpiresIn },
-  )
+  const refreshToken = fastify.jwt.sign({ userId: user.id }, { expiresIn: config.jwt.refreshExpiresIn })
 
   const safeUser = {
     id: user.id,
@@ -148,19 +157,110 @@ async function upsertUser(
     lastName: user.lastName,
     username: user.username,
     avatarUrl: user.avatarUrl,
+    phone: user.phone,
     language: user.language,
     isPremium: user.isPremium,
     premiumUntil: user.premiumUntil?.toISOString() ?? null,
     isAdmin: user.isAdmin,
     streak: user.streak,
-    // `user` was read before the referral XP increment — reflect it here
     xp: user.xp + (referralBonus?.xp ?? 0),
     cefrLevel: user.cefrLevel,
     gender: user.gender,
     notifyAt: user.notifyAt,
     notifyEnabled: user.notifyEnabled,
-    telegramId: user.telegramId.toString(),
+    telegramId: user.telegramId?.toString() ?? null,
   }
+  return { user: safeUser, accessToken, refreshToken, referralBonus: referralBonus ?? null }
+}
 
-  return { user: safeUser, accessToken, refreshToken, referralBonus }
+// ---------------------------------------------------------------------------
+// Phone + password auth (native app, no Telegram)
+// ---------------------------------------------------------------------------
+
+/** Normalizes an Uzbek phone to canonical `+998XXXXXXXXX`. Returns null if invalid. */
+export function normalizePhone(raw: string): string | null {
+  const digits = raw.replace(/[^\d]/g, '')
+  // Accept "998XXXXXXXXX" (12 digits) or local "XXXXXXXXX" (9 digits)
+  if (/^998\d{9}$/.test(digits)) return `+${digits}`
+  if (/^\d{9}$/.test(digits)) return `+998${digits}`
+  return null
+}
+
+class AuthError extends Error {
+  statusCode: number
+  constructor(message: string, statusCode = 400) {
+    super(message)
+    this.statusCode = statusCode
+  }
+}
+export { AuthError }
+
+export async function registerWithPhone(
+  data: { phone: string; password: string; firstName: string },
+  fastify: FastifyInstance,
+) {
+  const phone = normalizePhone(data.phone)
+  if (!phone) throw new AuthError('Invalid phone number')
+
+  const existing = await prisma.user.findUnique({ where: { phone }, select: { id: true } })
+  if (existing) throw new AuthError('Phone already registered', 409)
+
+  const { hash } = await import('bcryptjs')
+  const passwordHash = await hash(data.password, 10)
+
+  const user = await prisma.user.create({
+    data: { phone, passwordHash, firstName: data.firstName.trim() },
+  })
+  return buildAuthResult(fastify, user)
+}
+
+/**
+ * Sets (or updates) a phone + password on the CURRENT account — used by existing
+ * Telegram users so they can also log into the native app with phone+password
+ * against their SAME account (data preserved).
+ */
+export async function setUserCredentials(userId: string, rawPhone: string, password: string) {
+  const phone = normalizePhone(rawPhone)
+  if (!phone) throw new AuthError('Invalid phone number')
+
+  const owner = await prisma.user.findUnique({ where: { phone }, select: { id: true } })
+  if (owner && owner.id !== userId) throw new AuthError('Phone already in use', 409)
+
+  const { hash } = await import('bcryptjs')
+  const passwordHash = await hash(password, 10)
+  await prisma.user.update({ where: { id: userId }, data: { phone, passwordHash } })
+  return { phone }
+}
+
+/**
+ * Saves a Telegram‑shared (verified) phone onto the user with that telegramId.
+ * Best‑effort: silently skips if the user is unknown, the phone is invalid, or
+ * the number already belongs to a different account.
+ */
+export async function linkTelegramPhone(telegramId: bigint, rawPhone: string): Promise<void> {
+  const phone = normalizePhone(rawPhone)
+  if (!phone) return
+  const user = await prisma.user.findUnique({ where: { telegramId }, select: { id: true } })
+  if (!user) return
+  const owner = await prisma.user.findUnique({ where: { phone }, select: { id: true } })
+  if (owner && owner.id !== user.id) return
+  await prisma.user.update({ where: { id: user.id }, data: { phone } })
+}
+
+export async function loginWithPhone(
+  data: { phone: string; password: string },
+  fastify: FastifyInstance,
+) {
+  const phone = normalizePhone(data.phone)
+  if (!phone) throw new AuthError('Invalid phone number', 401)
+
+  const user = await prisma.user.findUnique({ where: { phone } })
+  if (!user || !user.passwordHash) throw new AuthError('Invalid phone or password', 401)
+
+  const { compare } = await import('bcryptjs')
+  const ok = await compare(data.password, user.passwordHash)
+  if (!ok) throw new AuthError('Invalid phone or password', 401)
+
+  await prisma.user.update({ where: { id: user.id }, data: { lastActive: new Date() } })
+  return buildAuthResult(fastify, user)
 }

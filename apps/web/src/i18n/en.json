@@ -126,7 +126,17 @@
     "invited": "invited",
     "shareInvite": "Share invite link",
     "cefrTitle": "English level",
-    "cefrHint": "Feed shows words for this level"
+    "cefrHint": "Feed shows words for this level",
+    "mobilePassword": "Mobile app password",
+    "mobilePasswordHint": "Use this phone and password to log into the mobile app (your account is kept)",
+    "pwSet": "Password is set",
+    "pwPlaceholder": "Password (min 6 chars)",
+    "pwSave": "Set password",
+    "pwUpdate": "Update password",
+    "pwSaved": "Saved",
+    "pwTooShort": "Password must be at least 6 characters",
+    "pwError": "Something went wrong",
+    "pwFromTelegram": "Get from Telegram"
   },
   "premium": {
     "title": "WordSwipe Premium",

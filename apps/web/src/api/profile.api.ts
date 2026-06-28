@@ -14,4 +14,6 @@ export const profileApi = {
   setLanguage: (language: string) => api.put('/api/language', { language }).then((r) => r.data),
   setLevel: (level: string) => api.put('/api/level', { level }).then((r) => r.data),
   getReferral: () => api.get('/api/referral').then((r) => r.data.data as ReferralInfo),
+  setPassword: (phone: string, password: string) =>
+    api.post('/api/auth/set-password', { phone, password }).then((r) => r.data.data),
 }

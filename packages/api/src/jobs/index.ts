@@ -87,11 +87,12 @@ async function dispatchDailyReminders() {
   }
 
   const users = await prisma.user.findMany({
-    where: { notifyAt: { in: slots }, notifyEnabled: true },
+    where: { notifyAt: { in: slots }, notifyEnabled: true, telegramId: { not: null } },
     select: { id: true, telegramId: true, language: true, streak: true },
   })
 
   for (const user of users) {
+    if (!user.telegramId) continue
     // Dedup gate: at most one reminder decision per user per day (survives restarts).
     const acquired = await redis.set(REMINDER_SENT_KEY(user.id), '1', 'EX', 90000, 'NX')
     if (acquired !== 'OK') continue
@@ -131,12 +132,13 @@ async function dispatchDueReminders() {
   if (due.length === 0) return
 
   const users = await prisma.user.findMany({
-    where: { id: { in: due.map((d) => d.userId) }, notifyEnabled: true },
+    where: { id: { in: due.map((d) => d.userId) }, notifyEnabled: true, telegramId: { not: null } },
     select: { id: true, telegramId: true, language: true, streak: true },
   })
   const countByUser = new Map(due.map((d) => [d.userId, d._count._all]))
 
   for (const user of users) {
+    if (!user.telegramId) continue
     const acquired = await redis.set(DUE_REMINDER_SENT_KEY(user.id), '1', 'EX', 90000, 'NX')
     if (acquired !== 'OK') continue
 

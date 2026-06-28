@@ -16,12 +16,14 @@ export async function adminNotificationsRoutes(fastify: FastifyInstance) {
     if (body.data.target === 'free') where.isPremium = false
 
     const users = await prisma.user.findMany({
-      where,
+      where: { ...where, telegramId: { not: null } },
       select: { telegramId: true },
     })
 
     await notificationQueue.add('bulk-message', {
-      telegramIds: (users as any[]).map((u) => u.telegramId.toString()),
+      telegramIds: (users as any[])
+        .map((u) => u.telegramId?.toString())
+        .filter(Boolean),
       message: body.data.message,
     })
 
