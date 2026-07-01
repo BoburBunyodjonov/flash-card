@@ -14,23 +14,6 @@ async function main() {
     })
   }
 
-  // Seed language pairs
-  await prisma.languagePair.upsert({
-    where: { fromLang_toLang: { fromLang: 'en', toLang: 'uz' } },
-    update: { isActive: true },
-    create: { fromLang: 'en', toLang: 'uz', isActive: true },
-  })
-  await prisma.languagePair.upsert({
-    where: { fromLang_toLang: { fromLang: 'en', toLang: 'ru' } },
-    update: {},
-    create: { fromLang: 'en', toLang: 'ru', isActive: false },
-  })
-  await prisma.languagePair.upsert({
-    where: { fromLang_toLang: { fromLang: 'ru', toLang: 'uz' } },
-    update: {},
-    create: { fromLang: 'ru', toLang: 'uz', isActive: false },
-  })
-
   // Seed categories
   const categories = [
     { nameUz: 'Kundalik so\'zlar', nameEn: 'Daily Words', nameRu: 'Ежедневные слова', icon: '🌟', color: '#6366f1', isPremium: false, order: 1 },

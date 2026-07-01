@@ -63,12 +63,4 @@ export const config = {
     username: process.env.TURN_USERNAME ?? '',
     password: process.env.TURN_PASSWORD ?? '',
   },
-
-  r2: {
-    accountId: process.env.R2_ACCOUNT_ID ?? '',
-    accessKeyId: process.env.R2_ACCESS_KEY_ID ?? '',
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY ?? '',
-    bucketName: process.env.R2_BUCKET_NAME ?? 'wordswipe-assets',
-    publicUrl: process.env.R2_PUBLIC_URL ?? '',
-  },
 }

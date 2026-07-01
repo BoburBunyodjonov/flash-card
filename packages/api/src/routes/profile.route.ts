@@ -31,6 +31,7 @@ export async function profileRoutes(fastify: FastifyInstance) {
         isPremium: true,
         premiumUntil: true,
         streak: true,
+        streakFreezes: true,
         xp: true,
         cefrLevel: true,
         gender: true,

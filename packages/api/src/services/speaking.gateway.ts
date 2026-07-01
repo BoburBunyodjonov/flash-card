@@ -24,6 +24,7 @@ interface Profile {
   cefrLevel: Difficulty | null
   gender: 'male' | 'female' | null
   xp: number
+  speakingBannedUntil: Date | null
 }
 
 interface Filters {
@@ -137,7 +138,7 @@ function publicProfile(p: Profile) {
 async function loadProfile(userId: string): Promise<Profile | null> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, firstName: true, avatarUrl: true, cefrLevel: true, gender: true, xp: true },
+    select: { id: true, firstName: true, avatarUrl: true, cefrLevel: true, gender: true, xp: true, speakingBannedUntil: true },
   })
   if (!user) return null
   return {
@@ -147,6 +148,7 @@ async function loadProfile(userId: string): Promise<Profile | null> {
     cefrLevel: (user.cefrLevel as Difficulty | null) ?? null,
     gender: (user.gender as 'male' | 'female' | null) ?? null,
     xp: user.xp,
+    speakingBannedUntil: user.speakingBannedUntil ?? null,
   }
 }
 
@@ -292,6 +294,12 @@ async function handleFind(
   const profile = await loadProfile(userId)
   if (!profile) {
     sendError(userId, 'User not found')
+    return
+  }
+
+  // Admin-imposed ban from the Speaking feature
+  if (profile.speakingBannedUntil && profile.speakingBannedUntil.getTime() > Date.now()) {
+    send(userId, { type: 'banned', until: profile.speakingBannedUntil.toISOString() })
     return
   }
 

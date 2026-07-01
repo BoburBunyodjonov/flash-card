@@ -4,6 +4,7 @@ import { config } from '../config'
 import { prisma } from '../lib/prisma'
 import { getBot } from '../lib/bot'
 import { finalizeLastWeek } from '../services/league.service'
+import { expireStaleDuels } from '../services/duel.service'
 import { REVIEW_REMINDER_THRESHOLD } from '@wordswipe/shared'
 
 const connection = { host: new URL(config.redis.url).hostname, port: parseInt(new URL(config.redis.url).port || '6379') }
@@ -23,6 +24,10 @@ const DUE_QUIET_END = 8
 
 const LEAGUE_FINALIZE_JOB = 'league-finalize'
 const LEAGUE_FINALIZE_PATTERN = '5 0 * * 1' // Monday 00:05
+
+// Proactively expires stale duels (pending unaccepted + abandoned active).
+const DUEL_EXPIRE_JOB = 'duel-expire'
+const DUEL_EXPIRE_PATTERN = '10 * * * *' // hourly at :10
 
 // Same UTC date key used by feed.service for the daily swipe counter.
 function todayKey() {
@@ -158,6 +163,30 @@ async function dispatchDueReminders() {
   }
 }
 
+// Notification sent to a challenger when nobody accepted their duel in time.
+const duelExpiredMessages: Record<string, (name: string) => string> = {
+  uz: (n) => `⚔️ ${n}, raqibingiz duelni qabul qilmadi va u muddati o'tdi. Yangi duelga chaqiring!`,
+  en: (n) => `⚔️ ${n}, nobody accepted your duel in time and it expired. Challenge a friend again!`,
+  ru: (n) => `⚔️ ${n}, ваш дуэль никто не принял вовремя и он истёк. Бросьте вызов снова!`,
+}
+
+/**
+ * Sweeps stale duels and notifies challengers whose unaccepted challenge expired.
+ * The sweep itself is idempotent (status guards), so overlapping runs are safe.
+ */
+async function dispatchDuelExpiry() {
+  const expired = await expireStaleDuels()
+  for (const c of expired) {
+    if (!c.telegramId || !c.notifyEnabled) continue
+    const text = (duelExpiredMessages[c.language] ?? duelExpiredMessages.en)(c.firstName)
+    await notificationQueue.add(
+      'bulk-message',
+      { telegramIds: [c.telegramId.toString()], message: text },
+      { removeOnComplete: true, removeOnFail: 50, attempts: 2 },
+    )
+  }
+}
+
 export function startWorkers() {
   const notificationWorker = new Worker(
     'notifications',
@@ -185,6 +214,10 @@ export function startWorkers() {
 
       if (job.name === LEAGUE_FINALIZE_JOB) {
         await finalizeLastWeek()
+      }
+
+      if (job.name === DUEL_EXPIRE_JOB) {
+        await dispatchDuelExpiry()
       }
 
       if (job.name === 'daily-reminder') {
@@ -222,5 +255,10 @@ export async function setupRecurringJobs() {
     { pattern: LEAGUE_FINALIZE_PATTERN },
     { name: LEAGUE_FINALIZE_JOB, data: {}, opts: { removeOnComplete: true, removeOnFail: 50 } },
   )
-  console.log('[Queue] Schedulers ready: daily reminders, due-word reminders, league finalize')
+  await notificationQueue.upsertJobScheduler(
+    DUEL_EXPIRE_JOB,
+    { pattern: DUEL_EXPIRE_PATTERN },
+    { name: DUEL_EXPIRE_JOB, data: {}, opts: { removeOnComplete: true, removeOnFail: 50 } },
+  )
+  console.log('[Queue] Schedulers ready: daily reminders, due-word reminders, league finalize, duel expiry')
 }

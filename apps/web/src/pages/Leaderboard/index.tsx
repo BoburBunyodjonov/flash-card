@@ -152,16 +152,17 @@ function LeagueView() {
   )
 }
 
-const TABS: { key: 'league' | 'global' | 'friends'; Icon: LucideIcon }[] = [
+const TABS: { key: 'league' | 'global' | 'friends' | 'followers'; Icon: LucideIcon }[] = [
   { key: 'league', Icon: Shield },
   { key: 'global', Icon: Globe },
   { key: 'friends', Icon: Users },
+  { key: 'followers', Icon: UserCheck },
 ]
 
 export function LeaderboardPage({ onBack }: { onBack?: () => void }) {
   const { t } = useTranslation()
   const { user } = useAuthStore()
-  const [tab, setTab] = useState<'league' | 'global' | 'friends'>('league')
+  const [tab, setTab] = useState<'league' | 'global' | 'friends' | 'followers'>('league')
   const [list, setList] = useState<LeaderboardUser[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
@@ -229,6 +230,8 @@ export function LeaderboardPage({ onBack }: { onBack?: () => void }) {
           <div className="flex justify-center pt-12">
             <div className="w-8 h-8 rounded-full animate-spin" style={{ border: '2px solid transparent', borderTopColor: 'var(--ws-primary)', borderRightColor: 'var(--ws-primary)' }} />
           </div>
+        ) : tab === 'followers' && list.length === 0 ? (
+          <p className="text-sm text-center pt-12 px-6" style={{ color: 'var(--ws-muted)' }}>{t('leaderboard.noFollowers')}</p>
         ) : (
           <div className="flex flex-col gap-2">
             {list.map((u, i) => (
@@ -256,7 +259,7 @@ export function LeaderboardPage({ onBack }: { onBack?: () => void }) {
                     <Flame size={12} strokeWidth={2.2} style={{ color: 'var(--ws-warning)' }} /> {u.streak}
                   </p>
                 </div>
-                {tab === 'global' && u.id !== user?.id && (
+                {(tab === 'global' || tab === 'followers') && u.id !== user?.id && (
                   <button
                     onClick={() => toggleFollow(u)}
                     aria-label={u.isFollowing ? t('leaderboard.following') : t('leaderboard.follow')}

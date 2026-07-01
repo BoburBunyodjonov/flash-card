@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { Brain, Swords, Target, NotebookPen, ChevronRight, type LucideIcon } from 'lucide-react'
+import { Brain, Swords, Target, NotebookPen, Users, ChevronRight, type LucideIcon } from 'lucide-react'
 
 interface Props {
   onQuiz?: () => void
@@ -8,6 +8,7 @@ interface Props {
   onSpeaking?: () => void
   onChallenge?: () => void
   onMyWords?: () => void
+  onGroupChallenge?: () => void
 }
 
 interface Mode {
@@ -17,15 +18,16 @@ interface Mode {
   onPress?: () => void
 }
 
-export function PracticePage({ onQuiz, onDuel, onChallenge, onMyWords }: Props) {
+export function PracticePage({ onQuiz, onDuel, onChallenge, onMyWords, onGroupChallenge }: Props) {
   const { t } = useTranslation()
 
   // Speaking has its own bottom-nav tab now, so it's not listed here.
   const modes: Mode[] = [
-    { key: 'quiz',      Icon: Brain,       tint: '#6366F1', onPress: onQuiz },
-    { key: 'duel',      Icon: Swords,      tint: '#EF4444', onPress: onDuel },
-    { key: 'challenge', Icon: Target,      tint: '#F59E0B', onPress: onChallenge },
-    { key: 'myWords',   Icon: NotebookPen, tint: '#8B5CF6', onPress: onMyWords },
+    { key: 'quiz',           Icon: Brain,       tint: '#6366F1', onPress: onQuiz },
+    { key: 'duel',           Icon: Swords,      tint: '#EF4444', onPress: onDuel },
+    { key: 'groupChallenge', Icon: Users,       tint: '#06B6D4', onPress: onGroupChallenge },
+    { key: 'challenge',      Icon: Target,      tint: '#F59E0B', onPress: onChallenge },
+    { key: 'myWords',        Icon: NotebookPen, tint: '#8B5CF6', onPress: onMyWords },
   ]
 
   return (

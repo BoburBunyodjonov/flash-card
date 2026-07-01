@@ -2,20 +2,54 @@ import { prisma } from '../lib/prisma'
 import axios from 'axios'
 import type { Language } from '@wordswipe/shared'
 
+/**
+ * Word search with relevance ranking. Matches both the English headword and the
+ * translation in the user's language (so e.g. typing "kitob" finds "book"), and
+ * ranks results: exact word > word prefix > translation match > word substring.
+ * The ranking is done in SQL so it holds across pages, not just within one page.
+ */
 export async function searchWords(query: string, language: Language, page = 1, limit = 20) {
   const skip = (page - 1) * limit
-  const [words, total] = await Promise.all([
-    prisma.word.findMany({
-      where: { word: { contains: query, mode: 'insensitive' } },
-      skip,
-      take: limit,
-      include: {
-        translations: { where: { language } },
-        category: true,
-      },
-    }),
-    prisma.word.count({ where: { word: { contains: query, mode: 'insensitive' } } }),
+  const q = query.trim()
+  const contains = `%${q}%`
+  const prefix = `${q}%`
+
+  // Rank + paginate at the DB level, then hydrate the full records in order.
+  const [ranked, countRows] = await Promise.all([
+    prisma.$queryRaw<{ id: string }[]>`
+      SELECT w.id
+      FROM words w
+      LEFT JOIN word_translations t ON t.word_id = w.id AND t.language = ${language}::"Language"
+      WHERE w.word ILIKE ${contains} OR t.translation ILIKE ${contains}
+      ORDER BY
+        (CASE
+          WHEN lower(w.word) = lower(${q}) THEN 0
+          WHEN w.word ILIKE ${prefix} THEN 1
+          WHEN t.translation ILIKE ${contains} THEN 2
+          ELSE 3 END) ASC,
+        w.word ASC
+      LIMIT ${limit} OFFSET ${skip}
+    `,
+    prisma.$queryRaw<{ count: number }[]>`
+      SELECT COUNT(*)::int AS count
+      FROM words w
+      LEFT JOIN word_translations t ON t.word_id = w.id AND t.language = ${language}::"Language"
+      WHERE w.word ILIKE ${contains} OR t.translation ILIKE ${contains}
+    `,
   ])
+
+  const ids = ranked.map((r) => r.id)
+  const total = countRows[0]?.count ?? 0
+
+  // findMany doesn't preserve `in` order — re-sort to match the ranked ids.
+  const rows = ids.length
+    ? await prisma.word.findMany({
+        where: { id: { in: ids } },
+        include: { translations: { where: { language } }, category: true },
+      })
+    : []
+  const byId = new Map(rows.map((w) => [w.id, w]))
+  const words = ids.map((id) => byId.get(id)).filter((w): w is NonNullable<typeof w> => Boolean(w))
 
   return { words, total, page, limit, totalPages: Math.ceil(total / limit) }
 }

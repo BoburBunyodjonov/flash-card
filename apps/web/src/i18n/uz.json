@@ -69,6 +69,7 @@
   "progress": {
     "title": "Natijam",
     "streak": "Kun ketma-ket",
+    "streakFreezeHint": "Streak muzlatgichlari — har biri bitta o'tkazib yuborilgan kundan streak'ingizni saqlaydi",
     "xp": "Ball",
     "total": "Jami so'zlar",
     "learned": "Yodlandim",
@@ -313,9 +314,11 @@
     "league": "Liga",
     "global": "Global",
     "friends": "Do'stlar",
+    "followers": "Kuzatuvchilar",
     "xp": "XP",
     "follow": "Kuzatish",
-    "following": "Kuzatilmoqda"
+    "following": "Kuzatilmoqda",
+    "noFollowers": "Hali hech kim sizni kuzatmayapti. Global reytingda yuqoriga chiqib, e'tibor qozoning!"
   },
   "league": {
     "loadError": "Liga yuklanmadi",
@@ -380,6 +383,29 @@
       }
     }
   },
+  "groupChallenge": {
+    "title": "Guruhli challenge",
+    "questionPrompt": "Bu so'z o'zbekchada nima?",
+    "createButton": "Challenge yaratish",
+    "creating": "Yaratilmoqda...",
+    "myChallenges": "Mening challenge'larim",
+    "emptyDesc": "Challenge yarating va do'stlaringizni bir xil savollar bo'yicha musobaqaga taklif qiling!",
+    "byName": "{{name}} challenge'i",
+    "playerCount": "{{count}} ishtirokchi",
+    "ended": "tugadi",
+    "lobbyTitle": "Challenge tayyor!",
+    "lobbyDesc": "Havolani ulashing — hamma bir xil {{count}} ta savol bo'yicha musobaqalashadi.",
+    "shareTelegram": "Telegramda ulashish",
+    "shareText": "🏆 WordSwipe challenge'imga qo'shiling! {{count}} ta savol — kim ko'p to'playdi?",
+    "playNow": "Hozir o'ynash",
+    "leaderboard": "Reyting",
+    "refresh": "Yangilash",
+    "noPlayers": "Hali hech kim o'ynamadi",
+    "inviteMore": "Yana do'st taklif qilish",
+    "backToList": "Challenge'larga qaytish",
+    "notFound": "Challenge topilmadi",
+    "createError": "Challenge yaratib bo'lmadi"
+  },
   "duel": {
     "questionPrompt": "Bu so'z o'zbekchada nima?",
     "creating": "Yaratilmoqda...",
@@ -434,6 +460,10 @@
     "duel": {
       "title": "Duel",
       "desc": "Do'st bilan bellash"
+    },
+    "groupChallenge": {
+      "title": "Guruhli challenge",
+      "desc": "Do'stlar bilan bir xil savollarda musobaqa"
     },
     "speaking": {
       "title": "Speaking",

@@ -218,23 +218,41 @@ async function bookmarkWord(userId: string, wordId: string) {
 const TASHKENT_OFFSET_MS = 5 * 60 * 60 * 1000
 const dayIndex = (date: Date) => Math.floor((date.getTime() + TASHKENT_OFFSET_MS) / 86_400_000)
 
+// Streak-freeze economy: a freeze auto-protects the streak across a single
+// missed day. Users start with 2 and earn one on every milestone, capped.
+const STREAK_FREEZE_MAX = 3
+const STREAK_FREEZE_MILESTONE = 7
+
 async function updateStreak(userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { lastActive: true, streak: true },
+    select: { lastActive: true, streak: true, streakFreezes: true },
   })
   if (!user) return
 
-  if (user.lastActive) {
-    const diff = dayIndex(new Date()) - dayIndex(new Date(user.lastActive))
-    if (diff === 0) return
-    if (diff === 1) {
-      await prisma.user.update({ where: { id: userId }, data: { streak: { increment: 1 }, lastActive: new Date() } })
-    } else {
-      // Gap of 2+ days: today's activity restarts the streak at day 1
-      await prisma.user.update({ where: { id: userId }, data: { streak: 1, lastActive: new Date() } })
+  if (!user.lastActive) {
+    await prisma.user.update({ where: { id: userId }, data: { streak: 1, lastActive: new Date() } })
+    return
+  }
+
+  const diff = dayIndex(new Date()) - dayIndex(new Date(user.lastActive))
+  if (diff === 0) return // already active today
+
+  // diff === 2 means exactly one day was missed — a freeze can bridge it.
+  const canContinue = diff === 1 || (diff === 2 && user.streakFreezes > 0)
+  if (canContinue) {
+    const newStreak = user.streak + 1
+    let freezes = user.streakFreezes - (diff === 2 ? 1 : 0)
+    // Reward a fresh freeze each time a milestone is reached (capped).
+    if (newStreak % STREAK_FREEZE_MILESTONE === 0) {
+      freezes = Math.min(STREAK_FREEZE_MAX, freezes + 1)
     }
+    await prisma.user.update({
+      where: { id: userId },
+      data: { streak: newStreak, lastActive: new Date(), streakFreezes: freezes },
+    })
   } else {
+    // Gap too large (or no freeze left): today's activity restarts at day 1.
     await prisma.user.update({ where: { id: userId }, data: { streak: 1, lastActive: new Date() } })
   }
 }

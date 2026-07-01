@@ -13,6 +13,7 @@ import { adminUsersRoutes } from './admin/users.route'
 import { adminSettingsRoutes } from './admin/settings.route'
 import { adminAnalyticsRoutes } from './admin/analytics.route'
 import { adminNotificationsRoutes } from './admin/notifications.route'
+import { adminSpeakingRoutes } from './admin/speaking.route'
 import { challengeRoutes } from './challenge.route'
 import { categoriesRoutes } from './categories.route'
 import { onboardingRoutes } from './onboarding.route'
@@ -22,6 +23,7 @@ import { leagueRoutes } from './league.route'
 import { paymentsRoutes } from './payments.route'
 import { speakingRoutes } from './speaking.route'
 import { myWordsRoutes } from './my-words.route'
+import { groupChallengeRoutes } from './group-challenge.route'
 
 export async function registerRoutes(fastify: FastifyInstance) {
   fastify.register(authRoutes, { prefix: '/api/auth' })
@@ -40,6 +42,7 @@ export async function registerRoutes(fastify: FastifyInstance) {
   fastify.register(paymentsRoutes, { prefix: '/api/payments' })
   fastify.register(speakingRoutes, { prefix: '/api/speaking' })
   fastify.register(myWordsRoutes, { prefix: '/api/my-words' })
+  fastify.register(groupChallengeRoutes, { prefix: '/api/group-challenge' })
 
   fastify.register(
     async (adminApp) => {
@@ -50,6 +53,7 @@ export async function registerRoutes(fastify: FastifyInstance) {
       adminApp.register(adminSettingsRoutes, { prefix: '/settings' })
       adminApp.register(adminAnalyticsRoutes, { prefix: '/analytics' })
       adminApp.register(adminNotificationsRoutes, { prefix: '/notifications' })
+      adminApp.register(adminSpeakingRoutes, { prefix: '/speaking' })
     },
     { prefix: '/api/admin' },
   )

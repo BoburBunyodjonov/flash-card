@@ -186,7 +186,7 @@ Token‑based (JWT). A user can sign in **two ways**:
 
 ### `GET /api/`
 **Auth:** required — Description: Current user's profile with follower/following counts.
-**Response 200:** `data` = the user object (as in login) **plus** `leagueTier: string | null`, `createdAt: ISO`, and `_count: { followers: number, following: number }`. `data` is `null` if the user record is missing (still `200`).
+**Response 200:** `data` = the user object (as in login) **plus** `leagueTier: string | null`, `streakFreezes: number`, `createdAt: ISO`, and `_count: { followers: number, following: number }`. `data` is `null` if the user record is missing (still `200`).
 **Errors:** `401`.
 
 ### `PUT /api/`
@@ -232,7 +232,7 @@ Body: `{ "notifyAt?": "HH:MM (^\\d{2}:\\d{2}$)", "enabled?": "boolean" }` → `{
 **Response 200:** `data[]` = `{ id, nameUz, nameEn, icon: string|null, color: "#hex", isPremium }` (note: `nameRu`/`order`/`createdAt` not returned here).
 
 ### `GET /api/words`
-**Auth:** required — Description: Paginated word search (case‑insensitive `contains`), translations filtered to user language.
+**Auth:** required — Description: Paginated, relevance‑ranked word search. Matches both the English headword **and** the translation in the caller's language (so e.g. `q=kitob` finds `book`). Ranking: exact word > word prefix > translation match > word substring. Translations in the response are filtered to the user language.
 **Query:** `q` (string, default `""`), `page` (default `1`), `limit` (default `20`, max `50`).
 **Response 200:**
 ```json
@@ -348,8 +348,9 @@ Errors: `400` "Invalid quiz mode".
 **Auth:** required — → `{ data: { questions: [ { wordId, word, pronunciation, choices: string[4], correctIndex } ], date: "YYYY-MM-DD" } }` (≤5, may be fewer).
 
 ### Progress — `/api/progress`
-- **`GET /api/progress`** — `{ data: { totalWordsEncountered, new, learning, learned, mastered, streak, xp, savedWords } }` (all numbers).
+- **`GET /api/progress`** — `{ data: { totalWordsEncountered, new, learning, learned, mastered, streak, streakFreezes, xp, savedWords } }` (all numbers). `streakFreezes` = remaining streak-freeze count (auto-protects the streak across a single missed day).
 - **`GET /api/progress/streak`** — `{ data: { streak, lastActive: ISO|null, xp } }`.
+- **`GET /api/progress/achievements`** — Syncs server-side badges: unlocks any newly earned ones (awards their XP once, pings the user via the bot) and returns the full list. → `{ data: { list: [ { code, xp, unlocked: boolean, unlockedAt: ISO|null } ], newlyUnlocked: string[], awardedXp: number } }`. Codes: `first_word, streak_3, streak_7, streak_30, words_10, words_50, words_100, xp_100, xp_1000, master_10, saved_5, b1_reached`.
 - **`GET /api/progress/weak-words`** — `{ data: [ <user_word_progress row with embedded word incl. translations + category> ] }` (≤20, weakest first).
 - **`GET /api/progress/history`** — Query `period` (`week|month|3months`, default `week`). → `{ data: { "YYYY-MM-DD": { learned, reviewed } } }` (only active days). Invalid `period` → `500`.
 
@@ -380,6 +381,20 @@ Embedded user objects use: `{ id, firstName, lastName: string|null, username: st
 - **`GET /api/duel/:id`** — Single duel. Errors: `404`.
 - **`POST /api/duel/:id/join`** — Join pending duel (→ active, makes both mutual followers). Errors: `400` ("Cannot join your own duel", "Duel already has an opponent", "Duel is no longer active", "Duel not found").
 - **`POST /api/duel/:id/submit`** — Body `{ score: int 0–50, timeMs: int ≥0 }`. Finalizes when both submitted. Errors: `400` ("Invalid body", "Not a participant of this duel", "Already submitted", "Duel not found").
+
+> Stale duels are also swept proactively by an hourly cron: unaccepted `pending` and abandoned `active` duels past 48h flip to `expired`, and the challenger of an unaccepted duel gets a Telegram nudge to re-challenge.
+
+### Group Challenge — `/api/group-challenge`
+
+Multiplayer quiz race: the creator generates a shared set of 7 MCQ questions, shares a deep link, and any number of friends play the **same** questions. Each player has one scored entry; the leaderboard ranks by score then time. Reward on submit: `+10 XP` participation, `+20 XP` bonus for a perfect run (counts toward leagues). Challenges expire 72h after creation. Deep link: `https://t.me/<bot>?start=gc_<id>` (param `gc_<id>`).
+
+A challenge object = `{ id, creator: <user>, questions: [ { wordId, word, pronunciation, choices, correctIndex } ], questionCount, expiresAt: ISO, createdAt: ISO, expired: boolean, joined: boolean, submitted: boolean, myScore: int|null, playerCount: int, leaderboard: [ { rank, user, score, timeMs, completed: boolean, isMe: boolean } ] }`. Create/get also include `link: string|null` and `startParam`.
+
+- **`POST /api/group-challenge`** — Create (creator auto-joined). → challenge object + `link`/`startParam`. Errors: `400` "Not enough words to create a challenge".
+- **`GET /api/group-challenge`** — Caller's challenges (≤20, newest first).
+- **`GET /api/group-challenge/:id`** — Single challenge. Errors: `404`.
+- **`POST /api/group-challenge/:id/join`** — Join (idempotent; mutual-follows the creator). Errors: `400` ("Challenge has expired", "Challenge not found").
+- **`POST /api/group-challenge/:id/submit`** — Body `{ score: int 0–50, timeMs: int ≥0 }`. Records the caller's run + awards XP. → challenge object **plus** `xpEarned: number`. Errors: `400` ("Invalid body", "Already submitted", "Challenge has expired", "Challenge not found").
 
 ### Speaking — `/api/speaking`
 
@@ -421,7 +436,8 @@ Embedded user objects use: `{ id, firstName, lastName: string|null, username: st
 ### Leaderboard — `/api/leaderboard`
 - **`GET /api/leaderboard/global`** — Top 100 by XP. → `data[]` = `{ id, firstName, lastName, username, avatarUrl, xp, streak, isFollowing }`.
 - **`GET /api/leaderboard/friends`** — Caller + followed users by XP. → `data[]` = `{ id, firstName, lastName, username, avatarUrl, xp, streak }` (no `isFollowing`). Errors: `402` "Premium required for friends leaderboard".
-- **`POST /api/leaderboard/users/:id/follow`** — Follow (idempotent). Errors: `400` "Cannot follow yourself".
+- **`GET /api/leaderboard/followers`** — Users who follow the caller (≤100, newest first). → `data[]` = `{ id, firstName, lastName, username, avatarUrl, xp, streak, followedAt: ISO, isFollowing }` (`isFollowing` = whether the caller already follows them back).
+- **`POST /api/leaderboard/users/:id/follow`** — Follow (idempotent). On a **new** follow the followed user gets a Telegram notification. Errors: `400` "Cannot follow yourself".
 - **`DELETE /api/leaderboard/users/:id/follow`** — Unfollow (no‑op if not following).
 
 ### League — `/api/league`
@@ -449,7 +465,7 @@ Telegram Stars (XTR). Finalization is **out‑of‑band**: after the user pays t
 
 ## Admin API
 
-`/api/admin/*` endpoints (words, categories, users, settings, analytics, notifications) require an **admin** JWT (`POST /api/auth/admin-login`) and are used only by the web admin panel — not the mobile app. Not documented here.
+`/api/admin/*` endpoints (words, categories, users, settings, analytics, notifications, speaking moderation) require an **admin** JWT (`POST /api/auth/admin-login`) and are used only by the web admin panel — not the mobile app. Not documented here.
 
 ---
 

@@ -10,7 +10,7 @@ export async function getOverallProgress(userId: string) {
     }),
     prisma.user.findUnique({
       where: { id: userId },
-      select: { streak: true, xp: true },
+      select: { streak: true, streakFreezes: true, xp: true },
     }),
   ])
 
@@ -31,6 +31,7 @@ export async function getOverallProgress(userId: string) {
     learned: statusMap['learned'] ?? 0,
     mastered: statusMap['mastered'] ?? 0,
     streak: user?.streak ?? 0,
+    streakFreezes: user?.streakFreezes ?? 0,
     xp: user?.xp ?? 0,
     savedWords,
   }

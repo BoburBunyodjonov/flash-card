@@ -9,6 +9,7 @@ import { progressApi } from '../../api/progress.api'
 
 interface ProgressData {
   streak: number
+  streakFreezes?: number
   xp: number
   totalWordsEncountered: number
   learned: number
@@ -238,8 +239,16 @@ export function ProgressPage({ onBack }: { onBack?: () => void }) {
   const [heatmapData, setHeatmapData] = useState<Record<string, { reviewed: number }>>({})
   const [weakWords, setWeakWords] = useState<WeakWord[]>([])
   const [showReview, setShowReview] = useState(false)
+  // null until the server responds; until then we fall back to local predicates.
+  const [unlockedCodes, setUnlockedCodes] = useState<Set<string> | null>(null)
 
   useEffect(() => { progressApi.getOverall().then(setData).catch(console.error) }, [])
+  // Server-side achievements: syncs unlocks, awards XP, returns persisted state.
+  useEffect(() => {
+    progressApi.getAchievements()
+      .then((r) => setUnlockedCodes(new Set(r.list.filter((a) => a.unlocked).map((a) => a.code))))
+      .catch(console.error)
+  }, [])
   useEffect(() => { progressApi.getHistory(period).then(setHistory).catch(console.error) }, [period])
   useEffect(() => { progressApi.getHistory('3months').then(setHeatmapData).catch(console.error) }, [])
   useEffect(() => { progressApi.getWeakWords().then(setWeakWords).catch(console.error) }, [])
@@ -288,6 +297,16 @@ export function ProgressPage({ onBack }: { onBack?: () => void }) {
             >
               <cfg.Icon size={20} strokeWidth={2.2} style={{ color: cfg.color }} />
             </div>
+            {/* Streak-freeze indicator: how many missed days are still protected */}
+            {cfg.key === 'streak' && data?.streakFreezes ? (
+              <div
+                className="absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold"
+                style={{ background: 'rgba(56,189,248,0.14)', color: '#38bdf8', border: '1px solid rgba(56,189,248,0.3)' }}
+                title={t('progress.streakFreezeHint')}
+              >
+                ❄️ {data.streakFreezes}
+              </div>
+            ) : null}
             <div>
               <span className="text-3xl font-black tabular-nums" style={{ color: 'var(--ws-text)' }}>
                 {statValues[i].toLocaleString()}
@@ -494,12 +513,12 @@ export function ProgressPage({ onBack }: { onBack?: () => void }) {
               <Award size={14} strokeWidth={2.4} style={{ color: 'var(--ws-muted)' }} /> {t('progress.achievements')}
             </h3>
             <span className="text-xs font-bold" style={{ color: 'var(--ws-warning)' }}>
-              {ACHIEVEMENTS.filter(a => a.unlocked(data)).length}/{ACHIEVEMENTS.length}
+              {ACHIEVEMENTS.filter(a => (unlockedCodes ? unlockedCodes.has(a.id) : a.unlocked(data))).length}/{ACHIEVEMENTS.length}
             </span>
           </div>
           <div className="grid grid-cols-4 gap-3">
             {ACHIEVEMENTS.map((achievement, i) => {
-              const isUnlocked = achievement.unlocked(data)
+              const isUnlocked = unlockedCodes ? unlockedCodes.has(achievement.id) : achievement.unlocked(data)
               return (
                 <motion.div
                   key={achievement.id}

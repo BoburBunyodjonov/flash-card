@@ -80,6 +80,8 @@ model User {
   isPremium    Boolean   @default(false) @map("is_premium")
   premiumUntil DateTime? @map("premium_until")
   streak       Int       @default(0)
+  // Streak freezes auto-protect the streak when the user misses a single day
+  streakFreezes Int      @default(2) @map("streak_freezes")
   lastActive   DateTime? @map("last_active")
   xp           Int       @default(0)
   cefrLevel    Difficulty? @map("cefr_level")
@@ -88,6 +90,8 @@ model User {
   referredById String?   @map("referred_by")
   notifyAt      String   @default("20:00") @map("notify_at")
   notifyEnabled Boolean  @default(true) @map("notify_enabled")
+  // Set by admins to bar an abusive user from the Speaking (voice) feature until this time
+  speakingBannedUntil DateTime? @map("speaking_banned_until")
   createdAt    DateTime  @default(now()) @map("created_at")
 
   referredBy   User?              @relation("Referrals", fields: [referredById], references: [id])
@@ -106,8 +110,26 @@ model User {
   speakingAsB    SpeakingSession[] @relation("SpeakingUserB")
   speakingReports SpeakingReport[]
   userWords    UserWord[]
+  achievements UserAchievement[]
+  gcCreated    GroupChallenge[]      @relation("GcCreator")
+  gcEntries    GroupChallengeEntry[] @relation("GcEntrant")
 
   @@map("users")
+}
+
+// One row per achievement a user has unlocked. The unique constraint makes the
+// XP reward idempotent — an achievement can only ever be inserted (and rewarded) once.
+model UserAchievement {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  code       String
+  unlockedAt DateTime @default(now()) @map("unlocked_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, code])
+  @@index([userId])
+  @@map("user_achievements")
 }
 
 model UserWord {
@@ -160,12 +182,16 @@ model SpeakingReport {
   sessionId  String   @map("session_id")
   reporterId String   @map("reporter_id")
   reason     String
+  // Null until an admin reviews it; set when the report is actioned/dismissed
+  resolvedAt DateTime? @map("resolved_at")
+  resolution String?   // free-text admin note (e.g. "banned 7d", "dismissed")
   createdAt  DateTime @default(now()) @map("created_at")
 
   session  SpeakingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   reporter User            @relation(fields: [reporterId], references: [id], onDelete: Cascade)
 
   @@index([sessionId])
+  @@index([resolvedAt])
   @@map("speaking_reports")
 }
 
@@ -189,6 +215,40 @@ model Duel {
   @@index([challengerId])
   @@index([opponentId])
   @@map("duels")
+}
+
+// A multiplayer quiz race: the creator generates a shared question set, shares a
+// deep link, and any number of friends play the same questions. Each player gets
+// one scored entry; the leaderboard ranks by score then time.
+model GroupChallenge {
+  id        String   @id @default(uuid())
+  creatorId String   @map("creator_id")
+  questions Json
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  creator User                  @relation("GcCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  entries GroupChallengeEntry[]
+
+  @@index([creatorId])
+  @@map("group_challenges")
+}
+
+model GroupChallengeEntry {
+  id          String    @id @default(uuid())
+  challengeId String    @map("challenge_id")
+  userId      String    @map("user_id")
+  score       Int       @default(0)
+  timeMs      Int       @default(0) @map("time_ms")
+  completedAt DateTime? @map("completed_at")
+  joinedAt    DateTime  @default(now()) @map("joined_at")
+
+  challenge GroupChallenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  user      User           @relation("GcEntrant", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([challengeId, userId])
+  @@index([challengeId])
+  @@map("group_challenge_entries")
 }
 
 model LeagueMember {
@@ -346,15 +406,4 @@ model Payment {
   user User @relation(fields: [userId], references: [id])
 
   @@map("payments")
-}
-
-model LanguagePair {
-  id        String   @id @default(uuid())
-  fromLang  String   @map("from_lang")
-  toLang    String   @map("to_lang")
-  isActive  Boolean  @default(false) @map("is_active")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@unique([fromLang, toLang])
-  @@map("language_pairs")
 }

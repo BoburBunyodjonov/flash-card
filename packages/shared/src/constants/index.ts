@@ -90,6 +90,13 @@ export const DUEL_LOSER_XP = 15
 export const DUEL_DRAW_XP = 25
 export const DUEL_EXPIRE_HOURS = 48
 
+// Group challenges (multiplayer quiz race among friends)
+export const GC_PREFIX = 'gc_'
+export const GC_QUESTION_COUNT = 7
+export const GC_EXPIRE_HOURS = 72
+export const GC_BASE_XP = 10 // flat participation reward
+export const GC_PERFECT_BONUS_XP = 20 // extra for a perfect run
+
 // Weekly leagues
 export const LEAGUE_TIERS = ['Bronze', 'Silver', 'Gold', 'Sapphire', 'Diamond'] as const
 export const LEAGUE_GROUP_SIZE = 30

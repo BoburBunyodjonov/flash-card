@@ -69,6 +69,7 @@
   "progress": {
     "title": "My Progress",
     "streak": "Day Streak",
+    "streakFreezeHint": "Streak freezes — each one protects your streak across a single missed day",
     "xp": "XP Points",
     "total": "Total Words",
     "learned": "Learned",
@@ -313,9 +314,11 @@
     "league": "League",
     "global": "Global",
     "friends": "Friends",
+    "followers": "Followers",
     "xp": "XP",
     "follow": "Follow",
-    "following": "Following"
+    "following": "Following",
+    "noFollowers": "No one follows you yet. Climb the global board to get noticed!"
   },
   "league": {
     "loadError": "Failed to load league",
@@ -380,6 +383,29 @@
       }
     }
   },
+  "groupChallenge": {
+    "title": "Group Challenge",
+    "questionPrompt": "What is this word in Uzbek?",
+    "createButton": "Create a challenge",
+    "creating": "Creating...",
+    "myChallenges": "My challenges",
+    "emptyDesc": "Create a challenge and invite friends to race on the same questions!",
+    "byName": "{{name}}'s challenge",
+    "playerCount": "{{count}} players",
+    "ended": "ended",
+    "lobbyTitle": "Challenge ready!",
+    "lobbyDesc": "Share the link — everyone races on the same {{count}} questions.",
+    "shareTelegram": "Share on Telegram",
+    "shareText": "🏆 Join my WordSwipe challenge! {{count}} questions — who scores highest?",
+    "playNow": "Play now",
+    "leaderboard": "Leaderboard",
+    "refresh": "Refresh",
+    "noPlayers": "No one has played yet",
+    "inviteMore": "Invite more friends",
+    "backToList": "Back to challenges",
+    "notFound": "Challenge not found",
+    "createError": "Couldn't create the challenge"
+  },
   "duel": {
     "questionPrompt": "What is this word in Uzbek?",
     "creating": "Creating...",
@@ -434,6 +460,10 @@
     "duel": {
       "title": "Duel",
       "desc": "Challenge a friend"
+    },
+    "groupChallenge": {
+      "title": "Group Challenge",
+      "desc": "Race friends on the same questions"
     },
     "speaking": {
       "title": "Speaking",

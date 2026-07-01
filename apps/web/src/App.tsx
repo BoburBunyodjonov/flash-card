@@ -16,23 +16,27 @@ import { SettingsPage } from './pages/Settings'
 import { ChallengePage } from './pages/Challenge'
 import { QuizPage } from './pages/Quiz'
 import { DuelPage } from './pages/Duel'
+import { GroupChallengePage } from './pages/GroupChallenge'
 import { SpeakingPage } from './pages/Speaking'
 import { MyWordsPage } from './pages/MyWords'
 import { ProfilePage } from './pages/Profile'
 import { flushPendingSwipes } from './store/feed.store'
+import { flushOfflineQueue } from './lib/offlineQueue'
 
-type Page = 'feed' | 'practice' | 'dictionary' | 'decks' | 'progress' | 'leaderboard' | 'settings' | 'challenge' | 'quiz' | 'duel' | 'speaking' | 'mywords' | 'profile'
+type Page = 'feed' | 'practice' | 'dictionary' | 'decks' | 'progress' | 'leaderboard' | 'settings' | 'challenge' | 'quiz' | 'duel' | 'groupchallenge' | 'speaking' | 'mywords' | 'profile'
 
 const NAV_PAGES: Page[] = ['feed', 'practice', 'speaking', 'dictionary', 'profile']
 // Pages reached from inside the Profile tab — they keep the Profil tab highlighted
 const PROFILE_SUBPAGES: Page[] = ['progress', 'leaderboard', 'decks', 'settings']
 
 const DUEL_PREFIX = 'duel_'
+const GC_PREFIX = 'gc_'
 
 export default function App() {
   const { user, setUser } = useAuthStore()
   const [page, setPage] = useState<Page>('feed')
   const [duelId, setDuelId] = useState<string | null>(null)
+  const [gcId, setGcId] = useState<string | null>(null)
   const [speakingAuto, setSpeakingAuto] = useState(false)
   const [onboardingDone, setOnboardingDone] = useState(() => !!localStorage.getItem('ws_onboarding_done'))
 
@@ -42,6 +46,7 @@ export default function App() {
   useEffect(() => {
     if (!user) return
     flushPendingSwipes()
+    flushOfflineQueue()
     const startParam =
       window.Telegram?.WebApp?.initDataUnsafe?.start_param ||
       new URLSearchParams(window.location.search).get('sp') ||
@@ -49,6 +54,9 @@ export default function App() {
     if (startParam?.startsWith(DUEL_PREFIX)) {
       setDuelId(startParam.slice(DUEL_PREFIX.length))
       setPage('duel')
+    } else if (startParam?.startsWith(GC_PREFIX)) {
+      setGcId(startParam.slice(GC_PREFIX.length))
+      setPage('groupchallenge')
     } else if (startParam === 'speaking') {
       // Opened from the bot's "Start Practice" speaking ping → auto-find a partner
       setSpeakingAuto(true)
@@ -112,6 +120,7 @@ export default function App() {
               onSpeaking={() => setPage('speaking')}
               onChallenge={() => setPage('challenge')}
               onMyWords={() => setPage('mywords')}
+              onGroupChallenge={() => setPage('groupchallenge')}
             />
           )}
           {page === 'speaking' && (
@@ -130,6 +139,12 @@ export default function App() {
             <DuelPage
               deepLinkDuelId={duelId}
               onBack={() => { setDuelId(null); setPage('feed') }}
+            />
+          )}
+          {page === 'groupchallenge' && (
+            <GroupChallengePage
+              deepLinkId={gcId}
+              onBack={() => { setGcId(null); setPage('practice') }}
             />
           )}
           {page === 'dictionary' && <DictionaryPage />}

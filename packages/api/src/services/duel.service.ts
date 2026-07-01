@@ -31,15 +31,22 @@ function shuffle<T>(arr: T[]): T[] {
   return a
 }
 
-/** Both players answer the same questions, so generation is user-independent. */
-async function generateQuestions(language: Language): Promise<DuelQuestion[]> {
+/**
+ * Both players answer the same questions, so generation is user-independent.
+ * `count` lets callers ask for a different set size (duels use 5, group
+ * challenges use 7) — defaults to the duel count.
+ */
+export async function generateQuestions(
+  language: Language,
+  count: number = DUEL_QUESTION_COUNT,
+): Promise<DuelQuestion[]> {
   const words = await prisma.word.findMany({
     where: { translations: { some: { language, translation: { not: null } } } },
     include: { translations: { where: { language } } },
-    take: 60,
+    take: Math.max(60, count * 6),
   })
   const valid = (words as any[]).filter((w) => w.translations[0]?.translation)
-  const selected = shuffle(valid).slice(0, DUEL_QUESTION_COUNT)
+  const selected = shuffle(valid).slice(0, count)
   const distractorPool = valid.map((w) => w.translations[0].translation as string)
 
   return selected.map((w) => {
@@ -205,4 +212,55 @@ async function expireIfStale(duel: any) {
     duel.status = 'expired'
     await prisma.duel.update({ where: { id: duel.id }, data: { status: 'expired' } })
   }
+}
+
+export interface ExpiredChallenger {
+  duelId: string
+  telegramId: bigint | null
+  language: Language
+  firstName: string
+  notifyEnabled: boolean
+}
+
+/**
+ * Background sweep run by a BullMQ cron. Proactively closes out stale duels so
+ * they don't linger forever when no one re-opens them (lazy expiry only fires
+ * on read). Two cases:
+ *   • pending past DUEL_EXPIRE_HOURS → expired (nobody accepted the challenge)
+ *   • active past DUEL_EXPIRE_HOURS → expired (accepted but never finished); no
+ *     XP is awarded for an incomplete match.
+ * Returns the challengers whose pending challenge expired, so the caller can
+ * notify them to send a fresh one.
+ */
+export async function expireStaleDuels(): Promise<ExpiredChallenger[]> {
+  const cutoff = new Date(Date.now() - DUEL_EXPIRE_HOURS * 3600_000)
+
+  // Abandoned active duels: one side accepted but the match never completed.
+  await prisma.duel.updateMany({
+    where: { status: 'active', createdAt: { lt: cutoff } },
+    data: { status: 'expired' },
+  })
+
+  // Unaccepted pending duels — collect challengers before flipping the status.
+  const stale = await prisma.duel.findMany({
+    where: { status: 'pending', createdAt: { lt: cutoff } },
+    select: {
+      id: true,
+      challenger: { select: { telegramId: true, language: true, firstName: true, notifyEnabled: true } },
+    },
+  })
+  if (stale.length === 0) return []
+
+  await prisma.duel.updateMany({
+    where: { id: { in: stale.map((d) => d.id) } },
+    data: { status: 'expired' },
+  })
+
+  return stale.map((d) => ({
+    duelId: d.id,
+    telegramId: d.challenger.telegramId,
+    language: d.challenger.language,
+    firstName: d.challenger.firstName,
+    notifyEnabled: d.challenger.notifyEnabled,
+  }))
 }
