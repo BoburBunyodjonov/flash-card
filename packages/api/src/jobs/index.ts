@@ -3,6 +3,7 @@ import { redis } from '../lib/redis'
 import { config } from '../config'
 import { prisma } from '../lib/prisma'
 import { getBot } from '../lib/bot'
+import { sendPushToUser } from '../lib/fcm'
 import { finalizeLastWeek } from '../services/league.service'
 import { expireStaleDuels } from '../services/duel.service'
 import { REVIEW_REMINDER_THRESHOLD } from '@wordswipe/shared'
@@ -54,6 +55,38 @@ const openButtonText: Record<string, string> = {
   ru: '📖 Учить сейчас',
 }
 
+// Push (FCM) titles — the body reuses the same copy as the Telegram reminders.
+const pushDailyTitle: Record<string, string> = {
+  uz: '📚 WordSwipe',
+  en: '📚 WordSwipe',
+  ru: '📚 WordSwipe',
+}
+const pushDueTitle: Record<string, string> = {
+  uz: '🔔 Takrorlash vaqti',
+  en: '🔔 Time to review',
+  ru: '🔔 Пора повторить',
+}
+
+// Push counterpart of sendReminder — a no-op when FCM is not configured or the
+// user has no registered devices. Runs IN ADDITION to (never instead of) Telegram.
+async function sendPushReminder(userId: string, language: string, streak: number, dueCount = 0) {
+  const lang = language || 'en'
+  if (dueCount > 0) {
+    await sendPushToUser(userId, {
+      title: pushDueTitle[lang] ?? pushDueTitle.en,
+      body: (dueReminderMessages[lang] ?? dueReminderMessages.en)(dueCount, streak),
+      // route: app navigates here directly; kind kept for backward compat
+      data: { type: 'reminder', kind: 'due', route: '/quiz', dueCount: String(dueCount) },
+    })
+  } else {
+    await sendPushToUser(userId, {
+      title: pushDailyTitle[lang] ?? pushDailyTitle.en,
+      body: (reminderMessages[lang] ?? reminderMessages.en)(streak),
+      data: { type: 'reminder', kind: 'daily', route: '/feed' },
+    })
+  }
+}
+
 async function sendReminder(telegramId: string, language: string, streak: number, dueCount = 0) {
   const bot = await getBot()
   if (!bot) return
@@ -91,13 +124,17 @@ async function dispatchDailyReminders() {
     slots.push(`${hh}:${mm}`)
   }
 
+  // Reach users who can be notified via EITHER channel: Telegram or a push device.
   const users = await prisma.user.findMany({
-    where: { notifyAt: { in: slots }, notifyEnabled: true, telegramId: { not: null } },
+    where: {
+      notifyAt: { in: slots },
+      notifyEnabled: true,
+      OR: [{ telegramId: { not: null } }, { pushTokens: { some: {} } }],
+    },
     select: { id: true, telegramId: true, language: true, streak: true },
   })
 
   for (const user of users) {
-    if (!user.telegramId) continue
     // Dedup gate: at most one reminder decision per user per day (survives restarts).
     const acquired = await redis.set(REMINDER_SENT_KEY(user.id), '1', 'EX', 90000, 'NX')
     if (acquired !== 'OK') continue
@@ -113,7 +150,13 @@ async function dispatchDailyReminders() {
 
     await notificationQueue.add(
       'daily-reminder',
-      { telegramId: user.telegramId.toString(), language: user.language, streak: user.streak, dueCount },
+      {
+        userId: user.id,
+        telegramId: user.telegramId ? user.telegramId.toString() : null,
+        language: user.language,
+        streak: user.streak,
+        dueCount,
+      },
       { removeOnComplete: true, removeOnFail: 50, attempts: 2 },
     )
   }
@@ -137,13 +180,16 @@ async function dispatchDueReminders() {
   if (due.length === 0) return
 
   const users = await prisma.user.findMany({
-    where: { id: { in: due.map((d) => d.userId) }, notifyEnabled: true, telegramId: { not: null } },
+    where: {
+      id: { in: due.map((d) => d.userId) },
+      notifyEnabled: true,
+      OR: [{ telegramId: { not: null } }, { pushTokens: { some: {} } }],
+    },
     select: { id: true, telegramId: true, language: true, streak: true },
   })
   const countByUser = new Map(due.map((d) => [d.userId, d._count._all]))
 
   for (const user of users) {
-    if (!user.telegramId) continue
     const acquired = await redis.set(DUE_REMINDER_SENT_KEY(user.id), '1', 'EX', 90000, 'NX')
     if (acquired !== 'OK') continue
 
@@ -153,7 +199,8 @@ async function dispatchDueReminders() {
     await notificationQueue.add(
       'daily-reminder',
       {
-        telegramId: user.telegramId.toString(),
+        userId: user.id,
+        telegramId: user.telegramId ? user.telegramId.toString() : null,
         language: user.language,
         streak: user.streak,
         dueCount: countByUser.get(user.id) ?? 0,
@@ -221,8 +268,10 @@ export function startWorkers() {
       }
 
       if (job.name === 'daily-reminder') {
-        const { telegramId, language, streak, dueCount } = job.data
-        await sendReminder(telegramId, language ?? 'en', streak ?? 0, dueCount ?? 0)
+        const { userId, telegramId, language, streak, dueCount } = job.data
+        // Both channels fire independently: Telegram if linked, push if any device.
+        if (telegramId) await sendReminder(telegramId, language ?? 'en', streak ?? 0, dueCount ?? 0)
+        if (userId) await sendPushReminder(userId, language ?? 'en', streak ?? 0, dueCount ?? 0)
       }
     },
     { connection },

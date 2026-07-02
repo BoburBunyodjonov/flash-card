@@ -24,6 +24,7 @@ import { paymentsRoutes } from './payments.route'
 import { speakingRoutes } from './speaking.route'
 import { myWordsRoutes } from './my-words.route'
 import { groupChallengeRoutes } from './group-challenge.route'
+import { pushTokenRoutes } from './push-token.route'
 
 export async function registerRoutes(fastify: FastifyInstance) {
   fastify.register(authRoutes, { prefix: '/api/auth' })
@@ -43,6 +44,7 @@ export async function registerRoutes(fastify: FastifyInstance) {
   fastify.register(speakingRoutes, { prefix: '/api/speaking' })
   fastify.register(myWordsRoutes, { prefix: '/api/my-words' })
   fastify.register(groupChallengeRoutes, { prefix: '/api/group-challenge' })
+  fastify.register(pushTokenRoutes, { prefix: '/api' })
 
   fastify.register(
     async (adminApp) => {

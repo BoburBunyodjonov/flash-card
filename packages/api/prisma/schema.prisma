@@ -113,8 +113,26 @@ model User {
   achievements UserAchievement[]
   gcCreated    GroupChallenge[]      @relation("GcCreator")
   gcEntries    GroupChallengeEntry[] @relation("GcEntrant")
+  pushTokens   PushToken[]
 
   @@map("users")
+}
+
+// FCM device tokens for push notifications (Flutter mobile app). A user may have
+// several (one per device). `token` is globally unique — on re-register it is
+// reassigned to whichever user last logged in on that device.
+model PushToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  platform  String?  // "android" | "ios" | "web"
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_tokens")
 }
 
 // One row per achievement a user has unlocked. The unique constraint makes the

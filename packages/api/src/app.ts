@@ -28,10 +28,20 @@ export async function buildApp() {
     ...(process.env.ALLOWED_ORIGINS?.split(',').map((o) => o.trim()).filter(Boolean) ?? []),
   ]
 
+  // Flutter Web (`flutter run -d chrome`) serves on a RANDOM localhost port each
+  // run, so we can't hardcode it — allow any localhost / 127.0.0.1 origin.
+  // Native Flutter (Android/iOS) sends no Origin header at all (`!origin` → allowed).
+  const localhostOrigin = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/
+
+  const isAllowedOrigin = (origin?: string) =>
+    !origin || allowedOrigins.includes(origin) || localhostOrigin.test(origin)
+
   await fastify.register(cors, {
     origin: config.isDev ? true : (origin, cb) => {
-      if (!origin || allowedOrigins.includes(origin)) return cb(null, true)
-      cb(new Error('Not allowed by CORS'), false)
+      if (isAllowedOrigin(origin)) return cb(null, true)
+      // Reject cleanly WITHOUT throwing — passing an Error makes the OPTIONS
+      // preflight return 500, which the browser surfaces as a generic "CORS error".
+      cb(null, false)
     },
     credentials: true,
   })

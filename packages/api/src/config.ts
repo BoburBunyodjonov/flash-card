@@ -55,6 +55,15 @@ export const config = {
     },
   },
 
+  firebase: {
+    projectId: process.env.FIREBASE_PROJECT_ID ?? 'wordswipe-2dc02',
+    // Service account JSON as base64 (preferred — safe for a single-line .env)
+    // or raw JSON. If empty, push notifications are silently disabled.
+    credentialsJson: process.env.FCM_CREDENTIALS_JSON ?? '',
+    // Alternative: absolute path to the service account JSON file.
+    credentialsPath: process.env.FCM_CREDENTIALS_PATH ?? '',
+  },
+
   turn: {
     url: process.env.TURN_URL ?? '',
     // Ephemeral-credential mode (coturn use-auth-secret): preferred, more secure

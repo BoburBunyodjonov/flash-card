@@ -205,6 +205,18 @@ Token‑based (JWT). A user can sign in **two ways**:
 **Auth:** required — Description: Update reminder time and/or enabled flag (at least one field required).
 Body: `{ "notifyAt?": "HH:MM (^\\d{2}:\\d{2}$)", "enabled?": "boolean" }` → `{ "success": true }`. **Errors:** `400`, `401`.
 
+### `PUT /api/push-token`
+**Auth:** required — Description: Register or refresh the current device's FCM push token (idempotent upsert). A user may have several tokens (one per device); a token is globally unique and is reassigned to the caller if it was previously registered to another account.
+Body: `{ "token": "string (FCM token, 10–4096 chars)", "platform?": "android | ios | web" }`. The field `fcmToken` is also accepted as an alias for `token`.
+→ `{ "success": true }`. **Errors:** `400` (no token), `401`.
+
+### `DELETE /api/push-token`
+**Auth:** required — Description: Unregister a push token (e.g. on logout). Only removes the caller's own token; an unknown/missing token is a silent success.
+Body: `{ "token": "string" }` (alias `fcmToken` accepted).
+→ `{ "success": true }`. **Errors:** `401`.
+
+**Push payload shape** (sent by the reminder jobs via FCM): `{ "notification": { "title": "string", "body": "string" }, "data": { "type": "reminder", "kind": "daily | due", "route": "/feed | /quiz", "dueCount?": "string" } }`. The app navigates via `data.route` (daily → `/feed`, due → `/quiz`); `kind` is kept for backward compatibility. Reminders (daily + SM-2 due-word) are delivered over **both** Telegram and push in parallel; push is additive and never replaces Telegram.
+
 ### `GET /api/referral`
 **Auth:** required — Description: Referral start param, link, count, recent referred users.
 **Response 200:**
