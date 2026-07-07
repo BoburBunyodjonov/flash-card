@@ -11,7 +11,8 @@
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
     "db:enrich": "tsx scripts/enrich-words.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "tg:login": "tsx scripts/tg-login.ts"
   },
   "dependencies": {
     "@fastify/cors": "^8.5.0",
@@ -26,12 +27,14 @@
     "@wordswipe/shared": "workspace:*",
     "axios": "^1.7.0",
     "bcryptjs": "^3.0.3",
+    "big-integer": "^1.6.52",
     "bullmq": "^5.13.0",
     "dotenv": "^16.4.5",
     "fastify": "^4.28.0",
     "firebase-admin": "^13.10.0",
     "ioredis": "^5.4.1",
     "telegraf": "^4.16.3",
+    "telegram": "^2.26.22",
     "zod": "^3.23.8"
   },
   "devDependencies": {

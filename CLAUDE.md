@@ -89,6 +89,14 @@ ADMIN_PASSWORD=yourpassword
 - Cards always show 🔊 — plays `audioUrl` or falls back to browser TTS (`apps/web/src/lib/tts.ts`)
 - Offline PWA: feed cached + swipes queued in localStorage, replayed on reconnect (`feed.store.ts`)
 
+**Shadowing (repeat-after-native-speaker video):**
+- `packages/api/src/services/shadowing.service.ts` + `apps/web/src/pages/Shadowing`
+- Videos live in a **private Telegram channel**, fetched on demand via **MTProto/GramJS** (`packages/api/src/lib/telegram-client.ts`) — bypasses the Bot API 20MB cap. Nothing stored permanently; only a bounded LRU disk cache (`lib/shadowing-cache.ts`)
+- Stream endpoint `GET /api/shadowing/:id/stream?token=` is Range-capable (206) and auth'd by a signed query token (a `<video>` can't send a Bearer header)
+- Admin posts a video to the channel → imports it in the admin **Shadowing** page (adds transcript + Uzbek translation + CEFR level)
+- First completion → `XP_PER_SHADOWING` (daily-capped, feeds leagues); repeats award 0
+- Setup: `TELEGRAM_API_ID/HASH/SESSION` + `SHADOWING_CHANNEL_ID` in `.env`; generate session via `pnpm --filter api tg:login`
+
 **Auth:**
 - Web app: Telegram WebApp `initData` → `validateWebAppInitData` (HMAC-SHA256 "WebAppData")
 - Admin panel: `POST /api/auth/admin-login` → validates against `ADMIN_USERNAME`/`ADMIN_PASSWORD` env vars

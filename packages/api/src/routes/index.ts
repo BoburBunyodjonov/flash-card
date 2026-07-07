@@ -25,6 +25,8 @@ import { speakingRoutes } from './speaking.route'
 import { myWordsRoutes } from './my-words.route'
 import { groupChallengeRoutes } from './group-challenge.route'
 import { pushTokenRoutes } from './push-token.route'
+import { shadowingRoutes } from './shadowing.route'
+import { adminShadowingRoutes } from './admin/shadowing.route'
 
 export async function registerRoutes(fastify: FastifyInstance) {
   fastify.register(authRoutes, { prefix: '/api/auth' })
@@ -45,6 +47,7 @@ export async function registerRoutes(fastify: FastifyInstance) {
   fastify.register(myWordsRoutes, { prefix: '/api/my-words' })
   fastify.register(groupChallengeRoutes, { prefix: '/api/group-challenge' })
   fastify.register(pushTokenRoutes, { prefix: '/api' })
+  fastify.register(shadowingRoutes, { prefix: '/api/shadowing' })
 
   fastify.register(
     async (adminApp) => {
@@ -56,6 +59,7 @@ export async function registerRoutes(fastify: FastifyInstance) {
       adminApp.register(adminAnalyticsRoutes, { prefix: '/analytics' })
       adminApp.register(adminNotificationsRoutes, { prefix: '/notifications' })
       adminApp.register(adminSpeakingRoutes, { prefix: '/speaking' })
+      adminApp.register(adminShadowingRoutes, { prefix: '/shadowing' })
     },
     { prefix: '/api/admin' },
   )

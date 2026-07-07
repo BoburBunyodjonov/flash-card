@@ -383,6 +383,29 @@
       }
     }
   },
+  "shadowing": {
+    "title": "Shadowing",
+    "subtitle": "Watch a clip and repeat after it",
+    "back": "Back",
+    "loadError": "Couldn't load the video",
+    "retry": "Try again",
+    "emptyTitle": "No shadowing videos yet",
+    "emptyMsg": "New clips will be added soon",
+    "allLevels": "All",
+    "completed": "Done",
+    "transcript": "Transcript",
+    "uzbek": "Uzbek",
+    "showTranslation": "Translation",
+    "hideTranslation": "Hide",
+    "replay": "Replay",
+    "loop": "Loop",
+    "segmentHint": "Tap a line to repeat from there",
+    "finish": "I'm done",
+    "doneTitle": "Great job!",
+    "doneMsg": "You shadowed this clip",
+    "noXpMsg": "XP for this clip was already earned",
+    "backToList": "Back to list"
+  },
   "groupChallenge": {
     "title": "Group Challenge",
     "questionPrompt": "What is this word in Uzbek?",
@@ -456,6 +479,10 @@
     "quiz": {
       "title": "Quiz",
       "desc": "Test your knowledge"
+    },
+    "shadowing": {
+      "title": "Shadowing",
+      "desc": "Repeat after native speakers"
     },
     "duel": {
       "title": "Duel",

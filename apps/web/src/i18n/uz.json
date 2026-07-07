@@ -383,6 +383,29 @@
       }
     }
   },
+  "shadowing": {
+    "title": "Shadowing",
+    "subtitle": "Videoni ko'rib, ortidan takrorlang",
+    "back": "Orqaga",
+    "loadError": "Video yuklanmadi",
+    "retry": "Qayta urinish",
+    "emptyTitle": "Hozircha shadowing videolari yo'q",
+    "emptyMsg": "Tez orada yangi videolar qo'shiladi",
+    "allLevels": "Hammasi",
+    "completed": "Bajarilgan",
+    "transcript": "Transkript",
+    "uzbek": "O'zbekcha",
+    "showTranslation": "Tarjima",
+    "hideTranslation": "Yashirish",
+    "replay": "Qaytadan",
+    "loop": "Takror",
+    "segmentHint": "Qatorni bosing — o'sha joydan takrorlanadi",
+    "finish": "Tugatdim",
+    "doneTitle": "Ajoyib!",
+    "doneMsg": "Siz bu videoni shadowing qildingiz",
+    "noXpMsg": "Bu video uchun XP allaqachon olingan",
+    "backToList": "Ro'yxatga qaytish"
+  },
   "groupChallenge": {
     "title": "Guruhli challenge",
     "questionPrompt": "Bu so'z o'zbekchada nima?",
@@ -456,6 +479,10 @@
     "quiz": {
       "title": "Test",
       "desc": "Bilimni sinab ko'r"
+    },
+    "shadowing": {
+      "title": "Shadowing",
+      "desc": "Video ortidan takrorlang"
     },
     "duel": {
       "title": "Duel",

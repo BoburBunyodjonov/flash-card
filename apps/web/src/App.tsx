@@ -19,11 +19,12 @@ import { DuelPage } from './pages/Duel'
 import { GroupChallengePage } from './pages/GroupChallenge'
 import { SpeakingPage } from './pages/Speaking'
 import { MyWordsPage } from './pages/MyWords'
+import { ShadowingPage } from './pages/Shadowing'
 import { ProfilePage } from './pages/Profile'
 import { flushPendingSwipes } from './store/feed.store'
 import { flushOfflineQueue } from './lib/offlineQueue'
 
-type Page = 'feed' | 'practice' | 'dictionary' | 'decks' | 'progress' | 'leaderboard' | 'settings' | 'challenge' | 'quiz' | 'duel' | 'groupchallenge' | 'speaking' | 'mywords' | 'profile'
+type Page = 'feed' | 'practice' | 'dictionary' | 'decks' | 'progress' | 'leaderboard' | 'settings' | 'challenge' | 'quiz' | 'duel' | 'groupchallenge' | 'speaking' | 'mywords' | 'shadowing' | 'profile'
 
 const NAV_PAGES: Page[] = ['feed', 'practice', 'speaking', 'dictionary', 'profile']
 // Pages reached from inside the Profile tab — they keep the Profil tab highlighted
@@ -121,6 +122,7 @@ export default function App() {
               onChallenge={() => setPage('challenge')}
               onMyWords={() => setPage('mywords')}
               onGroupChallenge={() => setPage('groupchallenge')}
+              onShadowing={() => setPage('shadowing')}
             />
           )}
           {page === 'speaking' && (
@@ -128,6 +130,9 @@ export default function App() {
           )}
           {page === 'mywords' && (
             <MyWordsPage onBack={() => setPage('feed')} />
+          )}
+          {page === 'shadowing' && (
+            <ShadowingPage onBack={() => setPage('practice')} />
           )}
           {page === 'challenge' && (
             <ChallengePage onBack={() => setPage('feed')} />

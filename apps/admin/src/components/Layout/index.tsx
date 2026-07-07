@@ -12,6 +12,7 @@ import TuneRoundedIcon from '@mui/icons-material/TuneRounded'
 import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded'
 import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded'
 import RecordVoiceOverRoundedIcon from '@mui/icons-material/RecordVoiceOverRounded'
+import VideocamRoundedIcon from '@mui/icons-material/VideocamRounded'
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded'
 import BoltRoundedIcon from '@mui/icons-material/BoltRounded'
 import { useAuthStore } from '../../store/auth.store'
@@ -28,6 +29,7 @@ const NAV_ITEMS = [
   { label: 'Analytics', icon: <InsightsRoundedIcon />, path: '/analytics' },
   { label: 'Notifications', icon: <NotificationsRoundedIcon />, path: '/notifications' },
   { label: 'Speaking Reports', icon: <RecordVoiceOverRoundedIcon />, path: '/speaking' },
+  { label: 'Shadowing', icon: <VideocamRoundedIcon />, path: '/shadowing' },
 ]
 
 export function Layout({ children }: { children: React.ReactNode }) {

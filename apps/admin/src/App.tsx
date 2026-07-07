@@ -12,6 +12,7 @@ import { PlanSettingsPage } from './pages/PlanSettings'
 import { AnalyticsPage } from './pages/Analytics'
 import { NotificationsPage } from './pages/Notifications'
 import { SpeakingPage } from './pages/Speaking'
+import { ShadowingPage } from './pages/Shadowing'
 
 function RequireAdmin({ children }: { children: React.ReactNode }) {
   const { user, token } = useAuthStore()
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="/analytics" element={<RequireAdmin><AnalyticsPage /></RequireAdmin>} />
           <Route path="/notifications" element={<RequireAdmin><NotificationsPage /></RequireAdmin>} />
           <Route path="/speaking" element={<RequireAdmin><SpeakingPage /></RequireAdmin>} />
+          <Route path="/shadowing" element={<RequireAdmin><ShadowingPage /></RequireAdmin>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

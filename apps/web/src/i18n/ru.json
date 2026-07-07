@@ -383,6 +383,29 @@
       }
     }
   },
+  "shadowing": {
+    "title": "Shadowing",
+    "subtitle": "Смотрите ролик и повторяйте за ним",
+    "back": "Назад",
+    "loadError": "Не удалось загрузить видео",
+    "retry": "Повторить",
+    "emptyTitle": "Пока нет видео для shadowing",
+    "emptyMsg": "Скоро добавим новые ролики",
+    "allLevels": "Все",
+    "completed": "Готово",
+    "transcript": "Транскрипт",
+    "uzbek": "Узбекский",
+    "showTranslation": "Перевод",
+    "hideTranslation": "Скрыть",
+    "replay": "Заново",
+    "loop": "Повтор",
+    "segmentHint": "Нажмите на строку — повтор с этого места",
+    "finish": "Готово",
+    "doneTitle": "Отлично!",
+    "doneMsg": "Вы озвучили этот ролик",
+    "noXpMsg": "XP за этот ролик уже начислен",
+    "backToList": "К списку"
+  },
   "groupChallenge": {
     "title": "Групповой вызов",
     "questionPrompt": "Как это слово по-узбекски?",
@@ -456,6 +479,10 @@
     "quiz": {
       "title": "Тест",
       "desc": "Проверь свои знания"
+    },
+    "shadowing": {
+      "title": "Shadowing",
+      "desc": "Повторяйте за носителями"
     },
     "duel": {
       "title": "Дуэль",

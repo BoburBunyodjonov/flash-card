@@ -114,6 +114,7 @@ model User {
   gcCreated    GroupChallenge[]      @relation("GcCreator")
   gcEntries    GroupChallengeEntry[] @relation("GcEntrant")
   pushTokens   PushToken[]
+  shadowingDone ShadowingCompletion[]
 
   @@map("users")
 }
@@ -298,7 +299,8 @@ model Category {
   order     Int      @default(0)
   createdAt DateTime @default(now()) @map("created_at")
 
-  words Word[]
+  words          Word[]
+  shadowingClips ShadowingClip[]
 
   @@map("categories")
 }
@@ -424,4 +426,54 @@ model Payment {
   user User @relation(fields: [userId], references: [id])
 
   @@map("payments")
+}
+
+// Shadowing practice: short native-speaker video clips the learner repeats
+// ("shadows"). The video file itself lives in a private Telegram channel and is
+// fetched on demand via MTProto (GramJS) — nothing is stored on our server
+// except this metadata row. `tgMessageId` points at the channel post.
+model ShadowingClip {
+  id            String     @id @default(uuid())
+  title         String
+  // Telegram source (channel id + message id within it).
+  tgChannelId   String     @map("tg_channel_id")
+  tgMessageId   Int        @map("tg_message_id")
+  durationSec   Int?       @map("duration_sec")
+  // The English text the learner shadows, and its Uzbek translation.
+  transcript    String
+  translationUz String     @map("translation_uz")
+  // Optional line-by-line timing for A-B segment repeat:
+  // [{ start: number, end: number, text: string, translation?: string }]
+  segments      Json?
+  level         Difficulty @default(A1)
+  categoryId    String?    @map("category_id")
+  order         Int        @default(0)
+  isPublished   Boolean    @default(true) @map("is_published")
+  createdAt     DateTime   @default(now()) @map("created_at")
+
+  category    Category?             @relation(fields: [categoryId], references: [id])
+  completions ShadowingCompletion[]
+
+  @@unique([tgChannelId, tgMessageId])
+  @@index([level])
+  @@index([isPublished])
+  @@map("shadowing_clips")
+}
+
+// One row per (user, clip) — records that a learner has shadowed a clip and how
+// many times. The unique constraint makes the first-completion XP idempotent.
+model ShadowingCompletion {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  clipId    String   @map("clip_id")
+  count     Int      @default(1)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clip ShadowingClip @relation(fields: [clipId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, clipId])
+  @@index([userId])
+  @@map("shadowing_completions")
 }

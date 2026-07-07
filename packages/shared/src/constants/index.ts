@@ -109,3 +109,8 @@ export const REVIEW_REMINDER_THRESHOLD = 10
 // Speaking practice (1:1 voice calls)
 export const XP_PER_SPEAKING_MINUTE = 2
 export const SPEAKING_DAILY_XP_CAP = 30
+
+// Shadowing (repeat-after-native-speaker video practice)
+export const XP_PER_SHADOWING = 8 // per clip completed (first time), capped daily
+export const SHADOWING_DAILY_XP_CAP = 60
+export const SHADOWING_PLAYBACK_RATES = [0.5, 0.75, 1] as const

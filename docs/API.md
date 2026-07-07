@@ -366,6 +366,24 @@ Errors: `400` "Invalid quiz mode".
 - **`GET /api/progress/weak-words`** — `{ data: [ <user_word_progress row with embedded word incl. translations + category> ] }` (≤20, weakest first).
 - **`GET /api/progress/history`** — Query `period` (`week|month|3months`, default `week`). → `{ data: { "YYYY-MM-DD": { learned, reviewed } } }` (only active days). Invalid `period` → `500`.
 
+### Shadowing — `/api/shadowing`
+
+Repeat-after-native-speaker video practice. Clips are admin-curated; the video file itself lives in a private Telegram channel and is proxied on demand (nothing is stored permanently server-side). First completion of a clip awards `XP_PER_SHADOWING` (daily-capped, feeds leagues); repeats award 0.
+
+**ShadowingClipDTO:**
+```json
+{
+  "id":"uuid","title":"string","durationSec":"number|null","transcript":"string (English)","translationUz":"string",
+  "segments":"[{ start:number, end:number, text:string, translation?:string }] | null",
+  "level":"A1|A2|B1|B2|C1|C2","categoryId":"uuid|null","completed":"boolean","completedCount":"number"
+}
+```
+
+- **`GET /api/shadowing`** — Query `level?` (`A1..C2`), `categoryId?` (uuid). → `{ data: ShadowingClipDTO[] }` (published only, per-user `completed` flags). Errors: `400`, `401`.
+- **`GET /api/shadowing/:id`** — → `{ data: ShadowingClipDTO & { streamPath: string } }`. `streamPath` = `/api/shadowing/<id>/stream?token=<jwt>`; prefix with the API base and set as a `<video>` `src`. Errors: `404`.
+- **`POST /api/shadowing/:id/complete`** — Record a shadowing session. → `{ data: { xpEarned:number, completedCount:number } }` (`xpEarned` is 0 on repeats / after the daily cap). Errors: `404`.
+- **`GET /api/shadowing/:id/stream?token=`** — Range-capable (`206`) video proxy. Auth is via the signed `token` query param (a `<video>` can't send an `Authorization` header), NOT the Bearer header. `Content-Type: video/mp4`. Errors: `401` (missing/invalid token), `403` (token/clip mismatch), `404`, `503` (Telegram source not configured).
+
 ---
 
 ## Social, Speaking & Payments
@@ -477,7 +495,7 @@ Telegram Stars (XTR). Finalization is **out‑of‑band**: after the user pays t
 
 ## Admin API
 
-`/api/admin/*` endpoints (words, categories, users, settings, analytics, notifications, speaking moderation) require an **admin** JWT (`POST /api/auth/admin-login`) and are used only by the web admin panel — not the mobile app. Not documented here.
+`/api/admin/*` endpoints (words, categories, users, settings, analytics, notifications, speaking moderation, shadowing clips) require an **admin** JWT (`POST /api/auth/admin-login`) and are used only by the web admin panel — not the mobile app. Not documented here.
 
 ---
 

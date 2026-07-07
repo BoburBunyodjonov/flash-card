@@ -29,6 +29,23 @@ export const config = {
       process.env.BOT_USERNAME ?? (process.env.WEB_APP_URL ?? '').match(/t\.me\/([^/?]+)/)?.[1] ?? '',
     // Public https URL of the web app (Mini App), for bot "Open" web_app buttons
     appUrl: process.env.APP_URL ?? 'https://bunyodjonov.uz',
+    // MTProto (GramJS) — a USER session used to read videos from a Telegram
+    // channel for the Shadowing feature (bypasses the Bot API 20MB download cap).
+    // Get apiId/apiHash from https://my.telegram.org; generate the session once
+    // with `pnpm --filter api tg:login`.
+    apiId: parseInt(process.env.TELEGRAM_API_ID ?? '0'),
+    apiHash: (process.env.TELEGRAM_API_HASH ?? '').trim(),
+    session: (process.env.TELEGRAM_SESSION ?? '').trim(),
+  },
+
+  shadowing: {
+    // Channel that holds the shadowing videos: @username or numeric id (-100…).
+    channel: (process.env.SHADOWING_CHANNEL_ID ?? '').trim(),
+    // Transient on-disk cache of recently-watched clips (NOT the library — it is
+    // LRU-evicted). Nothing is stored permanently; this just avoids re-downloading
+    // the same clip from Telegram on every view.
+    cacheDir: process.env.SHADOWING_CACHE_DIR ?? '/tmp/wordswipe-shadowing',
+    cacheMaxBytes: parseInt(process.env.SHADOWING_CACHE_MAX_MB ?? '2048') * 1024 * 1024,
   },
 
   admin: {
