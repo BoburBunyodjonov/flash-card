@@ -270,6 +270,80 @@
     "again": "Yana",
     "loading": "Yuklanmoqda..."
   },
+  "myWordsStudy": {
+    "title": "Yodlash muhiti",
+    "entry": "Yodlash",
+    "pickMethod": "Qanday yodlaymiz? Usulni tanlang.",
+    "recommended": "Tavsiya",
+    "preparing": "Tayyorlanmoqda...",
+    "loadError": "Yuklab bo'lmadi",
+    "checkConnection": "Internet aloqasini tekshiring",
+    "retry": "Qayta urinish",
+    "back": "Orqaga",
+    "exit": "Chiqish",
+    "again": "Yana",
+    "emptyTitle": "Avval so'z qo'shing",
+    "emptyMsg": "Yodlash uchun shaxsiy so'zlaringiz kerak. \"Mening so'zlarim\"ga so'z qo'shing.",
+    "check": "Tekshirish",
+    "typePlaceholder": "So'zni yozing...",
+    "correctAnswer": "To'g'ri javob",
+    "tapToFlip": "Tarjimani ko'rish uchun bosing",
+    "uzbek": "O'zbekcha",
+    "know": "Bildim",
+    "dontKnow": "Bilmadim",
+    "matchingHint": "So'zni tanlang, keyin tarjimasini bosing",
+    "resultTitle": "Zo'r ish!",
+    "correctCount": "ta to'g'ri javob",
+    "noXp": "Bugungi XP chegarasiga yetdingiz",
+    "prompt": {
+      "flashcard": "Bu so'z nimani anglatadi?",
+      "mcq": "Bu so'z o'zbekchada nima?",
+      "reverse": "Bu tarjimaning inglizchasi qaysi?",
+      "typing": "Inglizcha so'zni yozing",
+      "listening": "Eshitganingiz qaysi so'z?",
+      "scramble": "Harflardan so'zni tuzing",
+      "cloze": "Bo'sh joyga qaysi so'z mos keladi?",
+      "matching": "So'zlarni juftlang"
+    },
+    "methods": {
+      "mixed": {
+        "title": "Aqlli aralash",
+        "desc": "Har bir so'zga mos usul avtomatik tanlanadi"
+      },
+      "flashcard": {
+        "title": "Kartochka",
+        "desc": "Ko'r, esla va o'zingni tekshir"
+      },
+      "mcq": {
+        "title": "Test",
+        "desc": "To'g'ri tarjimani tanlang"
+      },
+      "reverse": {
+        "title": "Teskari",
+        "desc": "O'zbekcha → inglizcha so'z"
+      },
+      "typing": {
+        "title": "Yozish",
+        "desc": "So'zni o'zingiz yozing"
+      },
+      "listening": {
+        "title": "Eshitish",
+        "desc": "Eshiting va so'zni toping"
+      },
+      "matching": {
+        "title": "Juftlash",
+        "desc": "So'z va tarjimalarni moslang"
+      },
+      "scramble": {
+        "title": "Harflar",
+        "desc": "Aralash harflardan so'zni tuzing"
+      },
+      "cloze": {
+        "title": "Kontekst",
+        "desc": "Gapdagi tushib qolgan so'zni top"
+      }
+    }
+  },
   "onboarding": {
     "welcomeTitle": "Darajangizni aniqlaymiz",
     "welcomeDesc": "10 ta savol orqali ingliz tili darajangizni bilib olamiz va sizga mos so'zlarni tavsiya qilamiz",

@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import {
   NotebookPen, Plus, Check, RotateCcw, X, Volume2, Target, ArrowLeft,
-  CheckCircle2, PartyPopper, Pencil,
+  CheckCircle2, PartyPopper, Pencil, Brain,
 } from 'lucide-react'
 import {
   myWordsApi,
@@ -645,6 +645,7 @@ function ListView({
   loading,
   onAdd,
   onStudy,
+  onMemorize,
   onChanged,
   onBack,
   toast,
@@ -654,6 +655,7 @@ function ListView({
   loading: boolean
   onAdd: () => void
   onStudy: () => void
+  onMemorize?: () => void
   onChanged: (words: UserWord[]) => void
   onBack?: () => void
   toast: ReturnType<typeof useErrorToast>
@@ -779,9 +781,10 @@ function ListView({
           </div>
         </div>
 
+        {/* Flagship: the multi-method "Yodlash muhiti" memorize environment */}
         <motion.button
           whileTap={{ scale: words.length === 0 ? 1 : 0.97 }}
-          onClick={() => words.length > 0 && onStudy()}
+          onClick={() => words.length > 0 && onMemorize?.()}
           disabled={words.length === 0}
           className="w-full mt-3 py-3.5 rounded-2xl font-black text-base flex items-center justify-center gap-2"
           style={
@@ -793,12 +796,35 @@ function ListView({
                 }
               : {
                   background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                  boxShadow: '0 8px 24px rgba(99,102,241,0.3)',
+                  boxShadow: '0 8px 24px rgba(99,102,241,0.35)',
                   color: '#fff',
                 }
           }
         >
-          <Target size={18} strokeWidth={2.4} /> {t('myWords.study')}
+          <Brain size={18} strokeWidth={2.4} /> {t('myWordsStudy.entry')}
+        </motion.button>
+
+        {/* Existing swipe-based study — kept intact as a lighter secondary option */}
+        <motion.button
+          whileTap={{ scale: words.length === 0 ? 1 : 0.97 }}
+          onClick={() => words.length > 0 && onStudy()}
+          disabled={words.length === 0}
+          className="w-full mt-2.5 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2"
+          style={
+            words.length === 0
+              ? {
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  color: 'rgba(255,255,255,0.25)',
+                }
+              : {
+                  background: 'var(--ws-card-2)',
+                  border: '1px solid var(--ws-border)',
+                  color: 'var(--ws-muted)',
+                }
+          }
+        >
+          <Target size={16} strokeWidth={2.4} /> {t('myWords.study')}
         </motion.button>
       </div>
 
@@ -932,7 +958,7 @@ function ListView({
 }
 
 // ── Page ────────────────────────────────────────────────────────────────────
-export function MyWordsPage({ onBack }: { onBack?: () => void }) {
+export function MyWordsPage({ onBack, onMemorize }: { onBack?: () => void; onMemorize?: () => void }) {
   const [view, setView] = useState<View>('list')
   const [words, setWords] = useState<UserWord[]>([])
   const [dueCount, setDueCount] = useState(0)
@@ -996,6 +1022,7 @@ export function MyWordsPage({ onBack }: { onBack?: () => void }) {
             loading={loading}
             onAdd={() => setView('add')}
             onStudy={() => setView('study')}
+            onMemorize={onMemorize}
             onChanged={setWords}
             onBack={onBack}
             toast={toast}

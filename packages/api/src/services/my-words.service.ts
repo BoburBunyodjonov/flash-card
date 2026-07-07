@@ -90,7 +90,7 @@ const XP_KEY = (userId: string) => `mywords:xp:${userId}:${todayKey()}`
  * personal word shows up in the main feed immediately (the feed caches per
  * day, keyed `feed:queue:{userId}:{date}:{category}`).
  */
-async function invalidateFeedCache(userId: string): Promise<void> {
+export async function invalidateFeedCache(userId: string): Promise<void> {
   try {
     const keys = await redis.keys(`feed:queue:${userId}:${todayKey()}:*`)
     if (keys.length) await redis.del(...keys)
@@ -227,7 +227,7 @@ export async function reviewUserWord(
       where: { id },
       data: { status: 'mastered', strength: 100, lastReviewed: new Date() },
     })
-    const xpEarned = await awardXp(userId, XP_PER_WORD)
+    const xpEarned = await awardPersonalXp(userId, XP_PER_WORD)
     await invalidateFeedCache(userId)
     return { xpEarned, status: 'mastered' as WordStatus, nextReview: existing.nextReview, strength: 100 }
   }
@@ -251,7 +251,7 @@ export async function reviewUserWord(
  * Awards XP for personal-word study with a per-user daily cap. Does NOT feed
  * leagues (anti-gaming). Returns the XP actually granted after the cap.
  */
-async function awardXp(userId: string, amount: number): Promise<number> {
+export async function awardPersonalXp(userId: string, amount: number): Promise<number> {
   let usedToday = 0
   try {
     usedToday = parseInt((await redis.get(XP_KEY(userId))) ?? '0') || 0
@@ -263,6 +263,7 @@ async function awardXp(userId: string, amount: number): Promise<number> {
   if (remaining <= 0) return 0
 
   const grant = Math.min(amount, remaining)
+  if (grant <= 0) return 0
 
   await prisma.user.update({ where: { id: userId }, data: { xp: { increment: grant } } })
 

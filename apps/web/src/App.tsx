@@ -19,12 +19,13 @@ import { DuelPage } from './pages/Duel'
 import { GroupChallengePage } from './pages/GroupChallenge'
 import { SpeakingPage } from './pages/Speaking'
 import { MyWordsPage } from './pages/MyWords'
+import { MyWordsStudyPage } from './pages/MyWordsStudy'
 import { ShadowingPage } from './pages/Shadowing'
 import { ProfilePage } from './pages/Profile'
 import { flushPendingSwipes } from './store/feed.store'
 import { flushOfflineQueue } from './lib/offlineQueue'
 
-type Page = 'feed' | 'practice' | 'dictionary' | 'decks' | 'progress' | 'leaderboard' | 'settings' | 'challenge' | 'quiz' | 'duel' | 'groupchallenge' | 'speaking' | 'mywords' | 'shadowing' | 'profile'
+type Page = 'feed' | 'practice' | 'dictionary' | 'decks' | 'progress' | 'leaderboard' | 'settings' | 'challenge' | 'quiz' | 'duel' | 'groupchallenge' | 'speaking' | 'mywords' | 'mywordsstudy' | 'shadowing' | 'profile'
 
 const NAV_PAGES: Page[] = ['feed', 'practice', 'speaking', 'dictionary', 'profile']
 // Pages reached from inside the Profile tab — they keep the Profil tab highlighted
@@ -129,7 +130,10 @@ export default function App() {
             <SpeakingPage onBack={() => setPage('feed')} autoStart={speakingAuto} />
           )}
           {page === 'mywords' && (
-            <MyWordsPage onBack={() => setPage('feed')} />
+            <MyWordsPage onBack={() => setPage('feed')} onMemorize={() => setPage('mywordsstudy')} />
+          )}
+          {page === 'mywordsstudy' && (
+            <MyWordsStudyPage onBack={() => setPage('mywords')} />
           )}
           {page === 'shadowing' && (
             <ShadowingPage onBack={() => setPage('practice')} />

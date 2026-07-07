@@ -270,6 +270,80 @@
     "again": "Again",
     "loading": "Loading..."
   },
+  "myWordsStudy": {
+    "title": "Memorize",
+    "entry": "Memorize",
+    "pickMethod": "How would you like to memorize? Pick a method.",
+    "recommended": "Recommended",
+    "preparing": "Preparing...",
+    "loadError": "Couldn't load",
+    "checkConnection": "Check your internet connection",
+    "retry": "Try again",
+    "back": "Back",
+    "exit": "Exit",
+    "again": "Again",
+    "emptyTitle": "Add a word first",
+    "emptyMsg": "You need personal words to memorize. Add some in \"My Words\".",
+    "check": "Check",
+    "typePlaceholder": "Type the word...",
+    "correctAnswer": "Correct answer",
+    "tapToFlip": "Tap to reveal the translation",
+    "uzbek": "Uzbek",
+    "know": "I knew it",
+    "dontKnow": "Didn't know",
+    "matchingHint": "Tap a word, then tap its translation",
+    "resultTitle": "Well done!",
+    "correctCount": "correct answers",
+    "noXp": "You've reached today's XP limit",
+    "prompt": {
+      "flashcard": "What does this word mean?",
+      "mcq": "What is this word in Uzbek?",
+      "reverse": "Which is the English for this translation?",
+      "typing": "Type the English word",
+      "listening": "Which word did you hear?",
+      "scramble": "Build the word from the letters",
+      "cloze": "Which word fits the blank?",
+      "matching": "Match the words"
+    },
+    "methods": {
+      "mixed": {
+        "title": "Smart mix",
+        "desc": "Auto-picks the best method per word"
+      },
+      "flashcard": {
+        "title": "Flashcard",
+        "desc": "See it, recall it, self-check"
+      },
+      "mcq": {
+        "title": "Quiz",
+        "desc": "Pick the correct translation"
+      },
+      "reverse": {
+        "title": "Reverse",
+        "desc": "Uzbek → English word"
+      },
+      "typing": {
+        "title": "Typing",
+        "desc": "Type the word yourself"
+      },
+      "listening": {
+        "title": "Listening",
+        "desc": "Listen and find the word"
+      },
+      "matching": {
+        "title": "Matching",
+        "desc": "Match words with translations"
+      },
+      "scramble": {
+        "title": "Letters",
+        "desc": "Unscramble the letters into a word"
+      },
+      "cloze": {
+        "title": "Context",
+        "desc": "Find the missing word in the sentence"
+      }
+    }
+  },
   "onboarding": {
     "welcomeTitle": "Let's find your level",
     "welcomeDesc": "10 quick questions to gauge your English level and recommend the right words for you",

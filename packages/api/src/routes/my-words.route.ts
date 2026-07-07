@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { requireAuth } from '../middlewares/auth.middleware'
 import * as myWordsService from '../services/my-words.service'
 import { DuplicateUserWordError, UserWordNotFoundError } from '../services/my-words.service'
+import * as studyService from '../services/my-words-study.service'
 import { lookupWord } from '../services/dictionary.service'
 import type { JwtPayload } from '@wordswipe/shared'
 
@@ -37,6 +38,16 @@ const updateSchema = z.object({
 const idParamSchema = z.object({ id: z.string().uuid() })
 
 const reviewSchema = z.object({ direction: z.enum(['left', 'right']) })
+
+const studyQuerySchema = z.object({
+  mode: z
+    .enum(['flashcard', 'mcq', 'reverse', 'typing', 'listening', 'scramble', 'cloze', 'matching', 'mixed'])
+    .default('mixed'),
+  count: z.coerce.number().min(1).max(20).default(10),
+})
+const studySubmitSchema = z.object({
+  answers: z.array(z.object({ id: z.string().uuid(), correct: z.boolean() })).min(1).max(50),
+})
 
 export async function myWordsRoutes(fastify: FastifyInstance) {
   fastify.addHook('onRequest', requireAuth)
@@ -80,6 +91,24 @@ export async function myWordsRoutes(fastify: FastifyInstance) {
     const { limit } = req.query as { limit?: string }
     const parsedLimit = parseInt(limit ?? '') || 20
     const data = await myWordsService.getStudyBatch(user.userId, parsedLimit)
+    return reply.send({ success: true, data })
+  })
+
+  // GET /study/questions?mode=&count= — multi-method "memorize" session
+  fastify.get('/study/questions', async (req, reply) => {
+    const parsed = studyQuerySchema.safeParse(req.query)
+    if (!parsed.success) return reply.code(400).send({ success: false, error: 'Invalid query' })
+    const user = req.user as JwtPayload
+    const questions = await studyService.getStudyQuestions(user.userId, parsed.data.mode, parsed.data.count)
+    return reply.send({ success: true, data: questions })
+  })
+
+  // POST /study/submit — grade a session (SM-2 + capped XP, no leagues)
+  fastify.post('/study/submit', async (req, reply) => {
+    const parsed = studySubmitSchema.safeParse(req.body)
+    if (!parsed.success) return reply.code(400).send({ success: false, error: 'Invalid body' })
+    const user = req.user as JwtPayload
+    const data = await studyService.submitStudy(user.userId, parsed.data.answers)
     return reply.send({ success: true, data })
   })
 
