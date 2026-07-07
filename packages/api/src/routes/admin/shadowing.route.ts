@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import * as shadowing from '../../services/shadowing.service'
 import { ShadowingNotFoundError, ShadowingUnavailableError } from '../../services/shadowing.service'
+import { TranscribeUnavailableError, TranscribeFileTooLargeError } from '../../services/transcription.service'
 
 const segmentSchema = z.object({
   start: z.number().min(0),
@@ -38,13 +39,45 @@ function handleErr(err: unknown, reply: any): boolean {
     })
     return true
   }
+  if (err instanceof TranscribeUnavailableError) {
+    reply.code(503).send({
+      success: false,
+      error: 'Speech-to-text not configured. Set TRANSCRIBE_API_KEY (Groq/OpenAI).',
+    })
+    return true
+  }
+  if (err instanceof TranscribeFileTooLargeError) {
+    reply.code(413).send({
+      success: false,
+      error: 'Video 24MB dan katta — avto-transkript hozircha qisqaroq kliplar uchun.',
+    })
+    return true
+  }
   return false
 }
 
 export async function adminShadowingRoutes(fastify: FastifyInstance) {
-  // GET /status — whether the Telegram video source is wired up
+  // GET /status — whether the Telegram video source + STT are wired up
   fastify.get('/status', async (_req, reply) => {
-    return reply.send({ success: true, data: { ready: shadowing.mtprotoReady() } })
+    return reply.send({
+      success: true,
+      data: { ready: shadowing.mtprotoReady(), transcribeReady: shadowing.transcribeReady() },
+    })
+  })
+
+  // POST /transcribe — auto-generate transcript (+ segments, + uz translation)
+  fastify.post('/transcribe', async (req, reply) => {
+    const body = z
+      .object({ tgMessageId: z.number().int().positive(), translate: z.boolean().default(true) })
+      .safeParse(req.body)
+    if (!body.success) return reply.code(400).send({ success: false, error: body.error.message })
+    try {
+      const data = await shadowing.transcribeMessage(body.data.tgMessageId, body.data.translate)
+      return reply.send({ success: true, data })
+    } catch (err) {
+      if (handleErr(err, reply)) return
+      throw err
+    }
   })
 
   // GET /channel-videos — recent videos in the channel, for the picker

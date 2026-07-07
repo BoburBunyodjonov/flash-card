@@ -4,6 +4,13 @@ export type CEFRLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2'
 
 export interface ShadowingStatus {
   ready: boolean
+  transcribeReady: boolean
+}
+
+export interface TranscriptionResult {
+  transcript: string
+  segments: ShadowingSegment[]
+  translationUz: string | null
 }
 
 export interface ChannelVideoDTO {
@@ -75,6 +82,10 @@ export const shadowingApi = {
     api.get('/api/admin/shadowing/channel-videos').then((r) => r.data.data as ChannelVideoDTO[]),
   clips: () =>
     api.get('/api/admin/shadowing/clips').then((r) => r.data.data as Clip[]),
+  transcribe: (tgMessageId: number, translate = true) =>
+    api
+      .post('/api/admin/shadowing/transcribe', { tgMessageId, translate })
+      .then((r) => r.data.data as TranscriptionResult),
   create: (data: ClipInput) =>
     api.post('/api/admin/shadowing/clips', data).then((r) => r.data.data as Clip),
   update: (id: string, data: ClipUpdate) =>

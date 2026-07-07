@@ -38,6 +38,17 @@ export const config = {
     session: (process.env.TELEGRAM_SESSION ?? '').trim(),
   },
 
+  // Speech-to-text for auto-generating shadowing transcripts (+ optional uz
+  // translation). OpenAI-compatible — defaults to Groq (free, fast). Swap the
+  // base/model for OpenAI (https://api.openai.com/v1 + whisper-1) if preferred.
+  transcribe: {
+    apiKey: (process.env.TRANSCRIBE_API_KEY ?? '').trim(),
+    apiBase: (process.env.TRANSCRIBE_API_BASE ?? 'https://api.groq.com/openai/v1').trim(),
+    model: (process.env.TRANSCRIBE_MODEL ?? 'whisper-large-v3-turbo').trim(),
+    // Chat model used to translate the transcript to Uzbek (same provider/key).
+    translateModel: (process.env.TRANSCRIBE_TRANSLATE_MODEL ?? 'llama-3.3-70b-versatile').trim(),
+  },
+
   shadowing: {
     // Channel that holds the shadowing videos: @username or numeric id (-100…).
     channel: (process.env.SHADOWING_CHANNEL_ID ?? '').trim(),

@@ -13,6 +13,7 @@ import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded'
 import VideocamRoundedIcon from '@mui/icons-material/VideocamRounded'
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded'
 import DoneAllRoundedIcon from '@mui/icons-material/DoneAllRounded'
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded'
 import { PageHeader } from '../../components/PageHeader'
 import { categoriesApi } from '../../api/categories.api'
 import {
@@ -60,6 +61,8 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 export function ShadowingPage() {
   const [ready, setReady] = useState<boolean | null>(null)
+  const [transcribeReady, setTranscribeReady] = useState(false)
+  const [transcribing, setTranscribing] = useState(false)
   const [tab, setTab] = useState(0)
 
   const [videos, setVideos] = useState<ChannelVideoDTO[]>([])
@@ -83,12 +86,36 @@ export function ShadowingPage() {
     try {
       const s = await shadowingApi.status()
       setReady(s.ready)
+      setTranscribeReady(s.transcribeReady)
       return s.ready
     } catch {
       setReady(false)
       return false
     }
   }, [])
+
+  const runTranscribe = async () => {
+    if (!form.tgMessageId) return
+    setTranscribing(true)
+    setError('')
+    try {
+      const r = await shadowingApi.transcribe(form.tgMessageId, true)
+      setForm((f) => ({
+        ...f,
+        transcript: r.transcript || f.transcript,
+        translationUz: r.translationUz || f.translationUz,
+      }))
+      setSegments(r.segments && r.segments.length ? r.segments : null)
+      setToast({
+        type: 'success',
+        msg: `Transkript tayyor${r.segments?.length ? ` • ${r.segments.length} segment` : ''}${r.translationUz ? ' • tarjima bilan' : ''}`,
+      })
+    } catch (e: any) {
+      setError(e?.response?.data?.error ?? 'Transkript qilishda xatolik yuz berdi')
+    } finally {
+      setTranscribing(false)
+    }
+  }
 
   const loadVideos = useCallback(async () => {
     setVideosLoading(true)
@@ -410,7 +437,7 @@ export function ShadowingPage() {
         </Paper>
       )}
 
-      <Dialog open={!!dialog} onClose={() => !saving && setDialog(null)} maxWidth="sm" fullWidth>
+      <Dialog open={!!dialog} onClose={() => !saving && !transcribing && setDialog(null)} maxWidth="sm" fullWidth>
         <DialogTitle>{dialog === 'create' ? 'Klipni import qilish' : 'Klipni tahrirlash'}</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
@@ -438,6 +465,31 @@ export function ShadowingPage() {
 
             <SectionLabel>Matn</SectionLabel>
 
+            {form.tgMessageId > 0 && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+                <Tooltip
+                  title={transcribeReady ? 'Videodan matn, vaqt belgilari va tarjimani AI orqali avtomatik yaratish' : 'Server .env da TRANSCRIBE_API_KEY sozlanmagan'}
+                  arrow
+                >
+                  <span>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="secondary"
+                      startIcon={transcribing ? <CircularProgress size={16} color="inherit" /> : <AutoAwesomeRoundedIcon />}
+                      onClick={runTranscribe}
+                      disabled={transcribing || saving || !transcribeReady}
+                    >
+                      {transcribing ? 'Transkript qilinmoqda…' : 'Avto-transkript'}
+                    </Button>
+                  </span>
+                </Tooltip>
+                <Typography variant="caption" color="text.secondary">
+                  AI natijasini saqlashdan oldin tekshiring
+                </Typography>
+              </Box>
+            )}
+
             <TextField label="Transkript (inglizcha) *" value={form.transcript} onChange={(e) => setForm({ ...form, transcript: e.target.value })} multiline rows={4} fullWidth />
             <TextField label="Oʻzbekcha tarjima *" value={form.translationUz} onChange={(e) => setForm({ ...form, translationUz: e.target.value })} multiline rows={4} fullWidth />
 
@@ -460,8 +512,8 @@ export function ShadowingPage() {
           </Box>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5 }}>
-          <Button onClick={() => setDialog(null)} color="inherit" disabled={saving}>Bekor qilish</Button>
-          <Button variant="contained" onClick={save} disabled={saving || !canSave}>
+          <Button onClick={() => setDialog(null)} color="inherit" disabled={saving || transcribing}>Bekor qilish</Button>
+          <Button variant="contained" onClick={save} disabled={saving || transcribing || !canSave}>
             {saving ? <CircularProgress size={18} color="inherit" /> : dialog === 'create' ? 'Import qilish' : 'Saqlash'}
           </Button>
         </DialogActions>

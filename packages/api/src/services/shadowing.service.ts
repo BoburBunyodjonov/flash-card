@@ -15,6 +15,14 @@ import {
   type VideoMeta,
 } from '../lib/telegram-client'
 import { getCachedClip, dropCachedClip } from '../lib/shadowing-cache'
+import {
+  transcribeFile,
+  translateToUzbek,
+  isTranscribeConfigured,
+  type TranscriptionResult,
+} from './transcription.service'
+import { promises as fsp } from 'node:fs'
+import path from 'node:path'
 
 export interface ShadowingSegment {
   start: number
@@ -288,6 +296,40 @@ export async function adminDeleteClip(id: string): Promise<void> {
   if (!existing) throw new ShadowingNotFoundError()
   await prisma.shadowingClip.delete({ where: { id } })
   await dropCachedClip(id)
+}
+
+export function transcribeReady(): boolean {
+  return isTranscribeConfigured()
+}
+
+/**
+ * Downloads a channel video and auto-generates its transcript (+ segment
+ * timestamps, + optional Uzbek translation) for the admin import form. The
+ * temp download is discarded — the clip's own cache fills on first playback.
+ */
+export async function transcribeMessage(tgMessageId: number, translate: boolean): Promise<TranscriptionResult> {
+  if (!mtprotoReady()) throw new ShadowingUnavailableError()
+  const client = await getTgClient()
+  if (!client) throw new ShadowingUnavailableError()
+
+  const msg = await getChannelMessage(client, tgMessageId)
+  const meta = extractVideoMeta(msg)
+  if (!meta) throw new ShadowingNotFoundError()
+
+  await fsp.mkdir(config.shadowing.cacheDir, { recursive: true })
+  const tmp = path.join(config.shadowing.cacheDir, `transcribe-${tgMessageId}.tmp`)
+  try {
+    await downloadMessageToFile(client, msg, tmp)
+    const { transcript, segments } = await transcribeFile(tmp)
+    let translationUz: string | null = null
+    if (translate && transcript) {
+      // Translation is best-effort — never let it fail the transcription.
+      translationUz = await translateToUzbek(transcript).catch(() => null)
+    }
+    return { transcript, segments, translationUz }
+  } finally {
+    await fsp.unlink(tmp).catch(() => {})
+  }
 }
 
 export async function adminListClips() {
