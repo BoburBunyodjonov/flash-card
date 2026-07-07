@@ -30,6 +30,9 @@ type Page = 'feed' | 'practice' | 'dictionary' | 'decks' | 'progress' | 'leaderb
 const NAV_PAGES: Page[] = ['feed', 'practice', 'speaking', 'dictionary', 'profile']
 // Pages reached from inside the Profile tab — they keep the Profil tab highlighted
 const PROFILE_SUBPAGES: Page[] = ['progress', 'leaderboard', 'decks', 'settings']
+// Focused, full-screen sessions hide the (fixed) tab bar — otherwise it overlaps
+// their bottom-anchored action buttons. Each has its own in-page back button.
+const IMMERSIVE_PAGES: Page[] = ['quiz', 'duel', 'groupchallenge', 'challenge', 'shadowing', 'mywordsstudy']
 
 const DUEL_PREFIX = 'duel_'
 const GC_PREFIX = 'gc_'
@@ -163,7 +166,9 @@ export default function App() {
           {page === 'settings' && <SettingsPage onBack={() => setPage('profile')} />}
         </motion.div>
       </AnimatePresence>
-      <BottomNav active={navPage} onChange={(p) => { setSpeakingAuto(false); setPage(p as Page) }} />
+      {!IMMERSIVE_PAGES.includes(page) && (
+        <BottomNav active={navPage} onChange={(p) => { setSpeakingAuto(false); setPage(p as Page) }} />
+      )}
       <ReferralBonusToast />
     </div>
   )
