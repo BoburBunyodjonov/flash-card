@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises'
+import { spawn } from 'node:child_process'
 import { config } from '../config'
 
 /**
@@ -45,17 +46,40 @@ function round2(n: number): number {
   return Math.round(n * 100) / 100
 }
 
-/** Runs Whisper on a local video/audio file → transcript + segment timestamps. */
-export async function transcribeFile(filePath: string): Promise<{ transcript: string; segments: TranscriptSegment[] }> {
+/**
+ * Extracts a small mono 16 kHz mp3 audio track from a video via ffmpeg, so we
+ * can transcribe clips far larger than the 25 MB upload cap (a video's audio is
+ * tiny). Returns the audio path, or null if ffmpeg is missing/fails (caller
+ * falls back to sending the video directly).
+ */
+export async function extractAudio(videoPath: string): Promise<string | null> {
+  const audioPath = `${videoPath}.mp3`
+  return new Promise((resolve) => {
+    const ff = spawn(
+      'ffmpeg',
+      ['-y', '-i', videoPath, '-vn', '-ac', '1', '-ar', '16000', '-b:a', '64k', audioPath],
+      { stdio: 'ignore' },
+    )
+    ff.on('error', () => resolve(null)) // ffmpeg binary not found
+    ff.on('close', (code) => resolve(code === 0 ? audioPath : null))
+  })
+}
+
+/** Runs Whisper on a local audio/video file → transcript + segment timestamps. */
+export async function transcribeFile(
+  filePath: string,
+  uploadName = 'clip.mp4',
+): Promise<{ transcript: string; segments: TranscriptSegment[] }> {
   if (!isTranscribeConfigured()) throw new TranscribeUnavailableError()
 
   const buf = await readFile(filePath)
   if (buf.length > MAX_UPLOAD_BYTES) throw new TranscribeFileTooLargeError()
 
   const form = new FormData()
-  // Groq/OpenAI validate the format by the FILENAME EXTENSION — Telegram videos
-  // are mp4, so send it as clip.mp4 (a bare temp name like *.tmp is rejected).
-  form.append('file', new Blob([buf], { type: 'video/mp4' }), 'clip.mp4')
+  // Groq/OpenAI validate the format by the FILENAME EXTENSION — send audio as
+  // clip.mp3 or video as clip.mp4 (a bare temp name like *.tmp is rejected).
+  const mime = uploadName.endsWith('.mp3') ? 'audio/mpeg' : 'video/mp4'
+  form.append('file', new Blob([buf], { type: mime }), uploadName)
   form.append('model', config.transcribe.model)
   form.append('response_format', 'verbose_json')
   form.append('language', 'en')

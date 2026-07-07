@@ -17,6 +17,7 @@ import {
 import { getCachedClip, dropCachedClip } from '../lib/shadowing-cache'
 import {
   transcribeFile,
+  extractAudio,
   translateToUzbek,
   isTranscribeConfigured,
   type TranscriptionResult,
@@ -318,9 +319,15 @@ export async function transcribeMessage(tgMessageId: number, translate: boolean)
 
   await fsp.mkdir(config.shadowing.cacheDir, { recursive: true })
   const tmp = path.join(config.shadowing.cacheDir, `transcribe-${tgMessageId}.tmp`)
+  let audioPath: string | null = null
   try {
     await downloadMessageToFile(client, msg, tmp)
-    const { transcript, segments } = await transcribeFile(tmp)
+    // Extract a tiny audio track so large videos (>25 MB) transcribe fine; fall
+    // back to sending the video directly if ffmpeg is unavailable.
+    audioPath = await extractAudio(tmp)
+    const { transcript, segments } = audioPath
+      ? await transcribeFile(audioPath, 'clip.mp3')
+      : await transcribeFile(tmp, 'clip.mp4')
     let translationUz: string | null = null
     if (translate && transcript) {
       // Translation is best-effort — never let it fail the transcription.
@@ -329,6 +336,7 @@ export async function transcribeMessage(tgMessageId: number, translate: boolean)
     return { transcript, segments, translationUz }
   } finally {
     await fsp.unlink(tmp).catch(() => {})
+    if (audioPath) await fsp.unlink(audioPath).catch(() => {})
   }
 }
 
