@@ -58,10 +58,38 @@ export async function listPartners() {
   const partners = await prisma.partner.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
-      _count: { select: { enrollments: true } },
+      _count: { select: { enrollments: true, staff: true, groups: true, webhookDeliveries: true } },
     },
   })
-  return partners.map((p) => ({
+  return partners.map((p) => {
+    const meta = (p.metadata ?? {}) as Record<string, unknown>
+    return {
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      status: p.status,
+      accessMode: p.accessMode,
+      premiumIncluded: p.premiumIncluded,
+      apiKeyPrefix: p.apiKeyPrefix,
+      webhookUrl: p.webhookUrl,
+      connector: (meta.connector as string) ?? 'manual',
+      enrollmentsCount: p._count.enrollments,
+      staffCount: p._count.staff,
+      groupsCount: p._count.groups,
+      webhookDeliveriesCount: p._count.webhookDeliveries,
+      createdAt: p.createdAt.toISOString(),
+    }
+  })
+}
+
+export async function getPartner(partnerId: string) {
+  const p = await prisma.partner.findUnique({
+    where: { id: partnerId },
+    include: { _count: { select: { enrollments: true, staff: true, groups: true } } },
+  })
+  if (!p) return null
+  const meta = (p.metadata ?? {}) as Record<string, unknown>
+  return {
     id: p.id,
     name: p.name,
     slug: p.slug,
@@ -70,9 +98,14 @@ export async function listPartners() {
     premiumIncluded: p.premiumIncluded,
     apiKeyPrefix: p.apiKeyPrefix,
     webhookUrl: p.webhookUrl,
+    hasWebhookSecret: Boolean(p.webhookSecret),
+    metadata: meta,
+    connector: (meta.connector as string) ?? 'manual',
     enrollmentsCount: p._count.enrollments,
+    staffCount: p._count.staff,
+    groupsCount: p._count.groups,
     createdAt: p.createdAt.toISOString(),
-  }))
+  }
 }
 
 export async function updatePartner(

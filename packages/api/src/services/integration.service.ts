@@ -9,6 +9,7 @@ import { INTEGRATION_ERROR_CODES } from '@wordswipe/shared'
 import { prisma } from '../lib/prisma'
 import { normalizePhone } from './auth.service'
 import { applyPartnerBenefitsForUser } from './partner-enrollment.service'
+import { dispatchPartnerWebhook } from './partner-webhook.service'
 
 export interface LearnerRecord {
   external_id: string
@@ -324,6 +325,11 @@ export async function deactivateLearner(
     data: { status: 'inactive', deactivatedAt: new Date() },
   })
   if (row.userId) await applyPartnerBenefitsForUser(row.userId)
+  dispatchPartnerWebhook(partnerId, 'learner.deactivated', {
+    external_id: row.externalId,
+    user_id: row.userId,
+    phone: row.phone,
+  }).catch(() => {})
   return toLearnerRecord(row)
 }
 

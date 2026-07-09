@@ -526,6 +526,7 @@ model Partner {
   staff       IntegrationStaff[]
   groups      IntegrationGroup[]
   wordPacks   TeacherWordPack[]
+  webhookDeliveries PartnerWebhookDelivery[]
 
   @@map("partners")
 }
@@ -676,4 +677,22 @@ model TeacherWordPackItem {
 
   @@index([packId])
   @@map("teacher_word_pack_items")
+}
+
+/// Outbound webhook delivery tarixi (WordSwipe → ERP)
+model PartnerWebhookDelivery {
+  id          String   @id @default(uuid())
+  partnerId   String   @map("partner_id")
+  event       String
+  payload     Json
+  statusCode  Int?     @map("status_code")
+  success     Boolean  @default(false)
+  error       String?
+  durationMs  Int?     @map("duration_ms")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@index([partnerId, createdAt])
+  @@map("partner_webhook_deliveries")
 }

@@ -193,12 +193,30 @@ Javobda `apiKey` bir marta ko'rsatiladi — saqlang.
 | `benefit_only` | Ro'yxatdagilar premium oladi; boshqalar oddiy user |
 | `whitelist` | Faqat bitta markaz bo'lganda: faqat ro'yxatdagi telefonlar kira oladi |
 
-## Kelgusi webhooklar (WordSwipe → ERP)
+## Outbound webhooklar (WordSwipe → ERP)
 
-`webhookUrl` sozlangan markazlarga:
-- `learner.linked` — o'quvchi birinchi marta kirdi
-- `learner.deactivated` — o'quvchi chiqarildi
-- `learner.progress.snapshot` — haftalik progress
+Admin panelda **Webhook URL** + **secret** sozlang. Har event POST qilinadi:
+
+| Event | Qachon |
+|-------|--------|
+| `webhook.test` | Admin “Test webhook” bosganda |
+| `learner.linked` | O'quvchi birinchi marta ilovaga kirdi |
+| `learner.deactivated` | O'quvchi ro'yxatdan chiqarildi |
+| `staff.linked` | O'qituvchi birinchi marta kirdi |
+| `word_pack.published` | O'qituvchi guruhga so'z to'plami yubordi |
+
+**Imzo:** `X-WordSwipe-Signature: sha256=<hmac>` (secret bo'lsa)  
+**Admin:** `/admin/partners` → webhook tarixi
+
+## ERP Connectors (pull sync)
+
+Admin → **ERP Partners** → connector tanlang → **Sync** tugmasi yoki `POST /api/admin/partners/:id/sync`
+
+| Connector | Qanday ishlaydi |
+|-----------|-----------------|
+| `manual` | ERP o'zi `POST /integrations/v1/*` qiladi (default) |
+| `generic_rest` | Sizning ERP URL dan JSON tortadi (`staff`, `groups`, `learners`) |
+| `edupage` | EduPage login → sinflar, o'qituvchilar, o'quvchilar (telefon kerak) |
 
 ## Qo'llab-quvvatlash
 

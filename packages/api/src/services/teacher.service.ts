@@ -1,6 +1,7 @@
 import { prisma } from '../lib/prisma'
 import { normalizePhone } from './auth.service'
 import { assignWordsFromPack, type PackWordInput } from './my-words.service'
+import { dispatchPartnerWebhook } from './partner-webhook.service'
 
 export class TeacherAuthError extends Error {
   statusCode: number
@@ -24,6 +25,12 @@ export async function linkStaffToUser(userId: string, rawPhone: string) {
     if (s.partner.status !== 'active') continue
     if (!s.userId) {
       await prisma.integrationStaff.update({ where: { id: s.id }, data: { userId } })
+      dispatchPartnerWebhook(s.partnerId, 'staff.linked', {
+        external_id: s.externalId,
+        user_id: userId,
+        phone: s.phone,
+        role: s.role,
+      }).catch(() => {})
     }
     linked.push(s.partner.slug)
   }
@@ -221,14 +228,18 @@ export async function publishWordPack(userId: string, packId: string) {
     data: { status: 'published', publishedAt: new Date() },
   })
 
-  return {
+  const result = {
     pack_id: packId,
     group_external_id: pack.groupExternalId,
+    title: pack.title,
     students_count: userIds.length,
     words_added: delivered,
     words_skipped_existing: skipped,
     published_at: new Date().toISOString(),
   }
+
+  dispatchPartnerWebhook(pack.partnerId, 'word_pack.published', result).catch(() => {})
+  return result
 }
 
 export async function isTeacher(userId: string): Promise<boolean> {

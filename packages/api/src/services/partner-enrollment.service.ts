@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma'
 import { normalizePhone } from './auth.service'
+import { dispatchPartnerWebhook } from './partner-webhook.service'
 
 /**
  * ERP ro'yxatidagi o'quvchini akkaunt bilan bog'laydi va markaz shartnomasi
@@ -59,6 +60,12 @@ export async function linkEnrollmentsToUser(userId: string, rawPhone: string) {
         data: { userId },
       })
       linked.push(e.partner.slug)
+      dispatchPartnerWebhook(e.partnerId, 'learner.linked', {
+        external_id: e.externalId,
+        user_id: userId,
+        phone: e.phone,
+        group_external_id: e.groupExternalId,
+      }).catch(() => {})
     }
   }
 

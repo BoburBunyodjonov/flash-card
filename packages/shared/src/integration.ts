@@ -49,6 +49,7 @@ export const INTEGRATION_ERROR_CODES = {
 
 /** Outbound webhook eventlari (WordSwipe → ERP) */
 export const INTEGRATION_WEBHOOK_EVENTS = [
+  'webhook.test',
   'learner.linked',
   'learner.deactivated',
   'learner.progress.snapshot',
@@ -59,6 +60,9 @@ export type IntegrationWebhookEvent = (typeof INTEGRATION_WEBHOOK_EVENTS)[number
 
 export const STAFF_ROLES = ['teacher', 'admin'] as const
 export type StaffRole = (typeof STAFF_ROLES)[number]
+
+export const CONNECTOR_TYPES = ['manual', 'generic_rest', 'edupage'] as const
+export type ConnectorType = (typeof CONNECTOR_TYPES)[number]
 
 export interface IntegrationStaffInput {
   external_id: string
