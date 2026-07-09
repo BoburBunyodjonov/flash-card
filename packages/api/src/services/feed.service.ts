@@ -269,10 +269,13 @@ export async function getTodayStats(userId: string, isPremium: boolean) {
   const dailyLimit = isPremium ? 999999 : (limits.dailySwipeLimit || 20) + bonus
   const usedToday = parseInt((await redis.get(DAILY_COUNT_KEY(userId))) ?? '0')
 
-  const learnedToday = await prisma.userWordProgress.count({
+  const dayStart = new Date()
+  dayStart.setHours(0, 0, 0, 0)
+
+  const learnedToday = await prisma.userWord.count({
     where: {
       userId,
-      lastReviewed: { gte: new Date(new Date().setHours(0, 0, 0, 0)) },
+      lastReviewed: { gte: dayStart },
       status: { in: ['learned', 'mastered'] },
     },
   })

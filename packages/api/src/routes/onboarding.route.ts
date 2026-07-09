@@ -19,7 +19,19 @@ export async function onboardingRoutes(fastify: FastifyInstance) {
     if (!body.success) return reply.code(400).send({ success: false, error: 'Invalid body' })
 
     const user = req.user as JwtPayload
-    await prisma.user.update({ where: { id: user.userId }, data: { cefrLevel: body.data.level } })
+    await prisma.user.update({
+      where: { id: user.userId },
+      data: { cefrLevel: body.data.level, onboardingDone: true },
+    })
+    return reply.send({ success: true })
+  })
+
+  fastify.post('/skip', async (req, reply) => {
+    const user = req.user as JwtPayload
+    await prisma.user.update({
+      where: { id: user.userId },
+      data: { onboardingDone: true },
+    })
     return reply.send({ success: true })
   })
 }

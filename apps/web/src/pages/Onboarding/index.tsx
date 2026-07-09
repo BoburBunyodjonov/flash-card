@@ -3,13 +3,13 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import {
   Sprout, BookOpen, Zap, Flame, Trophy, Gem,
-  Clock, Target, Gift, Check, X, ArrowRight, type LucideIcon,
+  Clock, Target, Gift, Check, X, ArrowRight, BookText, type LucideIcon,
 } from 'lucide-react'
 import { onboardingApi, type TestQuestion } from '../../api/onboarding.api'
+import { DIFFICULTIES } from '@wordswipe/shared'
 
-interface Props { onDone: (level: string) => void }
+interface Props { onDone: (level?: string) => void }
 
-// Level display config — color + icon per CEFR level (titles/descriptions via i18n)
 const LEVEL_CONFIG: Record<string, { color: string; bg: string; Icon: LucideIcon }> = {
   A1: { color: '#34d399', bg: 'rgba(52,211,153,0.15)', Icon: Sprout },
   A2: { color: '#6ee7b7', bg: 'rgba(110,231,183,0.15)', Icon: BookOpen },
@@ -19,7 +19,6 @@ const LEVEL_CONFIG: Record<string, { color: string; bg: string; Icon: LucideIcon
   C2: { color: '#c084fc', bg: 'rgba(192,132,252,0.15)', Icon: Gem },
 }
 
-// Determine level from quiz results
 function determineLevel(results: { difficulty: string; correct: boolean }[]): string {
   const byLevel: Record<string, { correct: number; total: number }> = {}
   for (const r of results) {
@@ -43,14 +42,15 @@ function determineLevel(results: { difficulty: string; correct: boolean }[]): st
 
 export function OnboardingPage({ onDone }: Props) {
   const { t } = useTranslation()
-  const [step, setStep] = useState<'welcome' | 'quiz' | 'result'>('welcome')
+  const [step, setStep] = useState<'welcome' | 'pick' | 'quiz' | 'result'>('welcome')
   const [questions, setQuestions] = useState<TestQuestion[]>([])
   const [loading, setLoading] = useState(false)
   const [qIndex, setQIndex] = useState(0)
   const [selected, setSelected] = useState<number | null>(null)
   const [revealed, setRevealed] = useState(false)
   const [results, setResults] = useState<{ difficulty: string; correct: boolean }[]>([])
-  const [level, setLevel] = useState('A1')
+  const [level, setLevel] = useState('B1')
+  const [pickedLevel, setPickedLevel] = useState('B1')
 
   const startQuiz = async () => {
     setLoading(true)
@@ -59,8 +59,7 @@ export function OnboardingPage({ onDone }: Props) {
       setQuestions(qs)
       setStep('quiz')
     } catch {
-      // If API fails, skip to result with default level
-      setLevel('A1')
+      setLevel('B1')
       setStep('result')
     } finally {
       setLoading(false)
@@ -95,7 +94,6 @@ export function OnboardingPage({ onDone }: Props) {
     <div className="h-full flex flex-col overflow-hidden" style={{ background: 'var(--ws-bg)' }}>
       <AnimatePresence mode="wait">
 
-        {/* WELCOME */}
         {step === 'welcome' && (
           <motion.div
             key="welcome"
@@ -104,34 +102,8 @@ export function OnboardingPage({ onDone }: Props) {
             exit={{ opacity: 0, y: -24 }}
             className="flex-1 flex flex-col items-center justify-center px-7 text-center gap-8"
           >
-            {/* Animated level badges around hero */}
-            <div className="relative w-44 h-44 flex items-center justify-center">
-              {(['A1', 'B1', 'C1'] as const).map((lvl, i) => {
-                const c = LEVEL_CONFIG[lvl]
-                const BadgeIcon = c.Icon
-                return (
-                  <motion.div
-                    key={lvl}
-                    className="absolute px-3 py-2 rounded-btn font-black text-sm flex items-center gap-1.5"
-                    style={{
-                      background: c.bg,
-                      color: c.color,
-                      border: `1px solid ${c.color}40`,
-                      left: `${[6, 52, 78][i]}%`,
-                      top: `${[18, 52, 12][i]}%`,
-                      transform: `rotate(${[-12, 0, 10][i]}deg)`,
-                    }}
-                    initial={{ opacity: 0, scale: 0.6 }}
-                    animate={{ opacity: 0.9, scale: 1 }}
-                    transition={{ delay: i * 0.15, type: 'spring', stiffness: 300 }}
-                  >
-                    <BadgeIcon size={14} strokeWidth={2.4} /> {lvl}
-                  </motion.div>
-                )
-              })}
-              <div className="w-[5.5rem] h-[5.5rem] rounded-[1.6rem] flex items-center justify-center z-10 ws-gradient-bg ws-glow-primary">
-                <Zap size={40} strokeWidth={2.2} className="text-white" fill="currentColor" />
-              </div>
+            <div className="w-24 h-24 rounded-[1.6rem] flex items-center justify-center ws-gradient-bg ws-glow-primary">
+              <BookText size={42} strokeWidth={2} style={{ color: '#fff' }} />
             </div>
 
             <div className="flex flex-col gap-2.5">
@@ -145,9 +117,9 @@ export function OnboardingPage({ onDone }: Props) {
 
             <div className="flex flex-col gap-3 w-full max-w-xs text-left">
               {[
-                { Icon: Clock, key: 'onboarding.featTime' },
                 { Icon: Target, key: 'onboarding.featChoose' },
-                { Icon: Gift, key: 'onboarding.featPlan' },
+                { Icon: BookOpen, key: 'onboarding.featPlan' },
+                { Icon: Gift, key: 'onboarding.featTime' },
               ].map(({ Icon, key }) => (
                 <div key={key} className="flex items-center gap-3.5 ws-card-2 px-4 py-3">
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
@@ -159,27 +131,93 @@ export function OnboardingPage({ onDone }: Props) {
               ))}
             </div>
 
-            <motion.button
-              whileTap={{ scale: 0.97 }}
-              onClick={startQuiz}
-              disabled={loading}
-              className="w-full max-w-xs py-4 rounded-btn font-bold text-base text-white flex items-center justify-center gap-2 ws-gradient-bg ws-glow-primary disabled:opacity-60"
-            >
-              {loading ? (
-                <>
-                  <div className="w-5 h-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                  {t('onboarding.loading')}
-                </>
-              ) : (
-                <>
-                  {t('onboarding.start')} <ArrowRight size={18} strokeWidth={2.6} />
-                </>
-              )}
-            </motion.button>
+            <div className="flex flex-col gap-3 w-full max-w-xs">
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={() => onDone()}
+                className="w-full py-4 rounded-btn font-bold text-base text-white flex items-center justify-center gap-2 ws-gradient-bg ws-glow-primary"
+              >
+                {t('onboarding.startLearning')} <ArrowRight size={18} strokeWidth={2.6} />
+              </motion.button>
+
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setStep('pick')}
+                className="w-full py-3.5 rounded-btn font-semibold text-sm ws-card-2"
+                style={{ color: 'var(--ws-muted)' }}
+              >
+                {t('onboarding.pickLevel')}
+              </motion.button>
+
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={startQuiz}
+                disabled={loading}
+                className="w-full py-3 rounded-btn font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-60"
+                style={{ color: 'var(--ws-primary-light)' }}
+              >
+                {loading ? (
+                  <div className="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin" />
+                ) : (
+                  <><Clock size={15} strokeWidth={2.2} /> {t('onboarding.takeTest')}</>
+                )}
+              </motion.button>
+            </div>
           </motion.div>
         )}
 
-        {/* QUIZ */}
+        {step === 'pick' && (
+          <motion.div
+            key="pick"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="flex-1 flex flex-col px-6 pt-8 pb-8 gap-6"
+          >
+            <div className="text-center">
+              <h2 className="text-xl font-black" style={{ color: 'var(--ws-text)' }}>{t('onboarding.pickLevelTitle')}</h2>
+              <p className="text-sm mt-2" style={{ color: 'var(--ws-muted)' }}>{t('onboarding.pickLevelDesc')}</p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2.5">
+              {DIFFICULTIES.map((lvl) => {
+                const c = LEVEL_CONFIG[lvl]
+                const active = pickedLevel === lvl
+                const LvlIcon = c.Icon
+                return (
+                  <motion.button
+                    key={lvl}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setPickedLevel(lvl)}
+                    className="py-4 rounded-2xl font-black text-sm flex flex-col items-center gap-1.5"
+                    style={{
+                      background: active ? c.bg : 'var(--ws-card-2)',
+                      border: `2px solid ${active ? c.color : 'var(--ws-border)'}`,
+                      color: active ? c.color : 'var(--ws-muted)',
+                    }}
+                  >
+                    <LvlIcon size={18} strokeWidth={2.2} />
+                    {lvl}
+                  </motion.button>
+                )
+              })}
+            </div>
+
+            <div className="flex flex-col gap-2.5 mt-auto">
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={() => onDone(pickedLevel)}
+                className="w-full py-4 rounded-btn font-bold text-white ws-gradient-bg"
+              >
+                {t('onboarding.continue')} <ArrowRight size={16} strokeWidth={2.6} className="inline ml-1" />
+              </motion.button>
+              <button onClick={() => setStep('welcome')} className="text-sm font-semibold py-2" style={{ color: 'var(--ws-faint)' }}>
+                {t('onboarding.back')}
+              </button>
+            </div>
+          </motion.div>
+        )}
+
         {step === 'quiz' && questions.length > 0 && (
           <motion.div
             key="quiz"
@@ -188,7 +226,6 @@ export function OnboardingPage({ onDone }: Props) {
             exit={{ opacity: 0, x: -24 }}
             className="flex-1 flex flex-col px-5 pt-6 pb-8 gap-5"
           >
-            {/* Header */}
             <div className="flex items-center justify-between shrink-0">
               <span className="text-sm font-bold tabular-nums" style={{ color: 'var(--ws-muted)' }}>
                 {qIndex + 1} / {questions.length}
@@ -204,7 +241,6 @@ export function OnboardingPage({ onDone }: Props) {
               </span>
             </div>
 
-            {/* Progress bar */}
             <div className="h-1.5 rounded-full overflow-hidden shrink-0" style={{ background: 'var(--ws-border)' }}>
               <motion.div
                 className="h-full rounded-full ws-gradient-bg"
@@ -213,7 +249,6 @@ export function OnboardingPage({ onDone }: Props) {
               />
             </div>
 
-            {/* Question card */}
             <AnimatePresence mode="wait">
               <motion.div
                 key={qIndex}
@@ -223,7 +258,6 @@ export function OnboardingPage({ onDone }: Props) {
                 transition={{ type: 'spring', stiffness: 340, damping: 28 }}
                 className="flex flex-col gap-5"
               >
-                {/* Word hero */}
                 <div
                   className="rounded-card p-6 text-center"
                   style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)' }}
@@ -242,7 +276,6 @@ export function OnboardingPage({ onDone }: Props) {
                   )}
                 </div>
 
-                {/* Choices */}
                 <div className="flex flex-col gap-2.5">
                   {questions[qIndex]?.choices.map((choice, i) => {
                     const isSelected = selected === i
@@ -286,7 +319,6 @@ export function OnboardingPage({ onDone }: Props) {
           </motion.div>
         )}
 
-        {/* RESULT */}
         {step === 'result' && (
           <motion.div
             key="result"
@@ -339,7 +371,6 @@ export function OnboardingPage({ onDone }: Props) {
               </motion.p>
             </div>
 
-            {/* Score summary */}
             {results.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}

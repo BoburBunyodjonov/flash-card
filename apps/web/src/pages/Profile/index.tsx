@@ -1,15 +1,15 @@
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import {
-  TrendingUp, Trophy, Layers, Settings as SettingsIcon,
-  ChevronRight, Flame, Zap, Crown, User, type LucideIcon,
+  TrendingUp, Trophy, Settings as SettingsIcon,
+  ChevronRight, Flame, Zap, Crown, User, NotebookPen, type LucideIcon,
 } from 'lucide-react'
 import { useAuthStore } from '../../store/auth.store'
 
 interface Props {
   onProgress: () => void
   onLeaderboard: () => void
-  onDecks: () => void
+  onMyWords: () => void
   onSettings: () => void
 }
 
@@ -20,14 +20,14 @@ interface Entry {
   onPress: () => void
 }
 
-export function ProfilePage({ onProgress, onLeaderboard, onDecks, onSettings }: Props) {
+export function ProfilePage({ onProgress, onLeaderboard, onMyWords, onSettings }: Props) {
   const { t } = useTranslation()
   const { user } = useAuthStore()
 
   const entries: Entry[] = [
     { key: 'progress',    Icon: TrendingUp,   tint: '#6366F1', onPress: onProgress },
     { key: 'leaderboard', Icon: Trophy,       tint: '#F59E0B', onPress: onLeaderboard },
-    { key: 'decks',       Icon: Layers,       tint: '#10B981', onPress: onDecks },
+    { key: 'myWords',     Icon: NotebookPen,  tint: '#10B981', onPress: onMyWords },
     { key: 'settings',    Icon: SettingsIcon, tint: '#8B5CF6', onPress: onSettings },
   ]
 

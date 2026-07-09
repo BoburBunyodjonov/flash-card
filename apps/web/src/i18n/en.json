@@ -14,7 +14,7 @@
     "featOffline": "Offline mode"
   },
   "nav": {
-    "feed": "Learn",
+    "feed": "Review",
     "dictionary": "Dictionary",
     "decks": "Decks",
     "progress": "Progress",
@@ -38,7 +38,8 @@
     "emptyTitle": "No words found",
     "emptyDesc": "No words to learn right now",
     "myWordsEmptyTitle": "You haven't added any words yet",
-    "myWordsEmptyDesc": "Add your own words and learn them right here",
+    "myWordsEmptyDesc": "Add words from the Dictionary or type your own — study them here",
+    "browseDictionary": "Browse Dictionary",
     "addWord": "Add a word",
     "backToAll": "Back to all",
     "reload": "Reload",
@@ -49,7 +50,7 @@
     "skipHint": "↓ skip",
     "saveLabel": "Save",
     "skipLabel": "Skip",
-    "loading": "Loading your feed...",
+    "loading": "Loading your words...",
     "learnedToday": "learned today",
     "unlockIn": "New words unlock in",
     "hours": "h",
@@ -127,11 +128,11 @@
     "notifyHint": "Reminders via Telegram",
     "notifySaved": "Saved — reminder at {{time}}",
     "inviteTitle": "Invite friends",
-    "inviteReward": "+50 XP and +10 bonus words per friend",
+    "inviteReward": "+50 XP and +10 extra reviews per friend",
     "invited": "invited",
     "shareInvite": "Share invite link",
     "cefrTitle": "English level",
-    "cefrHint": "Feed shows words for this level",
+    "cefrHint": "Used for Shadowing and Speaking difficulty",
     "mobilePassword": "Mobile app password",
     "mobilePasswordHint": "Use this phone and password to log into the mobile app (your account is kept)",
     "pwSet": "Password is set",
@@ -191,7 +192,7 @@
     "bonusTitle": "🎁 Referral bonus!",
     "bonusSubtitle": "A gift for joining via your friend's invite",
     "bonusXp": "+{{n}} XP",
-    "bonusWords": "+{{n}} bonus words",
+    "bonusWords": "+{{n}} extra reviews",
     "dismiss": "Awesome!"
   },
   "speaking": {
@@ -349,11 +350,18 @@
     }
   },
   "onboarding": {
-    "welcomeTitle": "Let's find your level",
-    "welcomeDesc": "10 quick questions to gauge your English level and recommend the right words for you",
-    "featTime": "Takes about 2 minutes",
-    "featChoose": "Choose the word's meaning",
-    "featPlan": "A study plan matched to your level",
+    "welcomeTitle": "Welcome to WordSwipe!",
+    "welcomeDesc": "Learn words you add yourself — start from the Dictionary",
+    "featTime": "You can set your level later anytime",
+    "featChoose": "Add words from the Dictionary or type your own",
+    "featPlan": "Review, quiz, and practice to reinforce them",
+    "startLearning": "Start learning",
+    "pickLevel": "Choose my level",
+    "pickLevelTitle": "Your English level",
+    "pickLevelDesc": "For Shadowing & Speaking — change anytime in Settings",
+    "takeTest": "Take a level test (~2 min)",
+    "continue": "Continue",
+    "back": "Back",
     "start": "Get started",
     "loading": "Loading...",
     "questionPrompt": "What does this word mean?",
@@ -425,7 +433,7 @@
     "loadError": "Could not load questions",
     "checkConnection": "Check your internet connection",
     "noWords": "No words to practice",
-    "learnFirst": "Learn some words in the feed first",
+    "learnFirst": "Add at least 3 words to My Words first",
     "prompt": {
       "mcq": "What is this word in Uzbek?",
       "reverse": "Which is the English for this translation?",
@@ -553,10 +561,10 @@
   },
   "practice": {
     "title": "Practice",
-    "subtitle": "Reinforce what you've learned",
+    "subtitle": "Practice with My Words",
     "quiz": {
       "title": "Quiz",
-      "desc": "Test your knowledge"
+      "desc": "Quiz from My Words"
     },
     "shadowing": {
       "title": "Shadowing",
@@ -564,11 +572,11 @@
     },
     "duel": {
       "title": "Duel",
-      "desc": "Challenge a friend"
+      "desc": "Duel with your words"
     },
     "groupChallenge": {
       "title": "Group Challenge",
-      "desc": "Race friends on the same questions"
+      "desc": "Group race with your words"
     },
     "speaking": {
       "title": "Speaking",
@@ -576,18 +584,18 @@
     },
     "challenge": {
       "title": "Daily challenge",
-      "desc": "A new test each day"
+      "desc": "Daily quiz from My Words"
     },
     "myWords": {
       "title": "My Words",
-      "desc": "Study your own words"
+      "desc": "Your list & memorize environment"
     }
   },
   "profile": {
     "title": "Profile",
     "progress": "Progress",
     "leaderboard": "Leaderboard",
-    "decks": "Decks",
+    "myWords": "My Words",
     "settings": "Settings"
   }
 }

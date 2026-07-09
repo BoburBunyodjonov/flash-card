@@ -85,6 +85,7 @@ model User {
   lastActive   DateTime? @map("last_active")
   xp           Int       @default(0)
   cefrLevel    Difficulty? @map("cefr_level")
+  onboardingDone Boolean   @default(false) @map("onboarding_done")
   gender       Gender?
   leagueTier   Int       @default(0) @map("league_tier")
   referredById String?   @map("referred_by")

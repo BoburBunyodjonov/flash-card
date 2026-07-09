@@ -165,6 +165,7 @@ function buildAuthResult(
     streak: user.streak,
     xp: user.xp + (referralBonus?.xp ?? 0),
     cefrLevel: user.cefrLevel,
+    onboardingDone: user.onboardingDone || !!user.cefrLevel,
     gender: user.gender,
     notifyAt: user.notifyAt,
     notifyEnabled: user.notifyEnabled,

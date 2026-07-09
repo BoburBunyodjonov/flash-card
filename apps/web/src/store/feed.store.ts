@@ -113,7 +113,7 @@ export const useFeedStore = create<FeedStore>((set, get) => ({
         isEmpty: empty,
         isOffline: false,
         currentIndex: 0,
-        globalFeedEnabled: data.globalFeedEnabled ?? true,
+        globalFeedEnabled: data.globalFeedEnabled ?? false,
       }
       if (data.globalFeedEnabled === false) {
         patch.selectedCategoryId = 'personal'

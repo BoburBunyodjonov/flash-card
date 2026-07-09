@@ -67,9 +67,9 @@ const includeAll = {
 }
 
 export async function createGroupChallenge(creatorId: string, language: Language) {
-  const questions = await generateQuestions(language, GC_QUESTION_COUNT)
+  const questions = await generateQuestions(language, GC_QUESTION_COUNT, creatorId)
   if (questions.length < GC_QUESTION_COUNT) {
-    throw new Error('Not enough words to create a challenge')
+    throw new Error('Add at least 7 words to My Words before creating a group challenge')
   }
 
   const gc = await prisma.groupChallenge.create({

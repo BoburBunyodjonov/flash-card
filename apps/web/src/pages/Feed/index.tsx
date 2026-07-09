@@ -34,7 +34,7 @@ function useCountdownToMidnight() {
   return { hoursLeft, minutesLeft }
 }
 
-export function FeedPage({ onChallenge, onMyWords, onProgress }: { onChallenge?: () => void; onMyWords?: () => void; onProgress?: () => void }) {
+export function FeedPage({ onChallenge, onMyWords, onDictionary, onProgress }: { onChallenge?: () => void; onMyWords?: () => void; onDictionary?: () => void; onProgress?: () => void }) {
   const { t } = useTranslation()
   const { words, currentIndex, stats, isLoading, isLimitReached, isEmpty, loadFeed, swipe, nextCard, selectedCategoryId, setCategory, globalFeedEnabled } = useFeedStore()
   const { user } = useAuthStore()
@@ -72,7 +72,7 @@ export function FeedPage({ onChallenge, onMyWords, onProgress }: { onChallenge?:
     // Personal referral link → both sides earn XP and bonus words from the share
     const referral = await profileApi.getReferral().catch(() => null)
     const link = referral?.link ?? `https://t.me/WordSwipeBot?start=${referral?.startParam ?? ''}`
-    const msg = `🔥 Bugun WordSwipe da ${learned} ta yangi so'z o'rgandim!\n⚡ ${streak} kunlik streak\n\n🎁 Shu havola orqali qo'shilsang, ikkalamiz ham +10 bonus so'z olamiz 👇\n${link}`
+    const msg = `🔥 Bugun WordSwipe da ${learned} ta so'z o'rgandim!\n⚡ ${streak} kunlik streak\n\n🎁 Shu havola orqali qo'shilsang, ikkalamiz ham +10 qo'shimcha takrorlash olamiz 👇\n${link}`
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(msg)}`)
     } else {
@@ -127,14 +127,25 @@ export function FeedPage({ onChallenge, onMyWords, onProgress }: { onChallenge?:
 
         {/* Personal filter with no words → let the user add one right away */}
         {isPersonal && (
-          <motion.button
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={onMyWords}
-            className="w-full max-w-xs py-4 rounded-btn font-bold text-base text-white flex items-center justify-center gap-2 ws-gradient-bg ws-glow-primary"
-          >
-            <Plus size={18} strokeWidth={2.4} /> {t('feed.addWord')}
-          </motion.button>
+          <div className="flex flex-col gap-3 w-full max-w-xs">
+            <motion.button
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={onDictionary}
+              className="w-full py-4 rounded-btn font-bold text-base text-white flex items-center justify-center gap-2 ws-gradient-bg ws-glow-primary"
+            >
+              <BookOpen size={18} strokeWidth={2.4} /> {t('feed.browseDictionary')}
+            </motion.button>
+            <motion.button
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.24 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={onMyWords}
+              className="w-full py-3.5 rounded-btn font-semibold text-sm flex items-center justify-center gap-2 ws-card-2"
+              style={{ color: 'var(--ws-muted)' }}
+            >
+              <Plus size={16} strokeWidth={2.2} /> {t('feed.addWord')}
+            </motion.button>
+          </div>
         )}
 
         {/* Always offer a way out: back to the full feed if filtered, else reload */}

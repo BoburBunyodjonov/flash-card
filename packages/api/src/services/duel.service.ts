@@ -37,20 +37,24 @@ function shuffle<T>(arr: T[]): T[] {
  * challenges use 7) — defaults to the duel count.
  */
 export async function generateQuestions(
-  language: Language,
+  _language: Language,
   count: number = DUEL_QUESTION_COUNT,
+  userId?: string,
 ): Promise<DuelQuestion[]> {
-  const words = await prisma.word.findMany({
-    where: { translations: { some: { language, translation: { not: null } } } },
-    include: { translations: { where: { language } } },
+  if (!userId) return []
+
+  const rows = await prisma.userWord.findMany({
+    where: { userId, status: { not: 'mastered' } },
     take: Math.max(60, count * 6),
   })
-  const valid = (words as any[]).filter((w) => w.translations[0]?.translation)
+  const valid = rows as any[]
+  if (valid.length < count) return []
+
   const selected = shuffle(valid).slice(0, count)
-  const distractorPool = valid.map((w) => w.translations[0].translation as string)
+  const distractorPool = valid.map((w) => w.translation as string)
 
   return selected.map((w) => {
-    const correct = w.translations[0].translation as string
+    const correct = w.translation as string
     const distractors = shuffle(distractorPool.filter((t) => t !== correct)).slice(0, CHOICES_COUNT - 1)
     const choices = shuffle([correct, ...distractors])
     return {
@@ -85,9 +89,9 @@ function serialize(duel: any, userId: string) {
 }
 
 export async function createDuel(challengerId: string, language: Language) {
-  const questions = await generateQuestions(language)
+  const questions = await generateQuestions(language, DUEL_QUESTION_COUNT, challengerId)
   if (questions.length < DUEL_QUESTION_COUNT) {
-    throw new Error('Not enough words to create a duel')
+    throw new Error('Add at least 5 words to My Words before creating a duel')
   }
 
   const duel = await prisma.duel.create({

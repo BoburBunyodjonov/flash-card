@@ -113,6 +113,18 @@ export async function listUserWords(userId: string): Promise<{ words: UserWordDT
   return { words: rows.map(toDTO), dueCount }
 }
 
+/** Words waiting for spaced-repetition review (new + overdue, excluding mastered). */
+export async function countDueUserWords(userId: string): Promise<number> {
+  const now = new Date()
+  return prisma.userWord.count({
+    where: {
+      userId,
+      status: { not: 'mastered' },
+      OR: [{ status: 'new' }, { nextReview: { lte: now } }],
+    },
+  })
+}
+
 export async function createUserWord(userId: string, data: CreateUserWordInput): Promise<UserWordDTO> {
   try {
     const row = await prisma.userWord.create({
@@ -211,30 +223,71 @@ export async function relearnUserWord(userId: string, id: string): Promise<UserW
   return toDTO(row)
 }
 
-export async function reviewUserWord(
+export interface UserWordPoolItem {
+  id: string
+  word: string
+  translation: string
+  pronunciation: string | null
+  audioUrl: string | null
+  exampleEn: string | null
+  strength: number
+}
+
+function shufflePool<T>(arr: T[]): T[] {
+  const a = arr.slice()
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+/** Shared pool for quiz, challenge, duel — due/weak personal words first. */
+export async function getUserWordPool(userId: string, count: number): Promise<UserWordPoolItem[]> {
+  const cap = Math.min(Math.max(count, 1), 100)
+  const rows = await prisma.userWord.findMany({
+    where: { userId, status: { not: 'mastered' } },
+    orderBy: [{ nextReview: 'asc' }, { strength: 'asc' }],
+    take: cap * 2,
+  })
+  const mapped: UserWordPoolItem[] = (rows as any[]).map((r) => ({
+    id: r.id,
+    word: r.word,
+    translation: r.translation,
+    pronunciation: r.pronunciation ?? null,
+    audioUrl: r.audioUrl ?? null,
+    exampleEn: r.exampleEn ?? null,
+    strength: r.strength ?? 0,
+  }))
+  return shufflePool(mapped).slice(0, cap)
+}
+
+export async function getUserWordDistractors(
+  userId: string,
+  excludeIds: string[],
+): Promise<{ words: string[]; translations: string[] }> {
+  const others = await prisma.userWord.findMany({
+    where: { userId, id: { notIn: excludeIds } },
+    select: { word: true, translation: true },
+    take: 60,
+  })
+  return {
+    words: (others as any[]).map((o) => o.word),
+    translations: (others as any[]).map((o) => o.translation),
+  }
+}
+
+/** Applies graded SM-2 to a personal word (same rules as Memorize submit). */
+export async function applyUserWordSm2(
   userId: string,
   id: string,
-  direction: 'left' | 'right',
-): Promise<{ xpEarned: number; status: WordStatus; nextReview: Date | null; strength: number }> {
+  correct: boolean,
+): Promise<{ status: WordStatus; nextReview: Date | null; strength: number } | null> {
   const existing = await prisma.userWord.findFirst({ where: { id, userId } })
-  if (!existing) throw new UserWordNotFoundError()
+  if (!existing) return null
 
-  // Personal words are user-curated: a right swipe ("Bilaman / Bildim") means
-  // the user explicitly knows it, so graduate it out immediately (mastered)
-  // rather than a gradual SM-2 step — it won't appear in feed/practice again.
-  if (direction === 'right') {
-    await prisma.userWord.update({
-      where: { id },
-      data: { status: 'mastered', strength: 100, lastReviewed: new Date() },
-    })
-    const xpEarned = await awardPersonalXp(userId, XP_PER_WORD)
-    await invalidateFeedCache(userId)
-    return { xpEarned, status: 'mastered' as WordStatus, nextReview: existing.nextReview, strength: 100 }
-  }
-
-  // Left swipe ("Bilmadim") — a lapse: keep it in rotation, due again soon
   const { strength, nextReview, reviewCount, status } = calculateNextReview(
-    'left',
+    correct ? 'right' : 'left',
     existing.strength,
     existing.reviewCount,
   )
@@ -244,7 +297,27 @@ export async function reviewUserWord(
     data: { strength, nextReview, reviewCount, status, lastReviewed: new Date() },
   })
 
-  return { xpEarned: 0, status: status as WordStatus, nextReview, strength }
+  return { status: status as WordStatus, nextReview, strength }
+}
+
+export async function reviewUserWord(
+  userId: string,
+  id: string,
+  direction: 'left' | 'right',
+): Promise<{ xpEarned: number; status: WordStatus; nextReview: Date | null; strength: number }> {
+  const existing = await prisma.userWord.findFirst({ where: { id, userId } })
+  if (!existing) throw new UserWordNotFoundError()
+
+  const result = await applyUserWordSm2(userId, id, direction === 'right')
+  if (!result) throw new UserWordNotFoundError()
+
+  let xpEarned = 0
+  if (direction === 'right') {
+    xpEarned = await awardPersonalXp(userId, XP_PER_WORD)
+  }
+
+  await invalidateFeedCache(userId)
+  return { xpEarned, ...result }
 }
 
 /**

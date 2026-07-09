@@ -37,12 +37,11 @@ const TOTAL_REWARD_XP = ACHIEVEMENTS.reduce((sum, a) => sum + a.xp, 0)
 export { TOTAL_REWARD_XP }
 
 async function computeStats(userId: string): Promise<Stats> {
-  const [encountered, learnedTotal, mastered, user, savedDeck] = await Promise.all([
-    prisma.userWordProgress.count({ where: { userId } }),
-    prisma.userWordProgress.count({ where: { userId, status: { in: ['learned', 'mastered'] } } }),
-    prisma.userWordProgress.count({ where: { userId, status: 'mastered' } }),
+  const [encountered, learnedTotal, mastered, user] = await Promise.all([
+    prisma.userWord.count({ where: { userId } }),
+    prisma.userWord.count({ where: { userId, status: { in: ['learned', 'mastered'] } } }),
+    prisma.userWord.count({ where: { userId, status: 'mastered' } }),
     prisma.user.findUnique({ where: { id: userId }, select: { streak: true, xp: true } }),
-    prisma.userDeck.findFirst({ where: { userId, isDefault: true }, include: { _count: { select: { words: true } } } }),
   ])
   return {
     encountered,
@@ -50,7 +49,7 @@ async function computeStats(userId: string): Promise<Stats> {
     mastered,
     streak: user?.streak ?? 0,
     xp: user?.xp ?? 0,
-    savedWords: savedDeck?._count?.words ?? 0,
+    savedWords: encountered,
   }
 }
 

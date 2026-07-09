@@ -1,7 +1,5 @@
-import { prisma } from '../lib/prisma'
-import { calculateNextReview } from '../utils/spaced-repetition'
 import { XP_PER_QUIZ_CORRECT } from '@wordswipe/shared'
-import { awardPersonalXp, invalidateFeedCache } from './my-words.service'
+import { awardPersonalXp, invalidateFeedCache, applyUserWordSm2 } from './my-words.service'
 
 /**
  * "Memorize" environment for a user's personal words (My Words). Reuses the
@@ -228,18 +226,8 @@ export async function submitStudy(userId: string, answers: StudyAnswer[]) {
   let correctCount = 0
 
   for (const a of answers) {
-    const existing = await prisma.userWord.findFirst({ where: { id: a.id, userId } })
-    if (!existing) continue
-    const { strength, nextReview, reviewCount, status } = calculateNextReview(
-      a.correct ? 'right' : 'left',
-      existing.strength,
-      existing.reviewCount,
-    )
-    await prisma.userWord.update({
-      where: { id: a.id },
-      data: { strength, nextReview, reviewCount, status, lastReviewed: new Date() },
-    })
-    if (a.correct) correctCount++
+    const updated = await applyUserWordSm2(userId, a.id, a.correct)
+    if (updated && a.correct) correctCount++
   }
 
   const xpEarned = correctCount > 0 ? await awardPersonalXp(userId, correctCount * XP_PER_QUIZ_CORRECT) : 0

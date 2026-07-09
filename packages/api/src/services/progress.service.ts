@@ -2,8 +2,8 @@ import { prisma } from '../lib/prisma'
 
 export async function getOverallProgress(userId: string) {
   const [total, byStatus, user] = await Promise.all([
-    prisma.userWordProgress.count({ where: { userId } }),
-    prisma.userWordProgress.groupBy({
+    prisma.userWord.count({ where: { userId } }),
+    prisma.userWord.groupBy({
       by: ['status'],
       where: { userId },
       _count: true,
@@ -18,12 +18,6 @@ export async function getOverallProgress(userId: string) {
     (byStatus as Array<{ status: string; _count: number }>).map((s) => [s.status, s._count]),
   )
 
-  const savedDeck = await prisma.userDeck.findFirst({
-    where: { userId, isDefault: true },
-    include: { _count: { select: { words: true } } },
-  })
-  const savedWords = savedDeck?._count?.words ?? 0
-
   return {
     totalWordsEncountered: total,
     new: statusMap['new'] ?? 0,
@@ -33,21 +27,34 @@ export async function getOverallProgress(userId: string) {
     streak: user?.streak ?? 0,
     streakFreezes: user?.streakFreezes ?? 0,
     xp: user?.xp ?? 0,
-    savedWords,
+    savedWords: total,
   }
 }
 
 export async function getWeakWords(userId: string, limit = 20) {
-  return prisma.userWordProgress.findMany({
+  const rows = await prisma.userWord.findMany({
     where: { userId, status: { in: ['new', 'learning'] } },
     orderBy: { strength: 'asc' },
     take: limit,
-    include: {
-      word: {
-        include: { translations: true, category: true },
-      },
-    },
   })
+
+  return (rows as any[]).map((uw) => ({
+    id: uw.id,
+    strength: uw.strength,
+    word: {
+      id: uw.id,
+      word: uw.word,
+      pronunciation: uw.pronunciation,
+      partOfSpeech: uw.partOfSpeech,
+      difficulty: null,
+      translations: [{
+        translation: uw.translation,
+        definitionEn: uw.definitionEn,
+        exampleEn: uw.exampleEn,
+      }],
+      category: null,
+    },
+  }))
 }
 
 export async function getHistory(userId: string, period: 'week' | 'month' | '3months') {
@@ -55,7 +62,7 @@ export async function getHistory(userId: string, period: 'week' | 'month' | '3mo
   const since = new Date()
   since.setDate(since.getDate() - days)
 
-  const progress = await prisma.userWordProgress.findMany({
+  const reviews = await prisma.userWord.findMany({
     where: {
       userId,
       lastReviewed: { gte: since },
@@ -65,12 +72,12 @@ export async function getHistory(userId: string, period: 'week' | 'month' | '3mo
 
   const grouped: Record<string, { learned: number; reviewed: number }> = {}
 
-  for (const p of progress) {
-    if (!p.lastReviewed) continue
-    const date = p.lastReviewed.toISOString().split('T')[0]
+  for (const r of reviews) {
+    if (!r.lastReviewed) continue
+    const date = r.lastReviewed.toISOString().split('T')[0]
     if (!grouped[date]) grouped[date] = { learned: 0, reviewed: 0 }
     grouped[date].reviewed++
-    if (p.status === 'learned' || p.status === 'mastered') grouped[date].learned++
+    if (r.status === 'learned' || r.status === 'mastered') grouped[date].learned++
   }
 
   return grouped

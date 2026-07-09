@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAuthStore } from './store/auth.store'
-import { api } from './api/client'
+import { onboardingApi } from './api/onboarding.api'
 import { BottomNav } from './components/BottomNav'
 import { ReferralBonusToast } from './components/ReferralBonusToast'
 import { LoginPage } from './pages/Login'
@@ -9,7 +9,6 @@ import { OnboardingPage } from './pages/Onboarding'
 import { FeedPage } from './pages/Feed'
 import { PracticePage } from './pages/Practice'
 import { DictionaryPage } from './pages/Dictionary'
-import { DecksPage } from './pages/Decks'
 import { ProgressPage } from './pages/Progress'
 import { LeaderboardPage } from './pages/Leaderboard'
 import { SettingsPage } from './pages/Settings'
@@ -25,11 +24,10 @@ import { ProfilePage } from './pages/Profile'
 import { flushPendingSwipes } from './store/feed.store'
 import { flushOfflineQueue } from './lib/offlineQueue'
 
-type Page = 'feed' | 'practice' | 'dictionary' | 'decks' | 'progress' | 'leaderboard' | 'settings' | 'challenge' | 'quiz' | 'duel' | 'groupchallenge' | 'speaking' | 'mywords' | 'mywordsstudy' | 'shadowing' | 'profile'
+type Page = 'feed' | 'practice' | 'dictionary' | 'progress' | 'leaderboard' | 'settings' | 'challenge' | 'quiz' | 'duel' | 'groupchallenge' | 'speaking' | 'mywords' | 'mywordsstudy' | 'shadowing' | 'profile'
 
 const NAV_PAGES: Page[] = ['feed', 'practice', 'speaking', 'dictionary', 'profile']
-// Pages reached from inside the Profile tab — they keep the Profil tab highlighted
-const PROFILE_SUBPAGES: Page[] = ['progress', 'leaderboard', 'decks', 'settings']
+const PROFILE_SUBPAGES: Page[] = ['progress', 'leaderboard', 'mywords', 'settings']
 // Focused, full-screen sessions hide the (fixed) tab bar — otherwise it overlaps
 // their bottom-anchored action buttons. Each has its own in-page back button.
 const IMMERSIVE_PAGES: Page[] = ['quiz', 'duel', 'groupchallenge', 'challenge', 'shadowing', 'mywordsstudy']
@@ -44,6 +42,17 @@ export default function App() {
   const [gcId, setGcId] = useState<string | null>(null)
   const [speakingAuto, setSpeakingAuto] = useState(false)
   const [onboardingDone, setOnboardingDone] = useState(() => !!localStorage.getItem('ws_onboarding_done'))
+
+  const finishOnboarding = (level?: string) => {
+    localStorage.setItem('ws_onboarding_done', '1')
+    setOnboardingDone(true)
+    if (level) {
+      localStorage.setItem('ws_level', level)
+      setUser({ ...user!, cefrLevel: level, onboardingDone: true })
+    } else {
+      setUser({ ...user!, onboardingDone: true })
+    }
+  }
 
   // Duel invite deep link + replay of offline swipes.
   // start_param comes from a direct ?startapp= link; ?sp= is the fallback used
@@ -71,18 +80,20 @@ export default function App() {
 
   if (!user) return <LoginPage />
 
-  // Server-side cefrLevel is the source of truth — Telegram webviews wipe
-  // localStorage between sessions, so the local flag alone re-triggers the test
-  if (!user.cefrLevel && !onboardingDone) return (
+  // Server-side onboardingDone survives Telegram webview localStorage wipes
+  if (user && !user.onboardingDone && !onboardingDone) return (
     <>
-      <OnboardingPage onDone={(level) => {
-        localStorage.setItem('ws_onboarding_done', '1')
-        localStorage.setItem('ws_level', level)
-        // Persist the CEFR level so the feed serves level-appropriate words
-        api.post('/api/onboarding/complete', { level }).catch(() => {})
-        setUser({ ...user, cefrLevel: level })
-        setOnboardingDone(true)
-      }} />
+      <OnboardingPage
+        onDone={(level) => {
+          if (level) {
+            onboardingApi.complete(level).catch(() => {})
+            finishOnboarding(level)
+          } else {
+            onboardingApi.skip().catch(() => {})
+            finishOnboarding()
+          }
+        }}
+      />
       {/* Referred users see onboarding first — bonus toast must show over it */}
       <ReferralBonusToast />
     </>
@@ -107,14 +118,15 @@ export default function App() {
             <FeedPage
               onChallenge={() => setPage('challenge')}
               onMyWords={() => setPage('mywords')}
-              onProgress={() => setPage('profile')}
+              onDictionary={() => setPage('dictionary')}
+              onProgress={() => setPage('progress')}
             />
           )}
           {page === 'profile' && (
             <ProfilePage
               onProgress={() => setPage('progress')}
               onLeaderboard={() => setPage('leaderboard')}
-              onDecks={() => setPage('decks')}
+              onMyWords={() => setPage('mywords')}
               onSettings={() => setPage('settings')}
             />
           )}
@@ -133,7 +145,7 @@ export default function App() {
             <SpeakingPage onBack={() => setPage('feed')} autoStart={speakingAuto} />
           )}
           {page === 'mywords' && (
-            <MyWordsPage onBack={() => setPage('feed')} onMemorize={() => setPage('mywordsstudy')} />
+            <MyWordsPage onBack={() => setPage('profile')} onMemorize={() => setPage('mywordsstudy')} />
           )}
           {page === 'mywordsstudy' && (
             <MyWordsStudyPage onBack={() => setPage('mywords')} />
@@ -160,7 +172,6 @@ export default function App() {
             />
           )}
           {page === 'dictionary' && <DictionaryPage />}
-          {page === 'decks' && <DecksPage onBack={() => setPage('profile')} />}
           {page === 'progress' && <ProgressPage onBack={() => setPage('profile')} />}
           {page === 'leaderboard' && <LeaderboardPage onBack={() => setPage('profile')} />}
           {page === 'settings' && <SettingsPage onBack={() => setPage('profile')} />}

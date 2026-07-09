@@ -79,7 +79,7 @@ export function SettingsPage({ onBack }: { onBack?: () => void }) {
     if (!referral) return
     haptic.impact('light')
     const url = referral.link ?? `https://t.me/WordSwipeBot?start=${referral.startParam}`
-    const text = "🎁 WordSwipe ga qo'shil — ikkalamiz ham +10 ta bonus so'z olamiz! Inglizcha so'zlarni TikTok kabi swipe qilib o'rgan 👇"
+    const text = "🎁 WordSwipe ga qo'shil — ikkalamiz ham +10 qo'shimcha takrorlash olamiz! O'z so'zlaringizni swipe qilib o'rgan 👇"
     if (twa) {
       twa.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`)
     } else {

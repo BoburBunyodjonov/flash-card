@@ -103,18 +103,17 @@ export async function speakingRoutes(fastify: FastifyInstance) {
     authed.get('/topics', async (req, reply) => {
       const user = req.user as JwtPayload
 
-      const [progress, me] = await Promise.all([
-        // The user's weakest words first — these need speaking practice the most
-        prisma.userWordProgress.findMany({
-          where: { userId: user.userId },
+      const [personalWords, me] = await Promise.all([
+        prisma.userWord.findMany({
+          where: { userId: user.userId, status: { not: 'mastered' } },
           orderBy: [{ strength: 'asc' }, { lastReviewed: 'desc' }],
           take: 8,
-          include: { word: { select: { word: true } } },
+          select: { word: true },
         }),
         prisma.user.findUnique({ where: { id: user.userId }, select: { cefrLevel: true } }),
       ])
 
-      const words = progress.map((p) => p.word.word)
+      const words = personalWords.map((p) => p.word)
       const generics = GENERIC_TOPICS[genericBand((me?.cefrLevel as Difficulty | null) ?? null)]
 
       const topics = [...buildWordTopics(words).slice(0, 3), ...generics].slice(0, 5)

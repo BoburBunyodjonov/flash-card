@@ -14,7 +14,7 @@
     "featOffline": "Oflayn rejim"
   },
   "nav": {
-    "feed": "O'rgan",
+    "feed": "Takrorlash",
     "dictionary": "Lug'at",
     "decks": "To'plamlar",
     "progress": "Natija",
@@ -38,7 +38,8 @@
     "emptyTitle": "So'zlar topilmadi",
     "emptyDesc": "Hozircha o'rganadigan so'z yo'q",
     "myWordsEmptyTitle": "Hali so'z qo'shmagansiz",
-    "myWordsEmptyDesc": "O'z so'zlaringizni qo'shing va shu yerda o'rganing",
+    "myWordsEmptyDesc": "Lug'atdan so'z qo'shing yoki o'zingiz yozing — shu yerda yodlaysiz",
+    "browseDictionary": "Lug'atdan qo'shish",
     "addWord": "So'z qo'shish",
     "backToAll": "Barchasiga qaytish",
     "reload": "Qayta yuklash",
@@ -49,7 +50,7 @@
     "skipHint": "↓ o'tkazish",
     "saveLabel": "Saqlash",
     "skipLabel": "O'tkazish",
-    "loading": "Yuklanmoqda...",
+    "loading": "So'zlaringiz yuklanmoqda...",
     "learnedToday": "bugun o'rgandim",
     "unlockIn": "Yangi so'zlar ochilishiga",
     "hours": "soat",
@@ -127,11 +128,11 @@
     "notifyHint": "Telegram orqali eslatma",
     "notifySaved": "Saqlandi — {{time}} da eslatma yuboriladi",
     "inviteTitle": "Do'stlarni taklif qiling",
-    "inviteReward": "Har bir do'st uchun +50 XP va +10 bonus so'z",
+    "inviteReward": "Har bir do'st uchun +50 XP va +10 qo'shimcha takrorlash",
     "invited": "taklif qilingan",
     "shareInvite": "Taklif havolasini ulashish",
     "cefrTitle": "Ingliz tili darajasi",
-    "cefrHint": "Feed shu darajaga mos so'zlarni ko'rsatadi",
+    "cefrHint": "Shadowing va Speaking mashqlariga mos daraja",
     "mobilePassword": "Mobil ilova uchun parol",
     "mobilePasswordHint": "Mobil ilovaga shu telefon va parol bilan kirasiz (akkauntingiz saqlanadi)",
     "pwSet": "Parol o'rnatilgan",
@@ -191,7 +192,7 @@
     "bonusTitle": "🎁 Taklif bonusi!",
     "bonusSubtitle": "Do'stingiz taklifi orqali qo'shilganingiz uchun sovg'a",
     "bonusXp": "+{{n}} XP",
-    "bonusWords": "+{{n}} bonus so'z",
+    "bonusWords": "+{{n}} qo'shimcha takrorlash",
     "dismiss": "Zo'r!"
   },
   "speaking": {
@@ -349,11 +350,18 @@
     }
   },
   "onboarding": {
-    "welcomeTitle": "Darajangizni aniqlaymiz",
-    "welcomeDesc": "10 ta savol orqali ingliz tili darajangizni bilib olamiz va sizga mos so'zlarni tavsiya qilamiz",
-    "featTime": "~2 daqiqa vaqt ketadi",
-    "featChoose": "So'zning ma'nosini tanlang",
-    "featPlan": "Darajangizga mos o'quv rejasi",
+    "welcomeTitle": "WordSwipe ga xush kelibsiz!",
+    "welcomeDesc": "O'zingiz qo'shgan so'zlarni yodlang — lug'atdan boshlang",
+    "featTime": "Darajangizni keyinroq ham belgilashingiz mumkin",
+    "featChoose": "Lug'atdan so'z qo'shing yoki o'zingiz yozing",
+    "featPlan": "Takrorlash, test va mashqlar bilan mustahkamlang",
+    "startLearning": "O'rganishni boshlash",
+    "pickLevel": "Darajamni tanlash",
+    "pickLevelTitle": "Ingliz tili darajangiz",
+    "pickLevelDesc": "Shadowing va Speaking uchun — keyin Sozlamalardan o'zgartirish mumkin",
+    "takeTest": "Darajamni test qilish (~2 daq)",
+    "continue": "Davom etish",
+    "back": "Orqaga",
     "start": "Boshlash",
     "loading": "Yuklanmoqda...",
     "questionPrompt": "Bu so'z o'zbekchada nima?",
@@ -425,7 +433,7 @@
     "loadError": "Savollar yuklanmadi",
     "checkConnection": "Internet aloqasini tekshiring",
     "noWords": "Mashq uchun so'zlar yo'q",
-    "learnFirst": "Avval feed'da so'zlarni o'rganing",
+    "learnFirst": "Avval Mening so'zlarimga kamida 3 ta so'z qo'shing",
     "prompt": {
       "mcq": "Bu so'z o'zbekchada nima?",
       "reverse": "Bu tarjimaning inglizchasi qaysi?",
@@ -553,10 +561,10 @@
   },
   "practice": {
     "title": "Mashqlar",
-    "subtitle": "Bilganlaringizni mustahkamlang",
+    "subtitle": "Mening so'zlarim bilan mustahkamlang",
     "quiz": {
       "title": "Test",
-      "desc": "Bilimni sinab ko'r"
+      "desc": "Mening so'zlarimdan test"
     },
     "shadowing": {
       "title": "Shadowing",
@@ -564,11 +572,11 @@
     },
     "duel": {
       "title": "Duel",
-      "desc": "Do'st bilan bellash"
+      "desc": "Mening so'zlarimdan bellash"
     },
     "groupChallenge": {
       "title": "Guruhli challenge",
-      "desc": "Do'stlar bilan bir xil savollarda musobaqa"
+      "desc": "Mening so'zlarimdan guruh musobaqasi"
     },
     "speaking": {
       "title": "Speaking",
@@ -576,18 +584,18 @@
     },
     "challenge": {
       "title": "Kunlik challenge",
-      "desc": "Har kunlik sinov"
+      "desc": "Mening so'zlarimdan kunlik test"
     },
     "myWords": {
       "title": "Mening so'zlarim",
-      "desc": "O'z so'zlaringizni o'rganing"
+      "desc": "Ro'yxat va yodlash muhiti"
     }
   },
   "profile": {
     "title": "Profil",
     "progress": "Natija",
     "leaderboard": "Reyting",
-    "decks": "To'plamlar",
+    "myWords": "Mening so'zlarim",
     "settings": "Sozlamalar"
   }
 }

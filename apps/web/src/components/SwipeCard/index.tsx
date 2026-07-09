@@ -30,6 +30,7 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
   const controls = useAnimation()
   const isDragging = useRef(false)
   const diff = (word.difficulty && DIFFICULTY_CONFIG[word.difficulty]) ?? DIFFICULTY_CONFIG.A1
+  const isPersonal = word.source === 'personal'
 
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -107,14 +108,16 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
       return
     }
 
-    // Vertical swipe only when card is not flipped
+    // Vertical swipe: personal cards only support skip (up); global cards can save (down)
     if (!isFlipped && absY > absX) {
-      if (offset.y > 0) {
+      if (offset.y > 0 && !isPersonal) {
         await controls.start({ y: 900, opacity: 0, transition: { duration: 0.2, ease: 'easeIn' } })
         onSwipe('down')
-      } else {
+      } else if (offset.y < 0) {
         await controls.start({ y: -900, opacity: 0, transition: { duration: 0.2, ease: 'easeIn' } })
         onSwipe('up')
+      } else {
+        await controls.start({ x: 0, y: 0, rotate: 0, transition: { type: 'spring', stiffness: 520, damping: 32 } })
       }
     } else {
       if (offset.x > 0) {
@@ -178,10 +181,12 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
         className="absolute inset-0 rounded-3xl pointer-events-none"
         style={{ opacity: leftOpacity, background: 'linear-gradient(235deg, rgba(239,68,68,0.22) 0%, transparent 55%)', zIndex: 5 }}
       />
-      <motion.div
-        className="absolute inset-0 rounded-3xl pointer-events-none"
-        style={{ opacity: saveOpacity, background: 'linear-gradient(180deg, rgba(245,158,11,0.2) 0%, transparent 50%)', zIndex: 5 }}
-      />
+      {!isPersonal && (
+        <motion.div
+          className="absolute inset-0 rounded-3xl pointer-events-none"
+          style={{ opacity: saveOpacity, background: 'linear-gradient(180deg, rgba(245,158,11,0.2) 0%, transparent 50%)', zIndex: 5 }}
+        />
+      )}
 
       {/* ── SWIPE STAMPS ── */}
       <motion.div style={{ opacity: rightOpacity }} className="absolute top-8 left-5 z-20 stamp text-success border-success rotate-[-20deg]">
@@ -190,9 +195,11 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
       <motion.div style={{ opacity: leftOpacity }} className="absolute top-8 right-5 z-20 stamp text-danger border-danger rotate-[20deg]">
         {t('feed.dontKnow')}
       </motion.div>
-      <motion.div style={{ opacity: saveOpacity }} className="absolute top-28 left-1/2 -translate-x-1/2 z-20 stamp text-warning border-warning">
-        {t('feed.saved')}
-      </motion.div>
+      {!isPersonal && (
+        <motion.div style={{ opacity: saveOpacity }} className="absolute top-28 left-1/2 -translate-x-1/2 z-20 stamp text-warning border-warning">
+          {t('feed.saved')}
+        </motion.div>
+      )}
 
       {/* ── CONTENT ── */}
       <div className="relative h-full flex flex-col z-10">
@@ -334,16 +341,18 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
         {/* Bottom action row */}
         <div className="px-5 pb-5 shrink-0 flex flex-col gap-3">
 
-          {/* Vertical swipe hints — up = skip, down = save */}
+          {/* Vertical swipe hints */}
           <div className="flex items-center justify-center gap-5">
             <span className="flex items-center gap-1 text-[11px] font-medium" style={{ color: 'var(--ws-faint)' }}>
               <ArrowUp size={13} strokeWidth={2.2} />
               {t('feed.skipLabel')}
             </span>
-            <span className="flex items-center gap-1 text-[11px] font-medium" style={{ color: 'var(--ws-faint)' }}>
-              <ArrowDown size={13} strokeWidth={2.2} style={{ color: 'var(--ws-warning)' }} />
-              {t('feed.saveLabel')}
-            </span>
+            {!isPersonal && (
+              <span className="flex items-center gap-1 text-[11px] font-medium" style={{ color: 'var(--ws-faint)' }}>
+                <ArrowDown size={13} strokeWidth={2.2} style={{ color: 'var(--ws-warning)' }} />
+                {t('feed.saveLabel')}
+              </span>
+            )}
           </div>
 
           {/* Know / Don't know buttons */}

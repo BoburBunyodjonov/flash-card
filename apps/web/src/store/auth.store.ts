@@ -15,6 +15,7 @@ interface User {
   streak: number
   xp: number
   cefrLevel?: string | null
+  onboardingDone?: boolean
   gender?: 'male' | 'female' | null
   notifyAt?: string
   notifyEnabled?: boolean

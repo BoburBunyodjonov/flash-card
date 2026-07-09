@@ -6,6 +6,7 @@ import {
   ArrowLeft, X, Check, PartyPopper, type LucideIcon,
 } from 'lucide-react'
 import { progressApi } from '../../api/progress.api'
+import { myWordsApi } from '../../api/myWords.api'
 
 interface ProgressData {
   streak: number
@@ -37,7 +38,7 @@ const ACHIEVEMENTS: Achievement[] = [
   { id: 'xp_100',      Icon: Zap,       title: '100 XP',               desc: '100 XP to\'pladim',                  unlocked: p => p.xp >= 100 },
   { id: 'xp_1000',     Icon: Zap,       title: '1000 XP',              desc: '1000 XP to\'pladim',                 unlocked: p => p.xp >= 1000 },
   { id: 'master_10',   Icon: Target,    title: 'Master',               desc: '10 ta so\'z mustahkamlandi',         unlocked: p => p.mastered >= 10 },
-  { id: 'saved_5',     Icon: BookOpen,  title: 'Kolleksioner',          desc: '5 ta so\'z saqlandi',                unlocked: p => (p as any).savedWords >= 5 },
+  { id: 'saved_5',     Icon: BookOpen,  title: 'Kolleksioner',          desc: '5 ta so\'z qo\'shdim',                unlocked: p => (p as any).savedWords >= 5 },
   { id: 'b1_reached',  Icon: Award,     title: 'B1 daraja',            desc: '50 ta B1 darajali so\'z o\'rgandim', unlocked: p => (p.learned + p.mastered) >= 50 },
 ]
 
@@ -108,6 +109,9 @@ function WeakWordsReview({ words, onClose }: { words: WeakWord[]; onClose: () =>
   const translation = current?.word.translations[0]
 
   const advance = (knew: boolean) => {
+    if (current) {
+      myWordsApi.review(current.id, knew ? 'right' : 'left').catch(() => {})
+    }
     setScore(s => knew ? { ...s, know: s.know + 1 } : { ...s, dontKnow: s.dontKnow + 1 })
     if (index + 1 >= words.length) setDone(true)
     else { setIndex(i => i + 1); setFlipped(false) }
@@ -266,7 +270,14 @@ export function ProgressPage({ onBack }: { onBack?: () => void }) {
     <div className="relative h-full overflow-y-auto no-scrollbar pb-24 pt-4" style={{ background: 'var(--ws-bg)' }}>
       {/* Weak words review overlay */}
       {showReview && (
-        <WeakWordsReview words={weakWords} onClose={() => setShowReview(false)} />
+        <WeakWordsReview
+          words={weakWords}
+          onClose={() => {
+            setShowReview(false)
+            progressApi.getWeakWords().then(setWeakWords).catch(console.error)
+            progressApi.getOverall().then(setData).catch(console.error)
+          }}
+        />
       )}
 
       {/* Header */}

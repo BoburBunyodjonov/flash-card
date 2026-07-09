@@ -6,6 +6,7 @@ import { getBot } from '../lib/bot'
 import { sendPushToUser } from '../lib/fcm'
 import { finalizeLastWeek } from '../services/league.service'
 import { expireStaleDuels } from '../services/duel.service'
+import { countDueUserWords } from '../services/my-words.service'
 import { REVIEW_REMINDER_THRESHOLD } from '@wordswipe/shared'
 
 const connection = { host: new URL(config.redis.url).hostname, port: parseInt(new URL(config.redis.url).port || '6379') }
@@ -39,15 +40,15 @@ const REMINDER_SENT_KEY = (userId: string) => `reminder:sent:${userId}:${todayKe
 const DUE_REMINDER_SENT_KEY = (userId: string) => `reminder:due:${userId}:${todayKey()}`
 
 const reminderMessages: Record<string, (streak: number) => string> = {
-  uz: (s) => `📚 Bugun so'z yodladingizmi? Streak: ${s} kun 🔥`,
-  en: (s) => `📚 Did you learn words today? Streak: ${s} days 🔥`,
-  ru: (s) => `📚 Вы учили слова сегодня? Серия: ${s} дней 🔥`,
+  uz: (s) => `📚 Bugun so'zlaringizni takrorladingizmi? Streak: ${s} kun 🔥`,
+  en: (s) => `📚 Did you review your words today? Streak: ${s} days 🔥`,
+  ru: (s) => `📚 Вы повторили свои слова сегодня? Серия: ${s} дней 🔥`,
 }
 // Variant used when the user has words due for spaced-repetition review.
 const dueReminderMessages: Record<string, (due: number, streak: number) => string> = {
-  uz: (d, s) => `🔔 ${d} ta so'z takrorlash vaqti keldi! Unutishdan oldin mustahkamlang. Streak: ${s} kun 🔥`,
-  en: (d, s) => `🔔 ${d} words are due for review! Reinforce them before you forget. Streak: ${s} days 🔥`,
-  ru: (d, s) => `🔔 ${d} слов пора повторить! Закрепите их, пока не забыли. Серия: ${s} дней 🔥`,
+  uz: (d, s) => `🔔 ${d} ta so'zingiz takrorlash vaqti keldi! Mening so'zlarimdan mustahkamlang. Streak: ${s} kun 🔥`,
+  en: (d, s) => `🔔 ${d} of your words are due! Review them in My Words. Streak: ${s} days 🔥`,
+  ru: (d, s) => `🔔 ${d} ваших слов пора повторить! Закрепите их в «Мои слова». Серия: ${s} дней 🔥`,
 }
 const openButtonText: Record<string, string> = {
   uz: '📖 Hozir o\'rganish',
@@ -76,7 +77,7 @@ async function sendPushReminder(userId: string, language: string, streak: number
       title: pushDueTitle[lang] ?? pushDueTitle.en,
       body: (dueReminderMessages[lang] ?? dueReminderMessages.en)(dueCount, streak),
       // route: app navigates here directly; kind kept for backward compat
-      data: { type: 'reminder', kind: 'due', route: '/quiz', dueCount: String(dueCount) },
+      data: { type: 'reminder', kind: 'due', route: '/feed', dueCount: String(dueCount) },
     })
   } else {
     await sendPushToUser(userId, {
@@ -144,9 +145,7 @@ async function dispatchDailyReminders() {
     if (studied > 0) continue
 
     // Personalize: tell the user how many words are waiting for review.
-    const dueCount = await prisma.userWordProgress.count({
-      where: { userId: user.id, nextReview: { lte: new Date() }, status: { not: 'mastered' } },
-    })
+    const dueCount = await countDueUserWords(user.id)
 
     await notificationQueue.add(
       'daily-reminder',
@@ -171,9 +170,13 @@ async function dispatchDueReminders() {
   const hour = new Date().getHours()
   if (hour >= DUE_QUIET_START || hour < DUE_QUIET_END) return
 
-  const due = await prisma.userWordProgress.groupBy({
+  const now = new Date()
+  const due = await prisma.userWord.groupBy({
     by: ['userId'],
-    where: { nextReview: { lte: new Date() }, status: { not: 'mastered' } },
+    where: {
+      status: { not: 'mastered' },
+      OR: [{ status: 'new' }, { nextReview: { lte: now } }],
+    },
     _count: { _all: true },
     having: { userId: { _count: { gte: REVIEW_REMINDER_THRESHOLD } } },
   })
