@@ -43,6 +43,11 @@ export interface UpdateUserWordInput {
   synonyms?: string[] | null
 }
 
+export type PackWordInput = Pick<
+  CreateUserWordInput,
+  'word' | 'translation' | 'pronunciation' | 'definitionEn' | 'exampleEn'
+>
+
 /** Thrown when a user tries to add a word they already have. */
 export class DuplicateUserWordError extends Error {
   constructor() {
@@ -152,6 +157,45 @@ export async function createUserWord(userId: string, data: CreateUserWordInput):
     if (err?.code === 'P2002') throw new DuplicateUserWordError()
     throw err
   }
+}
+
+/** Teacher pack publish — mavjud so'zlarni o'zgartirmaydi, yangilarini qo'shadi. */
+export async function assignWordsFromPack(
+  userId: string,
+  packId: string,
+  words: PackWordInput[],
+): Promise<{ added: number; skipped: number }> {
+  let added = 0
+  let skipped = 0
+
+  for (const data of words) {
+    const word = data.word.trim()
+    if (!word) continue
+    try {
+      await prisma.userWord.create({
+        data: {
+          userId,
+          word,
+          translation: data.translation.trim(),
+          pronunciation: data.pronunciation ?? null,
+          definitionEn: data.definitionEn ?? null,
+          exampleEn: data.exampleEn ?? null,
+          sourcePackId: packId,
+          strength: 0,
+          status: 'new',
+          nextReview: new Date(),
+          reviewCount: 0,
+        },
+      })
+      added++
+    } catch (err: any) {
+      if (err?.code === 'P2002') skipped++
+      else throw err
+    }
+  }
+
+  if (added > 0) await invalidateFeedCache(userId)
+  return { added, skipped }
 }
 
 export async function updateUserWord(

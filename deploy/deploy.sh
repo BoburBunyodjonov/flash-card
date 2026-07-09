@@ -29,7 +29,7 @@ echo "── 3/5 Building and starting containers on the server..."
 ssh "$SERVER" "cd $DIR && docker compose -f docker-compose.prod.yml up -d --build"
 
 echo "── 4/5 Applying database schema..."
-ssh "$SERVER" "cd $DIR && docker compose -f docker-compose.prod.yml exec -T api npx prisma db push --skip-generate"
+ssh "$SERVER" "cd $DIR && docker compose -f docker-compose.prod.yml exec -T api sh -c 'cd packages/api && npx prisma db push'"
 
 echo "── 5/5 Updating host Caddy site block..."
 ssh "$SERVER" "python3 - <<'PYEOF'

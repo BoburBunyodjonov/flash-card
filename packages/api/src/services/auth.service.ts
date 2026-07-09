@@ -10,6 +10,11 @@ import { resolveReferrer, grantReferralRewards } from './referral.service'
 import { REFERRAL_NEW_USER_XP, REFERRAL_BONUS_WORDS } from '@wordswipe/shared'
 import { config } from '../config'
 import type { FastifyInstance } from 'fastify'
+import {
+  assertPhoneAllowedForAuth,
+  linkEnrollmentsToUser,
+} from './partner-enrollment.service'
+import { linkStaffToUser } from './teacher.service'
 
 interface TelegramAuthData {
   id: string
@@ -170,6 +175,9 @@ function buildAuthResult(
     notifyAt: user.notifyAt,
     notifyEnabled: user.notifyEnabled,
     telegramId: user.telegramId?.toString() ?? null,
+    partnerSlugs: [] as string[],
+    teacherSlugs: [] as string[],
+    isTeacher: false,
   }
   return { user: safeUser, accessToken, refreshToken, referralBonus: referralBonus ?? null }
 }
@@ -203,6 +211,8 @@ export async function registerWithPhone(
   const phone = normalizePhone(data.phone)
   if (!phone) throw new AuthError('Invalid phone number')
 
+  await assertPhoneAllowedForAuth(data.phone)
+
   const existing = await prisma.user.findUnique({ where: { phone }, select: { id: true } })
   if (existing) throw new AuthError('Phone already registered', 409)
 
@@ -212,7 +222,13 @@ export async function registerWithPhone(
   const user = await prisma.user.create({
     data: { phone, passwordHash, firstName: data.firstName.trim() },
   })
-  return buildAuthResult(fastify, user)
+  const partnerSlugs = await linkEnrollmentsToUser(user.id, phone)
+  const teacherSlugs = await linkStaffToUser(user.id, phone)
+  const result = buildAuthResult(fastify, user)
+  result.user.partnerSlugs = partnerSlugs
+  result.user.teacherSlugs = teacherSlugs
+  result.user.isTeacher = teacherSlugs.length > 0
+  return result
 }
 
 /**
@@ -246,6 +262,8 @@ export async function linkTelegramPhone(telegramId: bigint, rawPhone: string): P
   const owner = await prisma.user.findUnique({ where: { phone }, select: { id: true } })
   if (owner && owner.id !== user.id) return
   await prisma.user.update({ where: { id: user.id }, data: { phone } })
+  await linkEnrollmentsToUser(user.id, phone)
+  await linkStaffToUser(user.id, phone)
 }
 
 export async function loginWithPhone(
@@ -255,6 +273,8 @@ export async function loginWithPhone(
   const phone = normalizePhone(data.phone)
   if (!phone) throw new AuthError('Invalid phone number', 401)
 
+  await assertPhoneAllowedForAuth(data.phone)
+
   const user = await prisma.user.findUnique({ where: { phone } })
   if (!user || !user.passwordHash) throw new AuthError('Invalid phone or password', 401)
 
@@ -263,5 +283,11 @@ export async function loginWithPhone(
   if (!ok) throw new AuthError('Invalid phone or password', 401)
 
   await prisma.user.update({ where: { id: user.id }, data: { lastActive: new Date() } })
-  return buildAuthResult(fastify, user)
+  const partnerSlugs = await linkEnrollmentsToUser(user.id, phone)
+  const teacherSlugs = await linkStaffToUser(user.id, phone)
+  const result = buildAuthResult(fastify, user)
+  result.user.partnerSlugs = partnerSlugs
+  result.user.teacherSlugs = teacherSlugs
+  result.user.isTeacher = teacherSlugs.length > 0
+  return result
 }

@@ -19,6 +19,8 @@ interface User {
   gender?: 'male' | 'female' | null
   notifyAt?: string
   notifyEnabled?: boolean
+  isTeacher?: boolean
+  teacherSlugs?: string[]
 }
 
 export interface ReferralBonus {

@@ -27,6 +27,9 @@ import { groupChallengeRoutes } from './group-challenge.route'
 import { pushTokenRoutes } from './push-token.route'
 import { shadowingRoutes } from './shadowing.route'
 import { adminShadowingRoutes } from './admin/shadowing.route'
+import { adminPartnersRoutes } from './admin/partners.route'
+import { integrationsV1Routes } from './integrations/v1.route'
+import { teacherRoutes } from './teacher.route'
 
 export async function registerRoutes(fastify: FastifyInstance) {
   fastify.register(authRoutes, { prefix: '/api/auth' })
@@ -49,6 +52,10 @@ export async function registerRoutes(fastify: FastifyInstance) {
   fastify.register(pushTokenRoutes, { prefix: '/api' })
   fastify.register(shadowingRoutes, { prefix: '/api/shadowing' })
 
+  // Universal ERP integration API (API-key auth, versioned)
+  fastify.register(integrationsV1Routes, { prefix: '/api/integrations/v1' })
+  fastify.register(teacherRoutes, { prefix: '/api/teacher' })
+
   fastify.register(
     async (adminApp) => {
       adminApp.addHook('onRequest', requireAdmin)
@@ -60,6 +67,7 @@ export async function registerRoutes(fastify: FastifyInstance) {
       adminApp.register(adminNotificationsRoutes, { prefix: '/notifications' })
       adminApp.register(adminSpeakingRoutes, { prefix: '/speaking' })
       adminApp.register(adminShadowingRoutes, { prefix: '/shadowing' })
+      adminApp.register(adminPartnersRoutes, { prefix: '/partners' })
     },
     { prefix: '/api/admin' },
   )

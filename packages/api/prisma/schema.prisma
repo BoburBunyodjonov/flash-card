@@ -116,6 +116,8 @@ model User {
   gcEntries    GroupChallengeEntry[] @relation("GcEntrant")
   pushTokens   PushToken[]
   shadowingDone ShadowingCompletion[]
+  integrationEnrollments IntegrationEnrollment[]
+  integrationStaff       IntegrationStaff[]
 
   @@map("users")
 }
@@ -171,6 +173,9 @@ model UserWord {
   createdAt     DateTime   @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  sourcePackId String?         @map("source_pack_id")
+  sourcePack   TeacherWordPack? @relation(fields: [sourcePackId], references: [id], onDelete: SetNull)
 
   @@unique([userId, word])
   @@index([userId])
@@ -477,4 +482,198 @@ model ShadowingCompletion {
   @@unique([userId, clipId])
   @@index([userId])
   @@map("shadowing_completions")
+}
+
+// ---------------------------------------------------------------------------
+// ERP / o'quv markaz integratsiyasi (universal Partner API)
+// Har qanday ERP REST orqali o'quvchi ro'yxatini sinxronlaydi.
+// ---------------------------------------------------------------------------
+
+enum PartnerStatus {
+  active
+  suspended
+}
+
+enum PartnerAccessMode {
+  // Ro'yxatdagi tel premium/ imtiyoz oladi; boshqalar oddiy user sifatida ishlaydi
+  benefit_only
+  // Faqat ro'yxatdagi telefonlar kirish / ro'yxatdan o'tish mumkin
+  whitelist
+}
+
+enum EnrollmentStatus {
+  active
+  inactive
+}
+
+model Partner {
+  id              String            @id @default(uuid())
+  name            String
+  slug            String            @unique
+  apiKeyHash      String            @map("api_key_hash")
+  apiKeyPrefix    String            @map("api_key_prefix")
+  status          PartnerStatus     @default(active)
+  accessMode      PartnerAccessMode @default(benefit_only) @map("access_mode")
+  premiumIncluded Boolean           @default(true) @map("premium_included")
+  webhookUrl      String?           @map("webhook_url")
+  webhookSecret   String?           @map("webhook_secret")
+  metadata        Json?
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+
+  enrollments IntegrationEnrollment[]
+  syncLogs    IntegrationSyncLog[]
+  staff       IntegrationStaff[]
+  groups      IntegrationGroup[]
+  wordPacks   TeacherWordPack[]
+
+  @@map("partners")
+}
+
+model IntegrationEnrollment {
+  id              String           @id @default(uuid())
+  partnerId       String           @map("partner_id")
+  /// ERP dagi o'quvchi ID — asosiy sinxron kalit (telefon o'zgarsa ham)
+  externalId      String           @map("external_id")
+  phone           String
+  firstName       String?          @map("first_name")
+  lastName        String?          @map("last_name")
+  groupName       String?          @map("group_name")
+  groupExternalId String?          @map("group_external_id")
+  status          EnrollmentStatus @default(active)
+  userId          String?          @map("user_id")
+  metadata        Json?
+  enrolledAt      DateTime         @default(now()) @map("enrolled_at")
+  deactivatedAt   DateTime?        @map("deactivated_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([partnerId, externalId])
+  @@unique([partnerId, phone])
+  @@index([phone, status])
+  @@index([partnerId, status])
+  @@map("integration_enrollments")
+}
+
+model IntegrationSyncLog {
+  id             String   @id @default(uuid())
+  partnerId      String   @map("partner_id")
+  operation      String
+  idempotencyKey String?  @map("idempotency_key")
+  requestSummary Json?    @map("request_summary")
+  resultSummary  Json?    @map("result_summary")
+  statusCode     Int      @map("status_code")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@unique([partnerId, idempotencyKey])
+  @@index([partnerId, createdAt])
+  @@map("integration_sync_logs")
+}
+
+enum StaffRole {
+  teacher
+  admin
+}
+
+enum StaffStatus {
+  active
+  inactive
+}
+
+enum GroupStatus {
+  active
+  inactive
+}
+
+enum WordPackStatus {
+  draft
+  published
+}
+
+/// ERP dan keladigan xodimlar (o'qituvchi / admin)
+model IntegrationStaff {
+  id         String      @id @default(uuid())
+  partnerId  String      @map("partner_id")
+  externalId String      @map("external_id")
+  phone      String
+  firstName  String?     @map("first_name")
+  lastName   String?     @map("last_name")
+  role       StaffRole   @default(teacher)
+  status     StaffStatus @default(active)
+  userId     String?     @map("user_id")
+  metadata   Json?
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+
+  partner    Partner            @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  user       User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+  groups     IntegrationGroup[]
+  wordPacks  TeacherWordPack[]
+
+  @@unique([partnerId, externalId])
+  @@unique([partnerId, phone])
+  @@index([phone, status])
+  @@map("integration_staff")
+}
+
+/// Guruh / sinf (ERP dan)
+model IntegrationGroup {
+  id              String      @id @default(uuid())
+  partnerId       String      @map("partner_id")
+  externalId      String      @map("external_id")
+  name            String
+  teacherStaffId  String?     @map("teacher_staff_id")
+  status          GroupStatus @default(active)
+  metadata        Json?
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  partner Partner           @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  teacher IntegrationStaff? @relation(fields: [teacherStaffId], references: [id], onDelete: SetNull)
+
+  @@unique([partnerId, externalId])
+  @@index([partnerId, status])
+  @@map("integration_groups")
+}
+
+/// O'qituvchi yaratgan so'z to'plami — guruhga publish qilinganda studentlarga tushadi
+model TeacherWordPack {
+  id              String         @id @default(uuid())
+  partnerId       String         @map("partner_id")
+  staffId         String         @map("staff_id")
+  groupExternalId String         @map("group_external_id")
+  title           String
+  status          WordPackStatus @default(draft)
+  publishedAt     DateTime?      @map("published_at")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  partner Partner               @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  staff   IntegrationStaff      @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  items   TeacherWordPackItem[]
+  deliveredWords UserWord[]
+
+  @@index([staffId])
+  @@index([partnerId, groupExternalId])
+  @@map("teacher_word_packs")
+}
+
+model TeacherWordPackItem {
+  id            String  @id @default(uuid())
+  packId        String  @map("pack_id")
+  word          String
+  translation   String
+  pronunciation String?
+  definitionEn  String? @map("definition_en")
+  exampleEn     String? @map("example_en")
+  sortOrder     Int     @default(0) @map("sort_order")
+
+  pack TeacherWordPack @relation(fields: [packId], references: [id], onDelete: Cascade)
+
+  @@index([packId])
+  @@map("teacher_word_pack_items")
 }

@@ -21,16 +21,17 @@ import { MyWordsPage } from './pages/MyWords'
 import { MyWordsStudyPage } from './pages/MyWordsStudy'
 import { ShadowingPage } from './pages/Shadowing'
 import { ProfilePage } from './pages/Profile'
+import { TeacherPage } from './pages/Teacher'
 import { flushPendingSwipes } from './store/feed.store'
 import { flushOfflineQueue } from './lib/offlineQueue'
 
-type Page = 'feed' | 'practice' | 'dictionary' | 'progress' | 'leaderboard' | 'settings' | 'challenge' | 'quiz' | 'duel' | 'groupchallenge' | 'speaking' | 'mywords' | 'mywordsstudy' | 'shadowing' | 'profile'
+type Page = 'feed' | 'practice' | 'dictionary' | 'progress' | 'leaderboard' | 'settings' | 'challenge' | 'quiz' | 'duel' | 'groupchallenge' | 'speaking' | 'mywords' | 'mywordsstudy' | 'shadowing' | 'profile' | 'teacher'
 
 const NAV_PAGES: Page[] = ['feed', 'practice', 'speaking', 'dictionary', 'profile']
 const PROFILE_SUBPAGES: Page[] = ['progress', 'leaderboard', 'mywords', 'settings']
 // Focused, full-screen sessions hide the (fixed) tab bar — otherwise it overlaps
 // their bottom-anchored action buttons. Each has its own in-page back button.
-const IMMERSIVE_PAGES: Page[] = ['quiz', 'duel', 'groupchallenge', 'challenge', 'shadowing', 'mywordsstudy']
+const IMMERSIVE_PAGES: Page[] = ['quiz', 'duel', 'groupchallenge', 'challenge', 'shadowing', 'mywordsstudy', 'teacher']
 
 const DUEL_PREFIX = 'duel_'
 const GC_PREFIX = 'gc_'
@@ -128,6 +129,7 @@ export default function App() {
               onLeaderboard={() => setPage('leaderboard')}
               onMyWords={() => setPage('mywords')}
               onSettings={() => setPage('settings')}
+              onTeacher={() => setPage('teacher')}
             />
           )}
           {page === 'practice' && (
@@ -175,6 +177,7 @@ export default function App() {
           {page === 'progress' && <ProgressPage onBack={() => setPage('profile')} />}
           {page === 'leaderboard' && <LeaderboardPage onBack={() => setPage('profile')} />}
           {page === 'settings' && <SettingsPage onBack={() => setPage('profile')} />}
+          {page === 'teacher' && <TeacherPage onBack={() => setPage('profile')} />}
         </motion.div>
       </AnimatePresence>
       {!IMMERSIVE_PAGES.includes(page) && (

@@ -1,16 +1,19 @@
+import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import {
   TrendingUp, Trophy, Settings as SettingsIcon,
-  ChevronRight, Flame, Zap, Crown, User, NotebookPen, type LucideIcon,
+  ChevronRight, Flame, Zap, Crown, User, NotebookPen, GraduationCap, type LucideIcon,
 } from 'lucide-react'
 import { useAuthStore } from '../../store/auth.store'
+import { api } from '../../api/client'
 
 interface Props {
   onProgress: () => void
   onLeaderboard: () => void
   onMyWords: () => void
   onSettings: () => void
+  onTeacher: () => void
 }
 
 interface Entry {
@@ -20,14 +23,24 @@ interface Entry {
   onPress: () => void
 }
 
-export function ProfilePage({ onProgress, onLeaderboard, onMyWords, onSettings }: Props) {
+export function ProfilePage({ onProgress, onLeaderboard, onMyWords, onSettings, onTeacher }: Props) {
   const { t } = useTranslation()
-  const { user } = useAuthStore()
+  const { user, setUser } = useAuthStore()
+
+  useEffect(() => {
+    if (!user || user.isTeacher) return
+    api.get('/api/teacher/status').then((r) => {
+      if (r.data.data?.is_teacher) setUser({ ...user, isTeacher: true })
+    }).catch(() => {})
+  }, [user, setUser])
 
   const entries: Entry[] = [
     { key: 'progress',    Icon: TrendingUp,   tint: '#6366F1', onPress: onProgress },
     { key: 'leaderboard', Icon: Trophy,       tint: '#F59E0B', onPress: onLeaderboard },
     { key: 'myWords',     Icon: NotebookPen,  tint: '#10B981', onPress: onMyWords },
+    ...(user?.isTeacher
+      ? [{ key: 'teacher', Icon: GraduationCap, tint: '#EC4899', onPress: onTeacher }]
+      : []),
     { key: 'settings',    Icon: SettingsIcon, tint: '#8B5CF6', onPress: onSettings },
   ]
 

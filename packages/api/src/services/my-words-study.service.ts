@@ -1,4 +1,5 @@
 import { XP_PER_QUIZ_CORRECT } from '@wordswipe/shared'
+import { prisma } from '../lib/prisma'
 import { awardPersonalXp, invalidateFeedCache, applyUserWordSm2 } from './my-words.service'
 
 /**
