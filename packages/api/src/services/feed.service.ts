@@ -1,6 +1,7 @@
 import { prisma } from '../lib/prisma'
 import { redis } from '../lib/redis'
-import { getFreeLimits } from './plan-settings.service'
+import { getFreeLimits, getSetting } from './plan-settings.service'
+import { PLAN_SETTING_KEYS } from '@wordswipe/shared'
 import { calculateNextReview } from '../utils/spaced-repetition'
 import { addLeagueXp } from './league.service'
 import { reviewUserWord } from './my-words.service'
@@ -44,6 +45,10 @@ async function getBonusWords(userId: string): Promise<number> {
 }
 
 export async function getDailyFeed(userId: string, isPremium: boolean, language: Language, categoryId?: string) {
+  const globalFeedEnabled = await getSetting<boolean>(PLAN_SETTING_KEYS.GLOBAL_FEED_ENABLED)
+  // When the curated catalog is off, every feed request serves only user-added words.
+  const effectiveCategoryId = globalFeedEnabled ? categoryId : PERSONAL_CATEGORY_ID
+
   const limits = await getFreeLimits()
   const bonus = isPremium ? 0 : await getBonusWords(userId)
   const dailyLimit = isPremium ? 999999 : (limits.dailySwipeLimit || 20) + bonus
@@ -52,26 +57,26 @@ export async function getDailyFeed(userId: string, isPremium: boolean, language:
   const remaining = dailyLimit - usedToday
 
   if (remaining <= 0 && !isPremium) {
-    return { words: [], remaining: 0, dailyLimit, usedToday }
+    return { words: [], remaining: 0, dailyLimit, usedToday, globalFeedEnabled }
   }
 
-  const queueKey = `feed:queue:${userId}:${todayKey()}:${categoryId || 'all'}`
+  const queueKey = `feed:queue:${userId}:${todayKey()}:${effectiveCategoryId || 'all'}`
 
   // The personal "My Words" list is small and changes often (add/remove/review),
   // so it's never cached — always served fresh to avoid stale results.
-  const useCache = categoryId !== PERSONAL_CATEGORY_ID
+  const useCache = effectiveCategoryId !== PERSONAL_CATEGORY_ID
   if (useCache) {
     const cachedQueue = await redis.get(queueKey)
     if (cachedQueue) {
       const queue = JSON.parse(cachedQueue)
-      return { words: queue.slice(0, remaining), remaining, dailyLimit, usedToday }
+      return { words: queue.slice(0, remaining), remaining, dailyLimit, usedToday, globalFeedEnabled }
     }
   }
 
   const batchSize = isPremium ? 50 : dailyLimit
 
   let queue: any[]
-  if (categoryId === PERSONAL_CATEGORY_ID) {
+  if (effectiveCategoryId === PERSONAL_CATEGORY_ID) {
     // "My Words" filter — all of the user's words EXCEPT mastered ones (a word
     // the user has fully memorized graduates out and stops appearing). Not gated
     // by SM-2 due date, so still-learning words always show. Due/overdue first.
@@ -90,7 +95,7 @@ export async function getDailyFeed(userId: string, isPremium: boolean, language:
         userId,
         nextReview: { lte: new Date() },
         status: { not: 'mastered' },
-        ...(categoryId ? { word: { categoryId } } : {}),
+        ...(effectiveCategoryId ? { word: { categoryId: effectiveCategoryId } } : {}),
       },
       take: reviewCount,
       orderBy: { nextReview: 'asc' },
@@ -109,7 +114,7 @@ export async function getDailyFeed(userId: string, isPremium: boolean, language:
     const newWords = await prisma.word.findMany({
       where: {
         id: { notIn: seenIds },
-        ...(categoryId ? { categoryId } : {}),
+        ...(effectiveCategoryId ? { categoryId: effectiveCategoryId } : {}),
         ...(levels ? { difficulty: { in: levels } } : {}),
       },
       take: newCount,
@@ -129,6 +134,7 @@ export async function getDailyFeed(userId: string, isPremium: boolean, language:
     remaining,
     dailyLimit,
     usedToday,
+    globalFeedEnabled,
   }
 }
 

@@ -58,6 +58,10 @@
     "shareFriends": "Do'stlarga ulash",
     "unlimitedPremium": "Cheksiz o'rganish — Premium"
   },
+  "dictionary": {
+    "saveToMyWords": "Mening so'zlarimga qo'shish",
+    "savedToMyWords": "Mening so'zlarimda"
+  },
   "difficulty": {
     "A1": "Boshlang'ich",
     "A2": "Quyi",

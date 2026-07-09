@@ -58,6 +58,10 @@
     "shareFriends": "Поделиться с друзьями",
     "unlimitedPremium": "Безлимит — Premium"
   },
+  "dictionary": {
+    "saveToMyWords": "Добавить в мои слова",
+    "savedToMyWords": "В моих словах"
+  },
   "difficulty": {
     "A1": "Начальный",
     "A2": "Элементарный",

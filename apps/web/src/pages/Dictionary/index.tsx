@@ -6,12 +6,14 @@ import {
 } from 'lucide-react'
 import { wordsApi } from '../../api/words.api'
 import { playWordAudio } from '../../lib/tts'
+import { SaveToMyWords, prefillFromDictEntry } from '../../components/SaveToMyWords'
 
 // ── App DB types ──────────────────────────────────────────────────────────────
 interface WordResult {
   id: string
   word: string
   pronunciation: string | null
+  audioUrl?: string | null
   partOfSpeech: string | null
   difficulty: string
   translations: { translation: string | null; definitionEn: string | null; exampleEn: string | null }[]
@@ -270,6 +272,17 @@ function AppDictionary() {
                   </div>
                 )}
               </div>
+              <SaveToMyWords
+                prefill={{
+                  word: selected.word,
+                  translation: selected.translations[0]?.translation,
+                  pronunciation: selected.pronunciation,
+                  audioUrl: selected.audioUrl,
+                  partOfSpeech: selected.partOfSpeech,
+                  definitionEn: selected.translations[0]?.definitionEn,
+                  exampleEn: selected.translations[0]?.exampleEn,
+                }}
+              />
             </motion.div>
           ) : (
             <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col gap-2.5 pb-4">
@@ -827,6 +840,8 @@ function EnglishDictionary() {
                   ))}
                 </div>
               </div>
+
+              <SaveToMyWords prefill={prefillFromDictEntry(entries[0])} />
 
               {/* ── Inner tab bar ── */}
               <div className="flex gap-1.5 p-1 rounded-2xl shrink-0"

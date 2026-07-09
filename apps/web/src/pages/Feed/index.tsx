@@ -36,7 +36,7 @@ function useCountdownToMidnight() {
 
 export function FeedPage({ onChallenge, onMyWords, onProgress }: { onChallenge?: () => void; onMyWords?: () => void; onProgress?: () => void }) {
   const { t } = useTranslation()
-  const { words, currentIndex, stats, isLoading, isLimitReached, isEmpty, loadFeed, swipe, nextCard, selectedCategoryId, setCategory } = useFeedStore()
+  const { words, currentIndex, stats, isLoading, isLimitReached, isEmpty, loadFeed, swipe, nextCard, selectedCategoryId, setCategory, globalFeedEnabled } = useFeedStore()
   const { user } = useAuthStore()
   const { haptic } = useTelegram()
   const { hoursLeft, minutesLeft } = useCountdownToMidnight()
@@ -104,7 +104,7 @@ export function FeedPage({ onChallenge, onMyWords, onProgress }: { onChallenge?:
 
   // ── EMPTY ──
   if (isEmpty) {
-    const isPersonal = selectedCategoryId === 'personal'
+    const isPersonal = !globalFeedEnabled || selectedCategoryId === 'personal'
     return (
       <div className="h-full flex flex-col items-center justify-center px-8 text-center gap-5" style={{ background: 'var(--ws-bg)' }}>
         <motion.div
@@ -138,7 +138,8 @@ export function FeedPage({ onChallenge, onMyWords, onProgress }: { onChallenge?:
         )}
 
         {/* Always offer a way out: back to the full feed if filtered, else reload */}
-        {selectedCategoryId ? (
+        {/* Back to global feed only when the curated catalog is enabled */}
+        {selectedCategoryId && globalFeedEnabled && (
           <motion.button
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.28 }}
             whileTap={{ scale: 0.95 }}
@@ -148,7 +149,8 @@ export function FeedPage({ onChallenge, onMyWords, onProgress }: { onChallenge?:
           >
             <ArrowLeft size={16} strokeWidth={2.2} /> {t('feed.backToAll')}
           </motion.button>
-        ) : (
+        )}
+        {!(selectedCategoryId && globalFeedEnabled) && (
           <motion.button
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.28 }}
             whileTap={{ scale: 0.95 }}
@@ -302,8 +304,8 @@ export function FeedPage({ onChallenge, onMyWords, onProgress }: { onChallenge?:
         </motion.button>
       </div>
 
-      {/* Category chips */}
-      {categories.length > 0 && (
+      {/* Category chips — hidden when only personal words are served */}
+      {globalFeedEnabled && categories.length > 0 && (
         <div className="flex gap-2 overflow-x-auto no-scrollbar px-4 pb-2 shrink-0" style={{ touchAction: 'pan-x' }}>
           {/* "All" chip */}
           <motion.button

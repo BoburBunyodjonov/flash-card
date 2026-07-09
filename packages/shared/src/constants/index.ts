@@ -31,6 +31,7 @@ export const PLAN_SETTING_KEYS = {
   PREMIUM_TRIAL_DAYS: 'premium_trial_days',
   PREMIUM_MONTHLY_STARS: 'premium_monthly_price_stars',
   PREMIUM_ANNUAL_STARS: 'premium_annual_price_stars',
+  GLOBAL_FEED_ENABLED: 'global_feed_enabled',
 } as const
 
 export const DEFAULT_PLAN_SETTINGS: Record<string, number | boolean> = {
@@ -52,6 +53,8 @@ export const DEFAULT_PLAN_SETTINGS: Record<string, number | boolean> = {
   // Telegram Stars (XTR) prices — 1 star ≈ $0.02
   premium_monthly_price_stars: 125, // ≈ $2.50/month
   premium_annual_price_stars: 1000, // ≈ $20/year
+  // Curated admin catalog in the swipe feed (off = only user-added words)
+  global_feed_enabled: false,
 }
 
 // Telegram Stars purchase plans (web → API contract)

@@ -58,6 +58,10 @@
     "shareFriends": "Share with friends",
     "unlimitedPremium": "Unlimited learning — Premium"
   },
+  "dictionary": {
+    "saveToMyWords": "Add to My Words",
+    "savedToMyWords": "In My Words"
+  },
   "difficulty": {
     "A1": "Beginner",
     "A2": "Elementary",

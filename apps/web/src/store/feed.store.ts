@@ -75,6 +75,7 @@ interface FeedStore {
   isOffline: boolean
   lastSwipeDir: 'left' | 'right' | 'up' | null
   selectedCategoryId: string | null
+  globalFeedEnabled: boolean
   loadFeed: () => Promise<void>
   swipe: (wordId: string, direction: 'left' | 'right' | 'up') => Promise<void>
   nextCard: () => void
@@ -91,18 +92,20 @@ export const useFeedStore = create<FeedStore>((set, get) => ({
   isOffline: false,
   lastSwipeDir: null,
   selectedCategoryId: null,
+  globalFeedEnabled: false,
 
   loadFeed: async () => {
-    const { selectedCategoryId } = get()
+    const { selectedCategoryId, globalFeedEnabled } = get()
+    const categoryParam = !globalFeedEnabled ? 'personal' : (selectedCategoryId ?? undefined)
     set({ isLoading: true })
     try {
       await flushPendingSwipes()
-      const data = await feedApi.getFeed(selectedCategoryId ?? undefined)
+      const data = await feedApi.getFeed(categoryParam)
       const stats = await feedApi.getStats()
       const limitReached = data.remaining === 0 && stats.dailyLimit > 0
       const empty = data.words.length === 0 && !limitReached
       writeJson(OFFLINE_FEED_KEY, { words: data.words, stats })
-      set({
+      const patch: Partial<FeedStore> = {
         words: data.words,
         stats,
         isLoading: false,
@@ -110,7 +113,12 @@ export const useFeedStore = create<FeedStore>((set, get) => ({
         isEmpty: empty,
         isOffline: false,
         currentIndex: 0,
-      })
+        globalFeedEnabled: data.globalFeedEnabled ?? true,
+      }
+      if (data.globalFeedEnabled === false) {
+        patch.selectedCategoryId = 'personal'
+      }
+      set(patch)
     } catch {
       // Offline fallback: continue with the cached feed, skipping cards already swiped
       const cached = readJson<{ words: FeedWord[]; stats: FeedStats }>(OFFLINE_FEED_KEY)
@@ -159,6 +167,8 @@ export const useFeedStore = create<FeedStore>((set, get) => ({
   },
 
   setCategory: (id) => {
+    const { globalFeedEnabled } = get()
+    if (!globalFeedEnabled && id !== 'personal') return
     set({ selectedCategoryId: id, words: [], currentIndex: 0, isLimitReached: false, isEmpty: false })
     get().loadFeed()
   },

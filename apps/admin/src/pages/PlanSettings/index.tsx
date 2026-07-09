@@ -7,6 +7,7 @@ import SaveRoundedIcon from '@mui/icons-material/SaveRounded'
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded'
 import LockOpenRoundedIcon from '@mui/icons-material/LockOpenRounded'
 import ToggleOnRoundedIcon from '@mui/icons-material/ToggleOnRounded'
+import FeedRoundedIcon from '@mui/icons-material/FeedRounded'
 import WorkspacePremiumRoundedIcon from '@mui/icons-material/WorkspacePremiumRounded'
 import { PageHeader } from '../../components/PageHeader'
 import { settingsApi } from '../../api/settings.api'
@@ -26,6 +27,10 @@ const FREE_LIMITS: FieldDef[] = [
   { key: 'free_max_decks', label: 'Max custom decks', type: 'number', unit: 'decks', description: 'Max number of custom decks for free user' },
   { key: 'free_max_words_per_deck', label: 'Max words per deck', type: 'number', unit: 'words', description: 'Max words allowed in a free deck' },
   { key: 'free_ad_frequency', label: 'Ad frequency', type: 'number', unit: 'cards', description: 'Show ad after every N cards' },
+]
+
+const FEATURE_FLAGS: FieldDef[] = [
+  { key: 'global_feed_enabled', label: 'Global word feed', type: 'boolean', description: 'Show admin-curated words in the swipe feed. Off = users only study their own words.' },
 ]
 
 const FREE_FEATURES: FieldDef[] = [
@@ -156,6 +161,22 @@ export function PlanSettingsPage() {
             <Divider sx={{ mb: 2 }} />
             {FREE_LIMITS.map((f) => (
               <SettingRow key={f.key} field={f} value={settings[f.key] ?? 0} onChange={handleChange} />
+            ))}
+          </Paper>
+        </Grid>
+
+        {/* Feature flags */}
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3, height: '100%' }}>
+            <SectionTitle icon={<FeedRoundedIcon />} color="#8b5cf6">Feed</SectionTitle>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+              Control what appears in the main swipe feed
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            {FEATURE_FLAGS.map((f) => (
+              <Box key={f.key}>
+                <SettingRow field={f} value={settings[f.key] ?? false} onChange={handleChange} />
+              </Box>
             ))}
           </Paper>
         </Grid>
