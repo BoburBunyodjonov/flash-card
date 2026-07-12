@@ -126,7 +126,9 @@ export function LoginPage() {
       ))}
 
       <div className="absolute top-[-8%] left-1/2 -translate-x-1/2 w-[28rem] h-[28rem] rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 70%)', filter: 'blur(50px)' }} />
+        style={{ background: 'rgba(45,155,111,0.14)', filter: 'blur(50px)' }} />
+      <div className="absolute bottom-[-10%] left-[-8%] w-72 h-72 rounded-full pointer-events-none"
+        style={{ background: 'rgba(45,155,111,0.10)', filter: 'blur(48px)' }} />
 
       <motion.div
         initial={{ opacity: 0, y: 40 }}
@@ -145,8 +147,8 @@ export function LoginPage() {
         </motion.div>
 
         <div className="flex flex-col items-center gap-2">
-          <h1 className="text-[2.75rem] font-black tracking-tight ws-gradient-text leading-none">{t('login.title')}</h1>
-          <p className="text-base max-w-[16rem]" style={{ color: 'var(--ws-muted)' }}>{t('login.subtitle')}</p>
+          <h1 className="ws-display text-[2.85rem] font-semibold tracking-tight ws-gradient-text leading-none">{t('login.title')}</h1>
+          <p className="text-base max-w-[17rem] leading-relaxed" style={{ color: 'var(--ws-muted)' }}>{t('login.subtitle')}</p>
         </div>
 
         <motion.div
@@ -219,7 +221,7 @@ export function LoginPage() {
                   className="flex-1 py-2.5 text-sm font-semibold"
                   style={{
                     background: mode === 'login' ? 'var(--ws-primary)' : 'transparent',
-                    color: mode === 'login' ? '#fff' : 'var(--ws-muted)',
+                    color: mode === 'login' ? '#FFFFFF' : 'var(--ws-muted)',
                   }}
                   onClick={() => setMode('login')}
                 >
@@ -230,7 +232,7 @@ export function LoginPage() {
                   className="flex-1 py-2.5 text-sm font-semibold"
                   style={{
                     background: mode === 'register' ? 'var(--ws-primary)' : 'transparent',
-                    color: mode === 'register' ? '#fff' : 'var(--ws-muted)',
+                    color: mode === 'register' ? '#FFFFFF' : 'var(--ws-muted)',
                   }}
                   onClick={() => setMode('register')}
                 >
@@ -245,8 +247,7 @@ export function LoginPage() {
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     placeholder={t('login.firstName')}
-                    className="w-full rounded-btn px-4 py-3 text-sm outline-none"
-                    style={{ background: 'var(--ws-surface)', color: 'var(--ws-text)', border: '1px solid var(--ws-border)' }}
+                    className="w-full rounded-btn px-4 py-3 text-sm outline-none ws-input"
                   />
                 )}
                 <input
@@ -256,8 +257,7 @@ export function LoginPage() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder={t('login.phone')}
-                  className="w-full rounded-btn px-4 py-3 text-sm outline-none"
-                  style={{ background: 'var(--ws-surface)', color: 'var(--ws-text)', border: '1px solid var(--ws-border)' }}
+                  className="w-full rounded-btn px-4 py-3 text-sm outline-none ws-input"
                 />
                 <input
                   required
@@ -267,8 +267,7 @@ export function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder={t('login.password')}
-                  className="w-full rounded-btn px-4 py-3 text-sm outline-none"
-                  style={{ background: 'var(--ws-surface)', color: 'var(--ws-text)', border: '1px solid var(--ws-border)' }}
+                  className="w-full rounded-btn px-4 py-3 text-sm outline-none ws-input"
                 />
 
                 {loginError && (
@@ -279,7 +278,7 @@ export function LoginPage() {
                   whileTap={{ scale: 0.97 }}
                   type="submit"
                   disabled={isLoading}
-                  className="w-full flex items-center justify-center gap-2 font-bold text-base px-8 py-4 rounded-btn disabled:opacity-50 text-white ws-gradient-bg ws-glow-primary"
+                  className="w-full flex items-center justify-center gap-2 font-bold text-base px-8 py-4 rounded-btn disabled:opacity-50 text-[#FFFFFF] ws-gradient-bg ws-glow-primary"
                 >
                   {isLoading ? t('login.connecting') : mode === 'register' ? t('login.register') : t('login.login')}
                 </motion.button>

@@ -23,6 +23,7 @@ import { leagueRoutes } from './league.route'
 import { paymentsRoutes } from './payments.route'
 import { speakingRoutes } from './speaking.route'
 import { myWordsRoutes } from './my-words.route'
+import { wordShareRoutes } from './word-share.route'
 import { groupChallengeRoutes } from './group-challenge.route'
 import { pushTokenRoutes } from './push-token.route'
 import { shadowingRoutes } from './shadowing.route'
@@ -50,6 +51,7 @@ export async function registerRoutes(fastify: FastifyInstance) {
   fastify.register(paymentsRoutes, { prefix: '/api/payments' })
   fastify.register(speakingRoutes, { prefix: '/api/speaking' })
   fastify.register(myWordsRoutes, { prefix: '/api/my-words' })
+  fastify.register(wordShareRoutes, { prefix: '/api/word-shares' })
   fastify.register(groupChallengeRoutes, { prefix: '/api/group-challenge' })
   fastify.register(pushTokenRoutes, { prefix: '/api' })
   fastify.register(shadowingRoutes, { prefix: '/api/shadowing' })

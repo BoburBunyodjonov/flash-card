@@ -4,8 +4,10 @@ import { useTranslation } from 'react-i18next'
 import {
   Bell, Clock, Globe, GraduationCap, User, Crown, Sparkles,
   Gift, Share2, LogOut, Check, Flame, Zap, Users, ArrowLeft, Smartphone,
+  Sun, Moon, Monitor,
 } from 'lucide-react'
 import { useAuthStore } from '../../store/auth.store'
+import { useThemeStore, type ThemeMode } from '../../store/theme.store'
 import { profileApi, type ReferralInfo } from '../../api/profile.api'
 import { speakingApi } from '../../api/speaking.api'
 import { useTelegram } from '../../hooks/useTelegram'
@@ -24,7 +26,7 @@ const CEFR_LEVELS = [
   { value: 'B1', label: 'B1 · O\'rta', color: '#f59e0b' },
   { value: 'B2', label: 'B2 · O\'rtadan yuqori', color: '#f97316' },
   { value: 'C1', label: 'C1 · Ilg\'or', color: '#ef4444' },
-  { value: 'C2', label: 'C2 · Mukammal', color: '#a78bfa' },
+  { value: 'C2', label: 'C2 · Mukammal', color: '#4CB388' },
 ]
 
 const NOTIFY_TIMES = ['08:00', '12:00', '18:00', '20:00', '21:00', '22:00']
@@ -48,7 +50,7 @@ function SettingsSection({
     >
       <div className="flex items-center gap-3 mb-4">
         <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-          style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)' }}>
+          style={{ background: 'rgba(45,155,111,0.12)', border: '1px solid rgba(45,155,111,0.25)' }}>
           <Icon size={18} strokeWidth={2.2} style={{ color: 'var(--ws-primary-light)' }} />
         </div>
         <div className="min-w-0">
@@ -64,6 +66,7 @@ function SettingsSection({
 export function SettingsPage({ onBack }: { onBack?: () => void }) {
   const { t } = useTranslation()
   const { user, setUser, logout } = useAuthStore()
+  const { mode: themeMode, setMode: setThemeMode } = useThemeStore()
   const { twa, haptic, isInsideTelegram } = useTelegram()
   const [lang, setLang] = useState(i18n.language)
   const [notifyEnabled, setNotifyEnabled] = useState(user?.notifyEnabled ?? true)
@@ -193,7 +196,7 @@ export function SettingsPage({ onBack }: { onBack?: () => void }) {
                 <Flame size={12} strokeWidth={2.4} /> {user.streak}
               </span>
               <span className="text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1"
-                style={{ background: 'rgba(99,102,241,0.14)', color: 'var(--ws-primary-light)' }}>
+                style={{ background: 'rgba(45,155,111,0.14)', color: 'var(--ws-primary-light)' }}>
                 <Zap size={12} strokeWidth={2.4} /> {user.xp} XP
               </span>
             </div>
@@ -211,18 +214,18 @@ export function SettingsPage({ onBack }: { onBack?: () => void }) {
         {user?.isPremium ? (
           <div className="rounded-card p-5 flex items-center justify-between relative overflow-hidden ws-gradient-bg ws-glow-primary">
             <div className="absolute inset-0 opacity-20"
-              style={{ background: 'radial-gradient(circle at 80% 50%, rgba(255,255,255,0.3), transparent 60%)' }} />
+              style={{ background: 'transparent' }} />
             <div className="relative">
               <p className="text-white font-black text-lg flex items-center gap-2">
                 <Sparkles size={20} strokeWidth={2.2} /> {t('settings.premiumActive')}
               </p>
               {user.premiumUntil && (
-                <p className="text-white/70 text-sm mt-0.5">
+                <p className="text-muted text-sm mt-0.5">
                   {t('settings.premiumUntil', { date: new Date(user.premiumUntil).toLocaleDateString() })}
                 </p>
               )}
             </div>
-            <Crown size={34} strokeWidth={1.8} className="relative text-white/90" />
+            <Crown size={34} strokeWidth={1.8} className="relative text-text" />
           </div>
         ) : (
           <motion.button
@@ -231,12 +234,12 @@ export function SettingsPage({ onBack }: { onBack?: () => void }) {
             className="w-full rounded-card p-5 flex items-center justify-between relative overflow-hidden text-left ws-gradient-bg ws-glow-primary"
           >
             <div className="absolute inset-0 opacity-20"
-              style={{ background: 'radial-gradient(circle at 80% 50%, rgba(255,255,255,0.3), transparent 60%)' }} />
+              style={{ background: 'transparent' }} />
             <div className="relative">
               <p className="text-white font-black text-lg">{t('settings.getPremium')}</p>
-              <p className="text-white/70 text-sm mt-0.5">{t('settings.premiumDesc')}</p>
+              <p className="text-muted text-sm mt-0.5">{t('settings.premiumDesc')}</p>
             </div>
-            <Crown size={34} strokeWidth={1.8} className="relative text-white/90" />
+            <Crown size={34} strokeWidth={1.8} className="relative text-text" />
           </motion.button>
         )}
       </motion.div>
@@ -263,7 +266,7 @@ export function SettingsPage({ onBack }: { onBack?: () => void }) {
                 })
               }}
               className="w-full py-3 rounded-btn font-bold text-sm flex items-center justify-center gap-2"
-              style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.3)', color: 'var(--ws-primary-light)' }}
+              style={{ background: 'rgba(45,155,111,0.12)', border: '1px solid rgba(45,155,111,0.3)', color: 'var(--ws-primary-light)' }}
             >
               <Smartphone size={16} strokeWidth={2.2} /> {t('settings.pwFromTelegram')}
             </motion.button>
@@ -348,7 +351,7 @@ export function SettingsPage({ onBack }: { onBack?: () => void }) {
           onClick={shareReferral}
           disabled={!referral}
           className="w-full py-3.5 rounded-btn font-bold text-sm text-white flex items-center justify-center gap-2 disabled:opacity-50"
-          style={{ background: 'linear-gradient(135deg, #10b981, #059669)', boxShadow: '0 6px 20px rgba(16,185,129,0.22)' }}
+          style={{ background: '#10b981', boxShadow: '0 6px 20px rgba(16,185,129,0.22)' }}
         >
           <Share2 size={17} strokeWidth={2.2} /> {t('settings.shareInvite')}
         </motion.button>
@@ -365,7 +368,7 @@ export function SettingsPage({ onBack }: { onBack?: () => void }) {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-              style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)' }}>
+              style={{ background: 'rgba(45,155,111,0.12)', border: '1px solid rgba(45,155,111,0.25)' }}>
               <Bell size={18} strokeWidth={2.2} style={{ color: 'var(--ws-primary-light)' }} />
             </div>
             <div>
@@ -377,7 +380,7 @@ export function SettingsPage({ onBack }: { onBack?: () => void }) {
           <button
             onClick={() => toggleNotify(!notifyEnabled)}
             className="relative w-12 h-6 rounded-full shrink-0"
-            style={{ background: notifyEnabled ? 'var(--ws-primary)' : 'rgba(255,255,255,0.1)' }}
+            style={{ background: notifyEnabled ? 'var(--ws-primary)' : 'rgba(28,42,36,0.10)' }}
           >
             <motion.div
               className="absolute top-1 w-4 h-4 rounded-full bg-white"
@@ -406,7 +409,7 @@ export function SettingsPage({ onBack }: { onBack?: () => void }) {
                     onClick={() => saveNotifyTime(time)}
                     className="flex items-center justify-center gap-1.5 py-2.5 rounded-btn"
                     style={notifyTime === time
-                      ? { background: 'rgba(99,102,241,0.18)', border: '1px solid rgba(99,102,241,0.4)' }
+                      ? { background: 'rgba(45,155,111,0.18)', border: '1px solid rgba(45,155,111,0.4)' }
                       : { background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)' }
                     }
                   >
@@ -438,6 +441,34 @@ export function SettingsPage({ onBack }: { onBack?: () => void }) {
       </motion.div>
 
       {/* Language picker */}
+      <SettingsSection Icon={Sun} title={t('settings.theme')} hint={t('settings.themeHint')} delay={0.14}>
+        <div className="flex gap-2">
+          {([
+            { value: 'light' as ThemeMode, Icon: Sun, label: t('settings.themeLight') },
+            { value: 'dark' as ThemeMode, Icon: Moon, label: t('settings.themeDark') },
+            { value: 'system' as ThemeMode, Icon: Monitor, label: t('settings.themeSystem') },
+          ]).map(({ value, Icon: ThemeIcon, label }) => {
+            const active = themeMode === value
+            return (
+              <motion.button
+                key={value}
+                whileTap={{ scale: 0.96 }}
+                type="button"
+                onClick={() => { haptic.impact('light'); setThemeMode(value) }}
+                className="flex-1 flex flex-col items-center gap-1.5 py-3 rounded-btn"
+                style={active
+                  ? { background: 'var(--ws-primary)', color: '#fff', boxShadow: 'var(--ws-shadow-primary)' }
+                  : { background: 'var(--ws-surface)', color: 'var(--ws-muted)', border: '1px solid var(--ws-border)' }
+                }
+              >
+                <ThemeIcon size={18} strokeWidth={2.2} />
+                <span className="text-[11px] font-bold">{label}</span>
+              </motion.button>
+            )
+          })}
+        </div>
+      </SettingsSection>
+
       <SettingsSection Icon={Globe} title={t('settings.language')} delay={0.16}>
         <div className="flex flex-col gap-1">
           {LANGUAGES.map((l) => (
@@ -446,7 +477,7 @@ export function SettingsPage({ onBack }: { onBack?: () => void }) {
               onClick={() => changeLang(l.code)}
               className="flex items-center justify-between py-2.5 px-3 rounded-btn"
               style={lang === l.code
-                ? { background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)' }
+                ? { background: 'rgba(45,155,111,0.15)', border: '1px solid rgba(45,155,111,0.3)' }
                 : { border: '1px solid transparent' }
               }
             >
@@ -500,7 +531,7 @@ export function SettingsPage({ onBack }: { onBack?: () => void }) {
                 onClick={() => changeGender(g.value)}
                 className="flex flex-col items-center gap-1.5 py-3 rounded-btn"
                 style={isActive
-                  ? { background: 'rgba(99,102,241,0.18)', border: '1px solid rgba(99,102,241,0.4)' }
+                  ? { background: 'rgba(45,155,111,0.18)', border: '1px solid rgba(45,155,111,0.4)' }
                   : { background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)' }
                 }
               >

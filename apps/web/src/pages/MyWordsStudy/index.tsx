@@ -19,14 +19,14 @@ type ChoiceState = 'default' | 'correct' | 'wrong' | 'reveal'
 
 // The "smart mixed" method leads and is visually flagged as recommended.
 const METHODS: { key: StudyMode; Icon: LucideIcon; tint: string; recommended?: boolean }[] = [
-  { key: 'mixed',     Icon: Sparkles,      tint: '#6366f1', recommended: true },
-  { key: 'flashcard', Icon: Layers,        tint: '#a78bfa' },
+  { key: 'mixed',     Icon: Sparkles,      tint: '#2D9B6F', recommended: true },
+  { key: 'flashcard', Icon: Layers,        tint: '#4CB388' },
   { key: 'mcq',       Icon: ListChecks,    tint: '#10b981' },
   { key: 'reverse',   Icon: ArrowLeftRight, tint: '#38bdf8' },
   { key: 'typing',    Icon: Keyboard,      tint: '#f59e0b' },
   { key: 'listening', Icon: Headphones,    tint: '#f472b6' },
   { key: 'matching',  Icon: Grid2x2,       tint: '#06b6d4' },
-  { key: 'scramble',  Icon: Shuffle,       tint: '#8b5cf6' },
+  { key: 'scramble',  Icon: Shuffle,       tint: '#F0A04B' },
   { key: 'cloze',     Icon: PenLine,       tint: '#f87171' },
 ]
 
@@ -65,7 +65,7 @@ function SpeakerButton({ word, audioUrl, size = 'md' }: { word: string; audioUrl
         playWordAudio(word, audioUrl)
       }}
       className={`${dim} rounded-full flex items-center justify-center shrink-0`}
-      style={{ background: 'rgba(99,102,241,0.14)', border: '1px solid rgba(99,102,241,0.3)' }}
+      style={{ background: 'rgba(45,155,111,0.14)', border: '1px solid rgba(45,155,111,0.3)' }}
       aria-label="play"
     >
       <Volume2 size={size === 'lg' ? 32 : 18} strokeWidth={2} style={{ color: 'var(--ws-primary-light)' }} />
@@ -78,7 +78,7 @@ function ProgressBar({ value, total }: { value: number; total: number }) {
   const pct = total > 0 ? (value / total) * 100 : 0
   return (
     <div className="flex items-center gap-3 shrink-0">
-      <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+      <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(28,42,36,0.06)' }}>
         <motion.div
           className="h-full rounded-full ws-gradient-bg"
           animate={{ width: `${pct}%` }}
@@ -117,9 +117,9 @@ function FlashcardQuestion({ question, onAnswer }: { question: StudyQuestion; on
           className="flex-1 rounded-3xl p-6 flex flex-col cursor-pointer select-none"
           style={{
             background: flipped
-              ? 'linear-gradient(135deg, rgba(16,185,129,0.08), rgba(5,150,105,0.04))'
-              : 'linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.06))',
-            border: flipped ? '1px solid rgba(16,185,129,0.2)' : '1px solid rgba(99,102,241,0.2)',
+              ? 'rgba(16,185,129,0.08)'
+              : 'rgba(45,155,111,0.1)',
+            border: flipped ? '1px solid rgba(16,185,129,0.2)' : '1px solid rgba(45,155,111,0.2)',
           }}
         >
           {!flipped ? (
@@ -211,7 +211,7 @@ function ScrambleQuestion({ question, onAnswer }: { question: StudyQuestion; onA
   }
 
   const slotColor =
-    result === 'correct' ? 'rgba(16,185,129,0.4)' : result === 'wrong' ? 'rgba(239,68,68,0.4)' : 'rgba(99,102,241,0.35)'
+    result === 'correct' ? 'rgba(16,185,129,0.4)' : result === 'wrong' ? 'rgba(239,68,68,0.4)' : 'rgba(45,155,111,0.35)'
 
   return (
     <motion.div
@@ -223,7 +223,7 @@ function ScrambleQuestion({ question, onAnswer }: { question: StudyQuestion; onA
     >
       <div
         className="rounded-card p-6 flex flex-col items-center gap-2 text-center"
-        style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(139,92,246,0.05) 100%)', border: '1px solid rgba(99,102,241,0.2)' }}
+        style={{ background: 'rgba(45,155,111,0.1)', border: '1px solid rgba(45,155,111,0.2)' }}
       >
         <p className="text-[11px] font-black uppercase tracking-widest" style={{ color: 'var(--ws-muted)' }}>
           {t('myWordsStudy.prompt.scramble')}
@@ -247,7 +247,7 @@ function ScrambleQuestion({ question, onAnswer }: { question: StudyQuestion; onA
               style={{
                 height: '3rem',
                 width: '2.75rem',
-                background: filled ? 'rgba(99,102,241,0.16)' : 'rgba(255,255,255,0.03)',
+                background: filled ? 'rgba(45,155,111,0.16)' : 'rgba(28,42,36,0.04)',
                 border: `1.5px ${filled ? 'solid' : 'dashed'} ${filled ? slotColor : 'var(--ws-border)'}`,
                 color: 'var(--ws-text)',
               }}
@@ -272,7 +272,7 @@ function ScrambleQuestion({ question, onAnswer }: { question: StudyQuestion; onA
               style={{
                 width: '2.75rem',
                 height: '3rem',
-                background: isUsed ? 'rgba(255,255,255,0.03)' : 'var(--ws-card-2)',
+                background: isUsed ? 'rgba(28,42,36,0.04)' : 'var(--ws-card-2)',
                 border: '1px solid var(--ws-border)',
                 color: isUsed ? 'var(--ws-faint)' : 'var(--ws-text)',
                 opacity: isUsed ? 0.35 : 1,
@@ -364,7 +364,7 @@ function ChoiceOrTypingQuestion({ question, onAnswer }: { question: StudyQuestio
       {/* Prompt hero */}
       <div
         className="rounded-card p-6 flex flex-col items-center gap-3 text-center"
-        style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(139,92,246,0.05) 100%)', border: '1px solid rgba(99,102,241,0.2)' }}
+        style={{ background: 'rgba(45,155,111,0.1)', border: '1px solid rgba(45,155,111,0.2)' }}
       >
         <p className="text-[11px] font-black uppercase tracking-widest" style={{ color: 'var(--ws-muted)' }}>
           {t(`myWordsStudy.prompt.${question.mode}`)}
@@ -469,7 +469,7 @@ type TileState = 'default' | 'selected' | 'solved' | 'wrong'
 function tileStyle(state: TileState): React.CSSProperties {
   switch (state) {
     case 'selected':
-      return { background: 'rgba(99,102,241,0.18)', border: '1px solid rgba(99,102,241,0.5)', color: 'var(--ws-primary-light)' }
+      return { background: 'rgba(45,155,111,0.18)', border: '1px solid rgba(45,155,111,0.5)', color: 'var(--ws-primary-light)' }
     case 'solved':
       return { background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.4)', color: 'var(--ws-success)', opacity: 0.75 }
     case 'wrong':
@@ -602,7 +602,7 @@ function MethodPicker({ onPick }: { onPick: (m: StudyMode) => void }) {
           className="w-full p-4 flex items-center gap-4 text-left rounded-card"
           style={
             m.recommended
-              ? { background: 'linear-gradient(135deg, rgba(99,102,241,0.16), rgba(139,92,246,0.08))', border: '1px solid rgba(99,102,241,0.4)', boxShadow: '0 8px 28px rgba(99,102,241,0.18)' }
+              ? { background: 'rgba(45,155,111,0.14)', border: '1px solid rgba(45,155,111,0.4)', boxShadow: '0 8px 28px rgba(45,155,111,0.18)' }
               : { background: 'var(--ws-card)', border: '1px solid var(--ws-border)' }
           }
         >
@@ -618,7 +618,7 @@ function MethodPicker({ onPick }: { onPick: (m: StudyMode) => void }) {
               {m.recommended && (
                 <span
                   className="text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide flex items-center gap-1"
-                  style={{ color: 'var(--ws-primary-light)', background: 'rgba(99,102,241,0.18)' }}
+                  style={{ color: 'var(--ws-primary-light)', background: 'rgba(45,155,111,0.18)' }}
                 >
                   <Sparkles size={10} strokeWidth={2.6} /> {t('myWordsStudy.recommended')}
                 </span>
@@ -679,7 +679,7 @@ function ResultsScreen({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ delay: 0.2, type: 'spring', stiffness: 320, damping: 20 }}
             className="rounded-btn px-6 py-4 flex items-center gap-2"
-            style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.25)' }}
+            style={{ background: 'rgba(45,155,111,0.1)', border: '1px solid rgba(45,155,111,0.25)' }}
           >
             <Sparkles size={20} strokeWidth={2.2} style={{ color: 'var(--ws-primary-light)' }} />
             <p className="font-black text-xl" style={{ color: 'var(--ws-primary-light)' }}>+{xpEarned} XP</p>
@@ -785,7 +785,7 @@ export function MyWordsStudyPage({ onBack }: { onBack: () => void }) {
           {mode && loading && (
             <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 flex flex-col items-center justify-center gap-5">
               <div className="relative w-12 h-12">
-                <div className="absolute inset-0 rounded-full" style={{ border: '2px solid rgba(99,102,241,0.15)' }} />
+                <div className="absolute inset-0 rounded-full" style={{ border: '2px solid rgba(45,155,111,0.15)' }} />
                 <div className="absolute inset-0 rounded-full animate-spin" style={{ border: '2px solid transparent', borderTopColor: 'var(--ws-primary)' }} />
               </div>
               <p className="text-sm font-medium" style={{ color: 'var(--ws-faint)' }}>{t('myWordsStudy.preparing')}</p>

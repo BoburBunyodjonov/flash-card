@@ -1,6 +1,7 @@
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { Zap, Dumbbell, Mic, Search, User, type LucideIcon } from 'lucide-react'
+import { useTelegram } from '../../hooks/useTelegram'
 
 interface Props {
   active: string
@@ -8,57 +9,82 @@ interface Props {
 }
 
 const tabs: { key: string; Icon: LucideIcon }[] = [
-  { key: 'feed',       Icon: Zap },
-  { key: 'practice',   Icon: Dumbbell },
-  { key: 'speaking',   Icon: Mic },
+  { key: 'feed', Icon: Zap },
+  { key: 'practice', Icon: Dumbbell },
+  { key: 'speaking', Icon: Mic },
   { key: 'dictionary', Icon: Search },
-  { key: 'profile',    Icon: User },
+  { key: 'profile', Icon: User },
 ]
 
 export function BottomNav({ active, onChange }: Props) {
   const { t } = useTranslation()
+  const { haptic } = useTelegram()
+  const reduceMotion = useReducedMotion()
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 nav-blur pb-safe"
-      style={{ background: 'rgba(8,8,12,0.88)', borderTop: '1px solid var(--ws-border)' }}
+      className="fixed left-0 right-0 z-50 px-3 pointer-events-none"
+      style={{
+        bottom: 'calc(8px + env(safe-area-inset-bottom, 0px))',
+      }}
     >
-      <div className="flex items-stretch px-1.5 pt-1.5">
+      <div
+        className="pointer-events-auto mx-auto flex items-stretch max-w-lg"
+        style={{
+          background: 'var(--ws-card)',
+          border: '1px solid var(--ws-border)',
+          borderRadius: 20,
+          boxShadow: 'var(--ws-shadow-dock)',
+          height: 56,
+          padding: '0 4px',
+        }}
+      >
         {tabs.map(({ key, Icon }) => {
           const isActive = active === key
           return (
-            <button
+            <motion.button
               key={key}
-              onClick={() => onChange(key)}
-              className="flex-1 flex flex-col items-center justify-center py-2 gap-1 relative"
+              type="button"
+              whileTap={reduceMotion ? undefined : { scale: 0.94 }}
+              transition={{ duration: 0.08 }}
+              onClick={() => {
+                haptic.impact('light')
+                onChange(key)
+              }}
+              className="relative flex-1 flex flex-col items-center justify-center gap-0.5 min-w-0"
+              aria-current={isActive ? 'page' : undefined}
             >
-              {isActive && (
-                <motion.div
-                  layoutId="nav-indicator"
-                  className="absolute top-0 h-[3px] w-8 rounded-full"
-                  style={{ background: 'var(--ws-primary)', boxShadow: '0 0 12px rgba(99,102,241,0.7)' }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-                />
-              )}
-
-              <motion.div
-                animate={{ scale: isActive ? 1.08 : 1, y: isActive ? -1 : 0 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-              >
+              <div className="relative w-9 h-9 flex items-center justify-center">
+                {isActive && (
+                  <motion.span
+                    className="absolute inset-0 rounded-full"
+                    style={{ background: 'var(--ws-primary)', opacity: 0.14 }}
+                    initial={reduceMotion ? false : { scale: 0.86, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 0.14 }}
+                    transition={
+                      reduceMotion
+                        ? { duration: 0 }
+                        : { duration: 0.14, ease: 'easeOut' }
+                    }
+                  />
+                )}
                 <Icon
-                  size={21}
-                  strokeWidth={2}
-                  style={{ color: isActive ? 'var(--ws-primary-light)' : 'var(--ws-faint)' }}
+                  size={22}
+                  strokeWidth={isActive ? 2.25 : 1.75}
+                  className="relative z-10"
+                  style={{ color: isActive ? 'var(--ws-primary)' : 'var(--ws-faint)' }}
                 />
-              </motion.div>
-
+              </div>
               <span
-                className="text-[9px] font-bold transition-colors duration-150 truncate max-w-full px-0.5"
-                style={{ color: isActive ? 'var(--ws-primary-light)' : 'var(--ws-faint)' }}
+                className="text-[10px] truncate max-w-full px-0.5 leading-none"
+                style={{
+                  color: isActive ? 'var(--ws-text)' : 'var(--ws-faint)',
+                  fontWeight: isActive ? 700 : 500,
+                }}
               >
                 {t(`nav.${key}`)}
               </span>
-            </button>
+            </motion.button>
           )
         })}
       </div>

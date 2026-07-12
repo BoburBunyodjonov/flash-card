@@ -95,6 +95,7 @@ export const DUEL_EXPIRE_HOURS = 48
 
 // Group challenges (multiplayer quiz race among friends)
 export const GC_PREFIX = 'gc_'
+export const WORD_SHARE_PREFIX = 'wshare_'
 export const GC_QUESTION_COUNT = 7
 export const GC_EXPIRE_HOURS = 72
 export const GC_BASE_XP = 10 // flat participation reward

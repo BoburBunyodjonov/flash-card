@@ -17,7 +17,7 @@ interface Category {
   _count: { words: number }
 }
 
-const empty = { nameUz: '', nameEn: '', nameRu: '', icon: '', color: '#6366f1', isPremium: false, order: 0 }
+const empty = { nameUz: '', nameEn: '', nameRu: '', icon: '', color: '#2D9B6F', isPremium: false, order: 0 }
 
 export function CategoriesPage() {
   const [list, setList] = useState<Category[]>([])

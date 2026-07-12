@@ -16,7 +16,7 @@ const LEVEL_CONFIG: Record<string, { color: string; bg: string; Icon: LucideIcon
   B1: { color: '#fbbf24', bg: 'rgba(251,191,36,0.15)', Icon: Zap },
   B2: { color: '#f97316', bg: 'rgba(249,115,22,0.15)', Icon: Flame },
   C1: { color: '#f87171', bg: 'rgba(248,113,113,0.15)', Icon: Trophy },
-  C2: { color: '#c084fc', bg: 'rgba(192,132,252,0.15)', Icon: Gem },
+  C2: { color: '#8FA896', bg: 'rgba(192,132,252,0.15)', Icon: Gem },
 }
 
 function determineLevel(results: { difficulty: string; correct: boolean }[]): string {
@@ -123,7 +123,7 @@ export function OnboardingPage({ onDone }: Props) {
               ].map(({ Icon, key }) => (
                 <div key={key} className="flex items-center gap-3.5 ws-card-2 px-4 py-3">
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                    style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.22)' }}>
+                    style={{ background: 'rgba(45,155,111,0.12)', border: '1px solid rgba(45,155,111,0.22)' }}>
                     <Icon size={18} strokeWidth={2.2} style={{ color: 'var(--ws-primary-light)' }} />
                   </div>
                   <span className="text-sm font-medium" style={{ color: 'var(--ws-muted)' }}>{t(key)}</span>
@@ -260,7 +260,7 @@ export function OnboardingPage({ onDone }: Props) {
               >
                 <div
                   className="rounded-card p-6 text-center"
-                  style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)' }}
+                  style={{ background: 'rgba(45,155,111,0.08)', border: '1px solid rgba(45,155,111,0.2)' }}
                 >
                   <p className="text-xs font-black uppercase tracking-widest mb-3" style={{ color: 'var(--ws-faint)' }}>
                     {t('onboarding.questionPrompt')}
@@ -400,7 +400,7 @@ export function OnboardingPage({ onDone }: Props) {
               onClick={() => onDone(level)}
               className="w-full max-w-xs py-4 rounded-btn font-bold text-base text-white flex items-center justify-center gap-2"
               style={{
-                background: `linear-gradient(135deg, ${cfg.color}, ${cfg.color}cc)`,
+                background: cfg.color,
                 boxShadow: `0 8px 28px ${cfg.color}40`,
               }}
             >

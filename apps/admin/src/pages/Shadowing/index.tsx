@@ -377,7 +377,7 @@ export function ShadowingPage() {
                       ) : (
                         <Box sx={{
                           width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          background: 'linear-gradient(135deg, rgba(99,102,241,0.18), rgba(139,92,246,0.18))',
+                          background: 'rgba(45,155,111,0.18)',
                         }}>
                           <VideocamRoundedIcon sx={{ fontSize: 40, color: 'primary.light' }} />
                         </Box>

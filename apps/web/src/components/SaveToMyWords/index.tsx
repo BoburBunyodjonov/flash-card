@@ -94,8 +94,8 @@ export function SaveToMyWords({ prefill, variant = 'bar', className }: SaveToMyW
       style={{
         width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: isDone ? 'rgba(16,185,129,0.15)' : 'rgba(99,102,241,0.14)',
-        border: `1px solid ${isDone ? 'rgba(16,185,129,0.35)' : 'rgba(99,102,241,0.3)'}`,
+        background: isDone ? 'rgba(16,185,129,0.15)' : 'rgba(45,155,111,0.14)',
+        border: `1px solid ${isDone ? 'rgba(16,185,129,0.35)' : 'rgba(45,155,111,0.3)'}`,
         color: isDone ? '#34d399' : 'var(--ws-primary-light)',
       }}
     >
@@ -110,8 +110,8 @@ export function SaveToMyWords({ prefill, variant = 'bar', className }: SaveToMyW
       style={{
         background: isDone
           ? 'rgba(16,185,129,0.12)'
-          : 'linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.15))',
-        border: `1px solid ${isDone ? 'rgba(16,185,129,0.3)' : 'rgba(99,102,241,0.35)'}`,
+          : 'rgba(45,155,111,0.18)',
+        border: `1px solid ${isDone ? 'rgba(16,185,129,0.3)' : 'rgba(45,155,111,0.35)'}`,
         color: isDone ? '#34d399' : 'var(--ws-primary-light)',
       }}
     >
@@ -153,7 +153,7 @@ export function SaveToMyWords({ prefill, variant = 'bar', className }: SaveToMyW
                 <button
                   onClick={() => setOpen(false)}
                   className="w-8 h-8 rounded-full flex items-center justify-center"
-                  style={{ background: 'rgba(255,255,255,0.06)' }}
+                  style={{ background: 'rgba(28,42,36,0.06)' }}
                 >
                   <X size={16} style={{ color: 'var(--ws-muted)' }} />
                 </button>
@@ -200,9 +200,9 @@ export function SaveToMyWords({ prefill, variant = 'bar', className }: SaveToMyW
                 className="w-full py-4 rounded-2xl font-black text-base text-white flex items-center justify-center gap-2"
                 style={{
                   background: !translation.trim() || saving
-                    ? 'rgba(255,255,255,0.06)'
-                    : 'linear-gradient(135deg, #10b981, #059669)',
-                  color: !translation.trim() || saving ? 'rgba(255,255,255,0.35)' : '#fff',
+                    ? 'rgba(28,42,36,0.06)'
+                    : '#10b981',
+                  color: !translation.trim() || saving ? 'rgba(255,255,255,0.55)' : '#fff',
                 }}
               >
                 {saving ? '…' : <><Check size={18} strokeWidth={2.4} /> {t('myWords.save')}</>}

@@ -28,7 +28,7 @@ interface DictEntry    { word: string; phonetic?: string; phonetics: DictPhoneti
 const POS_COLORS: Record<string, { color: string; bg: string }> = {
   noun:        { color: '#38bdf8', bg: 'rgba(56,189,248,0.12)'  },
   verb:        { color: '#34d399', bg: 'rgba(52,211,153,0.12)'  },
-  adjective:   { color: '#a78bfa', bg: 'rgba(167,139,250,0.12)' },
+  adjective:   { color: '#4CB388', bg: 'rgba(167,139,250,0.12)' },
   adverb:      { color: '#fbbf24', bg: 'rgba(251,191,36,0.12)'  },
   pronoun:     { color: '#f87171', bg: 'rgba(248,113,113,0.12)' },
   preposition: { color: '#fb923c', bg: 'rgba(251,146,60,0.12)'  },
@@ -38,7 +38,7 @@ const POS_COLORS: Record<string, { color: string; bg: string }> = {
 const DEFAULT_POS = { color: '#9ca3af', bg: 'rgba(156,163,175,0.12)' }
 
 const DIFF_COLORS: Record<string, string> = {
-  A1: '#34d399', A2: '#6ee7b7', B1: '#fbbf24', B2: '#f97316', C1: '#f87171', C2: '#c084fc',
+  A1: '#34d399', A2: '#6ee7b7', B1: '#fbbf24', B2: '#f97316', C1: '#f87171', C2: '#8FA896',
 }
 function diffColor(d: string) { return DIFF_COLORS[d] ?? '#9ca3af' }
 
@@ -182,7 +182,7 @@ function SearchInput({
             onClick={() => onChange('')}
             aria-label="Clear"
             className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
-            style={{ background: 'rgba(255,255,255,0.06)' }}
+            style={{ background: 'rgba(28,42,36,0.06)' }}
           >
             <X size={14} strokeWidth={2.4} style={{ color: 'var(--ws-muted)' }} />
           </button>
@@ -244,7 +244,7 @@ function AppDictionary() {
                     onClick={() => playWordAudio(selected.word)}
                     aria-label="Play"
                     className="shrink-0 w-11 h-11 rounded-full flex items-center justify-center"
-                    style={{ background: 'rgba(99,102,241,0.14)', border: '1px solid rgba(99,102,241,0.3)' }}
+                    style={{ background: 'rgba(45,155,111,0.14)', border: '1px solid rgba(45,155,111,0.3)' }}
                   >
                     <Volume2 size={19} strokeWidth={2} style={{ color: 'var(--ws-primary-light)' }} />
                   </motion.button>
@@ -264,7 +264,7 @@ function AppDictionary() {
                       </div>
                     )}
                     {selected.translations[0].exampleEn && (
-                      <div className="rounded-btn p-4" style={{ background: 'rgba(99,102,241,0.07)', border: '1px solid rgba(99,102,241,0.18)' }}>
+                      <div className="rounded-btn p-4" style={{ background: 'rgba(45,155,111,0.07)', border: '1px solid rgba(45,155,111,0.18)' }}>
                         <p className="text-[10px] font-black uppercase tracking-widest mb-1.5" style={{ color: 'var(--ws-primary-light)' }}>Misol</p>
                         <p className="text-sm italic" style={{ color: 'var(--ws-muted)' }}>"{selected.translations[0].exampleEn}"</p>
                       </div>
@@ -292,7 +292,7 @@ function AppDictionary() {
                     animate={{ y: [0, -6, 0] }}
                     transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
                     className="w-16 h-16 rounded-3xl flex items-center justify-center"
-                    style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)' }}
+                    style={{ background: 'rgba(45,155,111,0.12)', border: '1px solid rgba(45,155,111,0.25)' }}
                   >
                     <BookOpen size={28} strokeWidth={1.8} style={{ color: 'var(--ws-primary-light)' }} />
                   </motion.div>
@@ -375,7 +375,7 @@ function PracticeMode({ items, onReset }: { items: ChallengeItem[]; onReset: () 
           animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 400, damping: 18, delay: 0.1 }}
           className="w-20 h-20 rounded-3xl flex items-center justify-center"
-          style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.28)' }}
+          style={{ background: 'rgba(45,155,111,0.12)', border: '1px solid rgba(45,155,111,0.28)' }}
         >
           <PartyPopper size={36} strokeWidth={1.8} style={{ color: 'var(--ws-primary-light)' }} />
         </motion.div>
@@ -387,12 +387,12 @@ function PracticeMode({ items, onReset }: { items: ChallengeItem[]; onReset: () 
           <div className="flex flex-col items-center rounded-2xl px-6 py-4 gap-1"
             style={{ background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.25)' }}>
             <span className="text-3xl font-black" style={{ color: '#34d399' }}>{score.know}</span>
-            <span className="text-xs text-white/40 font-semibold">Bildim</span>
+            <span className="text-xs text-faint font-semibold">Bildim</span>
           </div>
           <div className="flex flex-col items-center rounded-2xl px-6 py-4 gap-1"
             style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }}>
             <span className="text-3xl font-black" style={{ color: '#ef4444' }}>{score.dontKnow}</span>
-            <span className="text-xs text-white/40 font-semibold">Bilmadim</span>
+            <span className="text-xs text-faint font-semibold">Bilmadim</span>
           </div>
         </div>
         <div className="flex gap-3 w-full">
@@ -400,7 +400,7 @@ function PracticeMode({ items, onReset }: { items: ChallengeItem[]; onReset: () 
             whileTap={{ scale: 0.95 }}
             onClick={restart}
             className="flex-1 py-3.5 rounded-2xl font-bold text-sm"
-            style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff' }}
+            style={{ background: '#2D9B6F', color: '#fff' }}
           >
             Qayta sinash
           </motion.button>
@@ -408,7 +408,7 @@ function PracticeMode({ items, onReset }: { items: ChallengeItem[]; onReset: () 
             whileTap={{ scale: 0.95 }}
             onClick={onReset}
             className="flex-1 py-3.5 rounded-2xl font-bold text-sm"
-            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }}
+            style={{ background: 'rgba(28,42,36,0.06)', border: '1px solid rgba(28,42,36,0.10)', color: 'rgba(28,42,36,0.55)' }}
           >
             O'qishga qaytish
           </motion.button>
@@ -423,16 +423,16 @@ function PracticeMode({ items, onReset }: { items: ChallengeItem[]; onReset: () 
     <div className="flex flex-col gap-4 pb-6">
       {/* Progress bar */}
       <div className="flex items-center gap-3">
-        <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.07)' }}>
+        <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'rgba(28,42,36,0.07)' }}>
           <motion.div
             className="h-full rounded-full"
-            style={{ background: 'linear-gradient(90deg, #6366f1, #8b5cf6)' }}
+            style={{ background: '#2D9B6F' }}
             initial={{ width: 0 }}
             animate={{ width: `${progress * 100}%` }}
             transition={{ type: 'spring', stiffness: 200, damping: 28 }}
           />
         </div>
-        <span className="text-white/35 text-xs font-bold shrink-0">{index + 1} / {items.length}</span>
+        <span className="text-faint text-xs font-bold shrink-0">{index + 1} / {items.length}</span>
       </div>
 
       {/* Challenge card */}
@@ -445,7 +445,7 @@ function PracticeMode({ items, onReset }: { items: ChallengeItem[]; onReset: () 
           transition={{ type: 'spring', stiffness: 340, damping: 28 }}
           className="rounded-3xl p-5 flex flex-col gap-4"
           style={{
-            background: 'rgba(255,255,255,0.03)',
+            background: 'rgba(28,42,36,0.04)',
             border: `1px solid ${current.pos.color}30`,
             boxShadow: `0 0 24px ${current.pos.color}10`,
           }}
@@ -457,7 +457,7 @@ function PracticeMode({ items, onReset }: { items: ChallengeItem[]; onReset: () 
           </span>
 
           {/* Blanked sentence */}
-          <p className="text-white/90 text-base leading-relaxed font-medium">
+          <p className="text-text text-base leading-relaxed font-medium">
             <BlankedText
               blanked={current.blanked}
               word={current.word}
@@ -467,7 +467,7 @@ function PracticeMode({ items, onReset }: { items: ChallengeItem[]; onReset: () 
           </p>
 
           {/* Hint definition */}
-          <p className="text-white/35 text-xs italic leading-relaxed"
+          <p className="text-faint text-xs italic leading-relaxed"
             style={{ borderLeft: `2px solid ${current.pos.color}40`, paddingLeft: '10px' }}>
             {current.definition}
           </p>
@@ -485,7 +485,7 @@ function PracticeMode({ items, onReset }: { items: ChallengeItem[]; onReset: () 
             whileTap={{ scale: 0.96 }}
             onClick={() => setRevealed(true)}
             className="w-full py-4 rounded-2xl font-black text-base"
-            style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff' }}
+            style={{ background: '#2D9B6F', color: '#fff' }}
           >
             Ko'rish
           </motion.button>
@@ -537,8 +537,8 @@ function ReadMode({ entries, onNavigate }: { entries: DictEntry[]; onNavigate: (
               transition={{ delay: (ei * 4 + mi) * 0.06, type: 'spring', stiffness: 300, damping: 28 }}
               className="rounded-3xl p-5 flex flex-col gap-4 overflow-hidden"
               style={{
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.06)',
+                background: 'rgba(28,42,36,0.04)',
+                border: '1px solid rgba(28,42,36,0.08)',
                 borderLeft: `4px solid ${pos.color}`,
               }}
             >
@@ -556,9 +556,9 @@ function ReadMode({ entries, onNavigate }: { entries: DictEntry[]; onNavigate: (
                       {di + 1}.
                     </span>
                     <div className="flex-1 flex flex-col gap-2">
-                      <p className="text-white/80 text-sm leading-relaxed">{def.definition}</p>
+                      <p className="text-text text-sm leading-relaxed">{def.definition}</p>
                       {def.example && (
-                        <p className="text-white/40 text-xs italic leading-relaxed"
+                        <p className="text-faint text-xs italic leading-relaxed"
                           style={{ borderLeft: `2px solid ${pos.color}40`, paddingLeft: '8px' }}>
                           "{def.example}"
                         </p>
@@ -571,7 +571,7 @@ function ReadMode({ entries, onNavigate }: { entries: DictEntry[]; onNavigate: (
               {/* Synonyms */}
               {allSynonyms.length > 0 && (
                 <div>
-                  <p className="text-white/25 text-[10px] font-black uppercase tracking-widest mb-2">Sinonimlar</p>
+                  <p className="text-faint text-[10px] font-black uppercase tracking-widest mb-2">Sinonimlar</p>
                   <div className="flex flex-wrap gap-1.5">
                     {allSynonyms.map((syn, si) => (
                       <motion.button
@@ -591,7 +591,7 @@ function ReadMode({ entries, onNavigate }: { entries: DictEntry[]; onNavigate: (
               {/* Antonyms */}
               {allAntonyms.length > 0 && (
                 <div>
-                  <p className="text-white/25 text-[10px] font-black uppercase tracking-widest mb-2">Antonimlar</p>
+                  <p className="text-faint text-[10px] font-black uppercase tracking-widest mb-2">Antonimlar</p>
                   <div className="flex flex-wrap gap-1.5">
                     {allAntonyms.map((ant, ai) => (
                       <motion.button
@@ -721,7 +721,7 @@ function EnglishDictionary() {
                 animate={{ y: [0, -6, 0] }}
                 transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
                 className="w-16 h-16 rounded-3xl flex items-center justify-center"
-                style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)' }}
+                style={{ background: 'rgba(45,155,111,0.12)', border: '1px solid rgba(45,155,111,0.25)' }}
               >
                 <BookText size={28} strokeWidth={1.8} style={{ color: 'var(--ws-primary-light)' }} />
               </motion.div>
@@ -745,9 +745,9 @@ function EnglishDictionary() {
                       onClick={() => setQuery(w)}
                       className="px-4 py-2 rounded-2xl text-sm font-bold"
                       style={{
-                        background: 'rgba(99,102,241,0.12)',
-                        border: '1px solid rgba(99,102,241,0.22)',
-                        color: '#a5b4fc',
+                        background: 'rgba(45,155,111,0.12)',
+                        border: '1px solid rgba(45,155,111,0.22)',
+                        color: '#2D9B6F',
                       }}
                     >
                       {w}
@@ -786,8 +786,8 @@ function EnglishDictionary() {
               {/* ── Word hero card ── */}
               <div className="rounded-3xl p-5 flex flex-col gap-3"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(99,102,241,0.13) 0%, rgba(139,92,246,0.08) 100%)',
-                  border: '1px solid rgba(99,102,241,0.25)',
+                  background: 'rgba(45,155,111,0.12)',
+                  border: '1px solid rgba(45,155,111,0.25)',
                 }}>
                 {/* Word + audio */}
                 <div className="flex items-start justify-between gap-3">
@@ -796,13 +796,13 @@ function EnglishDictionary() {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-                      className="font-black text-white break-words leading-none"
+                      className="font-black text-text break-words leading-none"
                       style={{ fontSize: 'clamp(2.5rem, 8vw, 4rem)' }}
                     >
                       {entries[0].word}
                     </motion.h2>
                     {phoneticText && (
-                      <p className="text-white/35 font-mono text-sm mt-2 tracking-wide">{phoneticText}</p>
+                      <p className="text-faint font-mono text-sm mt-2 tracking-wide">{phoneticText}</p>
                     )}
                   </div>
                   {audioUrl && (
@@ -811,12 +811,12 @@ function EnglishDictionary() {
                       onClick={() => playAudio(audioUrl)}
                       aria-label="Play"
                       className="shrink-0 w-12 h-12 rounded-full flex items-center justify-center mt-1 relative"
-                      style={{ background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.35)' }}
+                      style={{ background: 'rgba(45,155,111,0.2)', border: '1px solid rgba(45,155,111,0.35)' }}
                     >
                       {isPlaying && (
                         <motion.div
                           className="absolute inset-0 rounded-full"
-                          style={{ border: '2px solid rgba(99,102,241,0.5)' }}
+                          style={{ border: '2px solid rgba(45,155,111,0.5)' }}
                           animate={{ scale: [1, 1.45, 1], opacity: [0.8, 0, 0.8] }}
                           transition={{ duration: 1.2, repeat: Infinity, ease: 'easeOut' }}
                         />
@@ -834,8 +834,8 @@ function EnglishDictionary() {
                     { value: totalExamples, label: "misol"  },
                   ].map(({ value, label }) => (
                     <div key={label} className="flex items-baseline gap-1">
-                      <span className="font-black text-sm" style={{ color: '#a5b4fc' }}>{value}</span>
-                      <span className="text-white/30 text-xs">ta {label}</span>
+                      <span className="font-black text-sm" style={{ color: '#2D9B6F' }}>{value}</span>
+                      <span className="text-faint text-xs">ta {label}</span>
                     </div>
                   ))}
                 </div>
@@ -845,7 +845,7 @@ function EnglishDictionary() {
 
               {/* ── Inner tab bar ── */}
               <div className="flex gap-1.5 p-1 rounded-2xl shrink-0"
-                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                style={{ background: 'rgba(28,42,36,0.04)', border: '1px solid rgba(28,42,36,0.08)' }}>
                 {([
                   { key: 'read' as const,     label: `O'qish`,                     Icon: BookText },
                   { key: 'practice' as const, label: `Mashq (${challengeItems.length})`, Icon: Dumbbell },

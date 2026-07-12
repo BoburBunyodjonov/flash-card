@@ -41,7 +41,7 @@ function statusBadge(d: Duel, t: (k: string) => string): { text: string; color: 
   if (d.status === 'expired') return { text: t('duel.status.expired'), color: '#6b7280' }
   if (d.status === 'completed') return { text: t('duel.status.completed'), color: '#34d399' }
   if (d.myScore !== null) return { text: t('duel.status.opponentPlaying'), color: '#38bdf8' }
-  return { text: t('duel.status.yourTurn'), color: '#6366f1' }
+  return { text: t('duel.status.yourTurn'), color: '#2D9B6F' }
 }
 
 // ── Duel question runner (same questions for both players) ────────────────────
@@ -110,10 +110,10 @@ function DuelPlay({
       className="flex-1 flex flex-col gap-5"
     >
       <div className="flex items-center gap-3">
-        <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+        <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(28,42,36,0.06)' }}>
           <motion.div
             className="h-full rounded-full"
-            style={{ background: 'linear-gradient(90deg, #ef4444, #f97316)' }}
+            style={{ background: '#ef4444' }}
             animate={{ width: `${(index / questions.length) * 100}%` }}
           />
         </div>
@@ -122,7 +122,7 @@ function DuelPlay({
 
       <div
         className="rounded-card p-6 flex flex-col items-center gap-3 text-center"
-        style={{ background: 'linear-gradient(135deg, rgba(239,68,68,0.1), rgba(249,115,22,0.05))', border: '1px solid rgba(239,68,68,0.2)' }}
+        style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}
       >
         <p className="text-xs font-black uppercase tracking-widest" style={{ color: 'var(--ws-muted)' }}>{t('duel.questionPrompt')}</p>
         <h2 className="font-black" style={{ color: 'var(--ws-text)', fontSize: 'clamp(2rem, 8vw, 3.4rem)', lineHeight: 1.1 }}>
@@ -165,7 +165,7 @@ function DuelResult({ duel, onBack }: { duel: Duel; onBack: () => void }) {
   const draw = duel.status === 'completed' && !duel.winnerId
   const waiting = duel.status !== 'completed'
 
-  const heroTint = waiting ? '#6366f1' : draw ? '#38bdf8' : iWon ? '#f59e0b' : '#ef4444'
+  const heroTint = waiting ? '#2D9B6F' : draw ? '#38bdf8' : iWon ? '#f59e0b' : '#ef4444'
   const HeroIcon = waiting ? Clock : draw ? Handshake : iWon ? Trophy : Frown
 
   return (
@@ -344,7 +344,7 @@ export function DuelPage({ onBack, deepLinkDuelId }: { onBack: () => void; deepL
                 onClick={createDuel}
                 disabled={creating}
                 className="w-full py-4 rounded-btn font-black text-base text-white flex items-center justify-center gap-2 shrink-0 disabled:opacity-60"
-                style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)', boxShadow: '0 8px 28px rgba(239,68,68,0.25)' }}
+                style={{ background: '#ef4444', boxShadow: '0 8px 28px rgba(239,68,68,0.25)' }}
               >
                 <Swords size={18} strokeWidth={2.4} />
                 {creating ? t('duel.creating') : t('duel.challengeFriend')}
@@ -432,7 +432,7 @@ export function DuelPage({ onBack, deepLinkDuelId }: { onBack: () => void; deepL
                 whileTap={{ scale: 0.96 }}
                 onClick={() => shareDuel(active)}
                 className="w-full max-w-xs py-4 rounded-btn font-black text-base text-white flex items-center justify-center gap-2"
-                style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)', boxShadow: '0 8px 28px rgba(239,68,68,0.25)' }}
+                style={{ background: '#ef4444', boxShadow: '0 8px 28px rgba(239,68,68,0.25)' }}
               >
                 <Share2 size={18} strokeWidth={2.2} /> {t('duel.shareTelegram')}
               </motion.button>
@@ -441,7 +441,7 @@ export function DuelPage({ onBack, deepLinkDuelId }: { onBack: () => void; deepL
                   whileTap={{ scale: 0.96 }}
                   onClick={() => setView('play')}
                   className="w-full max-w-xs py-4 rounded-btn font-bold text-sm flex items-center justify-center gap-2"
-                  style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)', color: 'var(--ws-primary-light)' }}
+                  style={{ background: 'rgba(45,155,111,0.15)', border: '1px solid rgba(45,155,111,0.3)', color: 'var(--ws-primary-light)' }}
                 >
                   <Play size={17} strokeWidth={2.4} /> {t('duel.playNow')}
                 </motion.button>

@@ -36,12 +36,12 @@ export function ReferralBonusToast() {
         >
           <div
             className="pointer-events-auto w-full max-w-sm rounded-3xl p-5 glow-purple relative overflow-hidden"
-            style={{ background: '#141420', border: '1px solid rgba(99,102,241,0.35)' }}
+            style={{ background: 'var(--ws-card)', border: '1px solid rgba(45,155,111,0.35)' }}
           >
             {/* Ambient glow */}
             <div
               className="absolute inset-0 pointer-events-none"
-              style={{ background: 'radial-gradient(ellipse at 50% -20%, rgba(99,102,241,0.25) 0%, transparent 60%)' }}
+              style={{ background: 'rgba(45,155,111,0.18)' }}
             />
 
             <div className="relative flex flex-col gap-3">
@@ -59,7 +59,7 @@ export function ReferralBonusToast() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.2 }}
-                    className="text-white/50 text-xs mt-0.5"
+                    className="text-muted text-xs mt-0.5"
                   >
                     {t('referral.bonusSubtitle')}
                   </motion.p>
@@ -68,8 +68,8 @@ export function ReferralBonusToast() {
                   whileTap={{ scale: 0.85 }}
                   onClick={clearReferralBonus}
                   aria-label={t('referral.dismiss')}
-                  className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white/40 text-sm"
-                  style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
+                  className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-faint text-sm"
+                  style={{ background: 'rgba(28,42,36,0.07)', border: '1px solid rgba(28,42,36,0.10)' }}
                 >
                   ✕
                 </motion.button>
@@ -94,7 +94,7 @@ export function ReferralBonusToast() {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.33, type: 'spring', stiffness: 400, damping: 22 }}
                     className="flex-1 rounded-2xl px-3 py-2.5 text-center"
-                    style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.28)' }}
+                    style={{ background: 'rgba(45,155,111,0.12)', border: '1px solid rgba(45,155,111,0.28)' }}
                   >
                     <p className="text-primary font-black text-lg leading-tight">
                       {t('referral.bonusWords', { n: referralBonus.bonusWords })}
@@ -110,7 +110,7 @@ export function ReferralBonusToast() {
                 whileTap={{ scale: 0.96 }}
                 onClick={clearReferralBonus}
                 className="w-full py-2.5 rounded-2xl font-bold text-sm text-white"
-                style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+                style={{ background: '#2D9B6F' }}
               >
                 {t('referral.dismiss')}
               </motion.button>

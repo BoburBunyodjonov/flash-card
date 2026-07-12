@@ -12,11 +12,11 @@ import { useTelegram } from '../../hooks/useTelegram'
 type ChoiceState = 'default' | 'correct' | 'wrong' | 'reveal'
 
 const MODES: { key: QuizMode; Icon: LucideIcon; tint: string }[] = [
-  { key: 'mixed',     Icon: Dices,      tint: '#6366f1' },
+  { key: 'mixed',     Icon: Dices,      tint: '#2D9B6F' },
   { key: 'mcq',       Icon: Languages,  tint: '#10b981' },
   { key: 'reverse',   Icon: Languages,  tint: '#38bdf8' },
   { key: 'typing',    Icon: Type,       tint: '#f59e0b' },
-  { key: 'listening', Icon: Headphones, tint: '#a78bfa' },
+  { key: 'listening', Icon: Headphones, tint: '#4CB388' },
   { key: 'cloze',     Icon: PenLine,    tint: '#f87171' },
 ]
 
@@ -107,7 +107,7 @@ function QuestionView({
     >
       {/* Progress */}
       <div className="flex items-center gap-3">
-        <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+        <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(28,42,36,0.06)' }}>
           <motion.div
             className="h-full rounded-full ws-gradient-bg"
             animate={{ width: `${progressPct}%` }}
@@ -121,8 +121,8 @@ function QuestionView({
       <div
         className="rounded-card p-6 flex flex-col items-center gap-3 text-center"
         style={{
-          background: 'linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(139,92,246,0.05) 100%)',
-          border: '1px solid rgba(99,102,241,0.2)',
+          background: 'rgba(45,155,111,0.1)',
+          border: '1px solid rgba(45,155,111,0.2)',
         }}
       >
         <p className="text-xs font-black uppercase tracking-widest" style={{ color: 'var(--ws-muted)' }}>
@@ -136,7 +136,7 @@ function QuestionView({
             className="w-20 h-20 rounded-full flex items-center justify-center"
             style={{ background: 'rgba(167,139,250,0.15)', border: '1px solid rgba(167,139,250,0.35)' }}
           >
-            <Volume2 size={34} strokeWidth={2} style={{ color: '#a78bfa' }} />
+            <Volume2 size={34} strokeWidth={2} style={{ color: '#4CB388' }} />
           </motion.button>
         ) : (
           <motion.h2
@@ -271,7 +271,7 @@ function ScoreScreen({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
           className="rounded-btn px-6 py-4"
-          style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.25)' }}
+          style={{ background: 'rgba(45,155,111,0.1)', border: '1px solid rgba(45,155,111,0.25)' }}
         >
           <p className="font-black text-xl" style={{ color: 'var(--ws-primary-light)' }}>+{xpEarned} XP</p>
         </motion.div>
@@ -411,7 +411,7 @@ export function QuizPage({ onBack }: { onBack: () => void }) {
               className="flex-1 flex flex-col items-center justify-center gap-5"
             >
               <div className="relative w-12 h-12">
-                <div className="absolute inset-0 rounded-full" style={{ border: '2px solid rgba(99,102,241,0.15)' }} />
+                <div className="absolute inset-0 rounded-full" style={{ border: '2px solid rgba(45,155,111,0.15)' }} />
                 <div className="absolute inset-0 rounded-full animate-spin" style={{ border: '2px solid transparent', borderTopColor: 'var(--ws-primary)' }} />
               </div>
               <p className="text-sm font-medium" style={{ color: 'var(--ws-faint)' }}>{t('quiz.preparing')}</p>

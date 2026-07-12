@@ -168,7 +168,7 @@ export function PlanSettingsPage() {
         {/* Feature flags */}
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 3, height: '100%' }}>
-            <SectionTitle icon={<FeedRoundedIcon />} color="#8b5cf6">Feed</SectionTitle>
+            <SectionTitle icon={<FeedRoundedIcon />} color="#F0A04B">Feed</SectionTitle>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
               Control what appears in the main swipe feed
             </Typography>
@@ -184,7 +184,7 @@ export function PlanSettingsPage() {
         {/* Free plan features */}
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 3, height: '100%' }}>
-            <SectionTitle icon={<ToggleOnRoundedIcon />} color="#6366f1">Free Plan — Features</SectionTitle>
+            <SectionTitle icon={<ToggleOnRoundedIcon />} color="#2D9B6F">Free Plan — Features</SectionTitle>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
               Toggle which features are available without Premium
             </Typography>

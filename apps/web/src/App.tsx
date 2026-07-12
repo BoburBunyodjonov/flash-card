@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAuthStore } from './store/auth.store'
+import { useThemeStore } from './store/theme.store'
 import { onboardingApi } from './api/onboarding.api'
 import { BottomNav } from './components/BottomNav'
 import { ReferralBonusToast } from './components/ReferralBonusToast'
@@ -24,6 +25,7 @@ import { ProfilePage } from './pages/Profile'
 import { TeacherPage } from './pages/Teacher'
 import { flushPendingSwipes } from './store/feed.store'
 import { flushOfflineQueue } from './lib/offlineQueue'
+import { WORD_SHARE_PREFIX } from '@wordswipe/shared'
 
 type Page = 'feed' | 'practice' | 'dictionary' | 'progress' | 'leaderboard' | 'settings' | 'challenge' | 'quiz' | 'duel' | 'groupchallenge' | 'speaking' | 'mywords' | 'mywordsstudy' | 'shadowing' | 'profile' | 'teacher'
 
@@ -41,8 +43,12 @@ export default function App() {
   const [page, setPage] = useState<Page>('feed')
   const [duelId, setDuelId] = useState<string | null>(null)
   const [gcId, setGcId] = useState<string | null>(null)
+  const [wordShareId, setWordShareId] = useState<string | null>(null)
+  const [myWordsShareMode, setMyWordsShareMode] = useState(false)
   const [speakingAuto, setSpeakingAuto] = useState(false)
   const [onboardingDone, setOnboardingDone] = useState(() => !!localStorage.getItem('ws_onboarding_done'))
+
+  useEffect(() => useThemeStore.getState().init(), [])
 
   const finishOnboarding = (level?: string) => {
     localStorage.setItem('ws_onboarding_done', '1')
@@ -72,6 +78,9 @@ export default function App() {
     } else if (startParam?.startsWith(GC_PREFIX)) {
       setGcId(startParam.slice(GC_PREFIX.length))
       setPage('groupchallenge')
+    } else if (startParam?.startsWith(WORD_SHARE_PREFIX)) {
+      setWordShareId(startParam.slice(WORD_SHARE_PREFIX.length))
+      setPage('mywords')
     } else if (startParam === 'speaking') {
       // Opened from the bot's "Start Practice" speaking ping → auto-find a partner
       setSpeakingAuto(true)
@@ -147,7 +156,12 @@ export default function App() {
             <SpeakingPage onBack={() => setPage('feed')} autoStart={speakingAuto} />
           )}
           {page === 'mywords' && (
-            <MyWordsPage onBack={() => setPage('profile')} onMemorize={() => setPage('mywordsstudy')} />
+            <MyWordsPage
+              onBack={() => { setWordShareId(null); setMyWordsShareMode(false); setPage('profile') }}
+              onMemorize={() => setPage('mywordsstudy')}
+              focusShareId={wordShareId}
+              onShareModeChange={setMyWordsShareMode}
+            />
           )}
           {page === 'mywordsstudy' && (
             <MyWordsStudyPage onBack={() => setPage('mywords')} />
@@ -180,7 +194,7 @@ export default function App() {
           {page === 'teacher' && <TeacherPage onBack={() => setPage('profile')} />}
         </motion.div>
       </AnimatePresence>
-      {!IMMERSIVE_PAGES.includes(page) && (
+      {!IMMERSIVE_PAGES.includes(page) && !(page === 'mywords' && myWordsShareMode) && (
         <BottomNav active={navPage} onChange={(p) => { setSpeakingAuto(false); setPage(p as Page) }} />
       )}
       <ReferralBonusToast />

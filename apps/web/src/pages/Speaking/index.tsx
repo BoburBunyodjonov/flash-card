@@ -383,7 +383,7 @@ export function SpeakingPage({ onBack, autoStart }: { onBack: () => void; autoSt
             >
               {/* Explanation card */}
               <div className="ws-card p-6 text-center flex flex-col items-center"
-                style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.08), rgba(99,102,241,0.05))', border: '1px solid rgba(16,185,129,0.2)' }}>
+                style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)' }}>
                 <motion.div
                   initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 220 }}
                   className="w-20 h-20 rounded-3xl flex items-center justify-center mb-4"
@@ -410,7 +410,7 @@ export function SpeakingPage({ onBack, autoStart }: { onBack: () => void; autoSt
                     onClick={() => hasGender && setSameGender((v) => !v)}
                     disabled={!hasGender}
                     className="relative w-12 h-6 rounded-full transition-all duration-200 shrink-0 disabled:opacity-40"
-                    style={{ background: sameGender && hasGender ? 'var(--ws-primary)' : 'rgba(255,255,255,0.1)' }}
+                    style={{ background: sameGender && hasGender ? 'var(--ws-primary)' : 'rgba(28,42,36,0.10)' }}
                   >
                     <motion.div
                       className="absolute top-1 w-4 h-4 rounded-full bg-white"
@@ -458,7 +458,7 @@ export function SpeakingPage({ onBack, autoStart }: { onBack: () => void; autoSt
                   <button
                     onClick={() => setAnyLevel((v) => !v)}
                     className="relative w-12 h-6 rounded-full transition-all duration-200 shrink-0"
-                    style={{ background: anyLevel ? 'var(--ws-primary)' : 'rgba(255,255,255,0.1)' }}
+                    style={{ background: anyLevel ? 'var(--ws-primary)' : 'rgba(28,42,36,0.10)' }}
                   >
                     <motion.div
                       className="absolute top-1 w-4 h-4 rounded-full bg-white"
@@ -532,7 +532,7 @@ export function SpeakingPage({ onBack, autoStart }: { onBack: () => void; autoSt
                   <motion.div
                     key={i}
                     className="absolute inset-0 rounded-full"
-                    style={{ border: '2px solid rgba(99,102,241,0.4)' }}
+                    style={{ border: '2px solid rgba(45,155,111,0.4)' }}
                     animate={{ scale: [1, 1.7], opacity: [0.6, 0] }}
                     transition={{ repeat: Infinity, duration: 2, delay: i * 0.6, ease: 'easeOut' }}
                   />
@@ -587,7 +587,7 @@ export function SpeakingPage({ onBack, autoStart }: { onBack: () => void; autoSt
                   <div className="flex items-center gap-2 mt-1">
                     {partner.cefrLevel && (
                       <span className="text-xs font-bold px-2 py-0.5 rounded-full"
-                        style={{ background: 'rgba(99,102,241,0.15)', color: 'var(--ws-primary-light)' }}>
+                        style={{ background: 'rgba(45,155,111,0.15)', color: 'var(--ws-primary-light)' }}>
                         {partner.cefrLevel}
                       </span>
                     )}
@@ -620,7 +620,7 @@ export function SpeakingPage({ onBack, autoStart }: { onBack: () => void; autoSt
                 <motion.div
                   initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                   className="rounded-card p-5"
-                  style={{ background: 'rgba(99,102,241,0.07)', border: '1px solid rgba(99,102,241,0.18)' }}
+                  style={{ background: 'rgba(45,155,111,0.07)', border: '1px solid rgba(45,155,111,0.18)' }}
                 >
                   <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--ws-muted)' }}>
                     <MessageCircle size={12} strokeWidth={2.4} style={{ color: 'var(--ws-primary-light)' }} /> {t('speaking.topics')}
@@ -652,7 +652,7 @@ export function SpeakingPage({ onBack, autoStart }: { onBack: () => void; autoSt
                     whileTap={{ scale: 0.95 }}
                     onClick={() => { haptic.impact('light'); setTopicIndex((i) => i + 1) }}
                     className="mt-4 w-full py-2.5 rounded-btn text-sm font-bold flex items-center justify-center gap-2"
-                    style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)', color: 'var(--ws-primary-light)' }}
+                    style={{ background: 'rgba(45,155,111,0.15)', border: '1px solid rgba(45,155,111,0.3)', color: 'var(--ws-primary-light)' }}
                   >
                     {t('speaking.nextTopic')} <ArrowRight size={15} strokeWidth={2.4} />
                   </motion.button>
@@ -677,7 +677,7 @@ export function SpeakingPage({ onBack, autoStart }: { onBack: () => void; autoSt
                   whileTap={{ scale: 0.88 }}
                   onClick={endCall}
                   className="w-20 h-20 rounded-full flex items-center justify-center"
-                  style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', boxShadow: '0 8px 32px rgba(239,68,68,0.35)' }}
+                  style={{ background: '#ef4444', boxShadow: '0 8px 32px rgba(239,68,68,0.35)' }}
                 >
                   <PhoneOff size={32} strokeWidth={2.2} className="text-white" />
                 </motion.button>

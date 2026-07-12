@@ -49,7 +49,7 @@ const DIFF_COLORS: Record<string, string> = {
   B1: '#fbbf24',
   B2: '#f97316',
   C1: '#f87171',
-  C2: '#c084fc',
+  C2: '#8FA896',
 }
 
 function diffColor(d: string) {
@@ -153,7 +153,7 @@ function DeckQuiz({ words, onExit }: { words: DeckWord[]; onExit: () => void }) 
           animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 400, damping: 18, delay: 0.1 }}
           className="w-20 h-20 rounded-3xl flex items-center justify-center"
-          style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.28)' }}
+          style={{ background: 'rgba(45,155,111,0.12)', border: '1px solid rgba(45,155,111,0.28)' }}
         >
           <PartyPopper size={36} strokeWidth={1.8} style={{ color: 'var(--ws-primary-light)' }} />
         </motion.div>
@@ -169,7 +169,7 @@ function DeckQuiz({ words, onExit }: { words: DeckWord[]; onExit: () => void }) 
             <span className="text-3xl font-black" style={{ color: '#34d399' }}>
               {score.know}
             </span>
-            <span className="text-xs text-white/40 font-semibold">Bildim</span>
+            <span className="text-xs text-faint font-semibold">Bildim</span>
           </div>
           <div
             className="flex flex-col items-center rounded-2xl px-6 py-4 gap-1"
@@ -178,7 +178,7 @@ function DeckQuiz({ words, onExit }: { words: DeckWord[]; onExit: () => void }) 
             <span className="text-3xl font-black" style={{ color: '#ef4444' }}>
               {score.dontKnow}
             </span>
-            <span className="text-xs text-white/40 font-semibold">Bilmadim</span>
+            <span className="text-xs text-faint font-semibold">Bilmadim</span>
           </div>
         </div>
         <div className="flex gap-3 w-full">
@@ -222,10 +222,10 @@ function DeckQuiz({ words, onExit }: { words: DeckWord[]; onExit: () => void }) 
       </div>
 
       {/* Progress bar */}
-      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.07)' }}>
+      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(28,42,36,0.07)' }}>
         <motion.div
           className="h-full rounded-full"
-          style={{ background: 'linear-gradient(90deg, #6366f1, #8b5cf6)' }}
+          style={{ background: '#2D9B6F' }}
           animate={{ width: `${progressPct}%` }}
           transition={{ type: 'spring', stiffness: 200, damping: 28 }}
         />
@@ -243,17 +243,17 @@ function DeckQuiz({ words, onExit }: { words: DeckWord[]; onExit: () => void }) 
           className="rounded-3xl p-6 flex flex-col gap-4 cursor-pointer select-none min-h-52"
           style={{
             background: flipped
-              ? 'linear-gradient(135deg, rgba(52,211,153,0.08), rgba(16,185,129,0.04))'
-              : 'linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.06))',
+              ? 'rgba(16,185,129,0.08)'
+              : 'rgba(45,155,111,0.1)',
             border: flipped
               ? '1px solid rgba(52,211,153,0.2)'
-              : '1px solid rgba(99,102,241,0.2)',
+              : '1px solid rgba(45,155,111,0.2)',
           }}
         >
           {!flipped ? (
             /* Front: English word */
             <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center">
-              <p className="text-white/30 text-xs font-black uppercase tracking-widest">Inglizcha</p>
+              <p className="text-faint text-xs font-black uppercase tracking-widest">Inglizcha</p>
               <h2
                 className="font-black text-white"
                 style={{ fontSize: 'clamp(2rem, 7vw, 3.5rem)', lineHeight: 1.1 }}
@@ -261,22 +261,22 @@ function DeckQuiz({ words, onExit }: { words: DeckWord[]; onExit: () => void }) 
                 {current.word}
               </h2>
               {current.pronunciation && (
-                <p className="text-white/35 font-mono text-sm">{current.pronunciation}</p>
+                <p className="text-faint font-mono text-sm">{current.pronunciation}</p>
               )}
               {current.partOfSpeech && (
                 <span
                   className="text-xs font-bold px-3 py-1 rounded-full"
-                  style={{ color: '#a5b4fc', background: 'rgba(99,102,241,0.15)' }}
+                  style={{ color: '#2D9B6F', background: 'rgba(45,155,111,0.15)' }}
                 >
                   {current.partOfSpeech}
                 </span>
               )}
-              <p className="text-white/20 text-xs mt-2">{t('decks.tapToFlip')}</p>
+              <p className="text-faint text-xs mt-2">{t('decks.tapToFlip')}</p>
             </div>
           ) : (
             /* Back: Uzbek translation + definition */
             <div className="flex-1 flex flex-col gap-4">
-              <p className="text-white/30 text-xs font-black uppercase tracking-widest text-center">O'zbekcha</p>
+              <p className="text-faint text-xs font-black uppercase tracking-widest text-center">O'zbekcha</p>
               {current.translation?.translation && (
                 <p
                   className="text-center font-black"
@@ -288,19 +288,19 @@ function DeckQuiz({ words, onExit }: { words: DeckWord[]; onExit: () => void }) 
               {current.translation?.definitionEn && (
                 <div
                   className="rounded-2xl p-3"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
+                  style={{ background: 'rgba(28,42,36,0.04)', border: '1px solid rgba(28,42,36,0.08)' }}
                 >
-                  <p className="text-white/30 text-[10px] font-black uppercase tracking-widest mb-1">Ta'rif</p>
-                  <p className="text-white/65 text-sm leading-relaxed">{current.translation.definitionEn}</p>
+                  <p className="text-faint text-[10px] font-black uppercase tracking-widest mb-1">Ta'rif</p>
+                  <p className="text-muted text-sm leading-relaxed">{current.translation.definitionEn}</p>
                 </div>
               )}
               {current.translation?.exampleEn && (
                 <div
                   className="rounded-2xl p-3"
-                  style={{ background: 'rgba(99,102,241,0.07)', border: '1px solid rgba(99,102,241,0.15)' }}
+                  style={{ background: 'rgba(45,155,111,0.07)', border: '1px solid rgba(45,155,111,0.15)' }}
                 >
                   <p className="text-primary/50 text-[10px] font-black uppercase tracking-widest mb-1">Misol</p>
-                  <p className="text-white/55 text-xs italic">"{current.translation.exampleEn}"</p>
+                  <p className="text-muted text-xs italic">"{current.translation.exampleEn}"</p>
                 </div>
               )}
             </div>
@@ -476,7 +476,7 @@ function DeckDetail({ deck, onBack }: { deck: Deck; onBack: () => void }) {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
-              style={{ background: 'rgba(99,102,241,0.14)', border: '1px solid rgba(99,102,241,0.28)' }}>
+              style={{ background: 'rgba(45,155,111,0.14)', border: '1px solid rgba(45,155,111,0.28)' }}>
               {deck.isDefault
                 ? <Bookmark size={20} strokeWidth={2} style={{ color: 'var(--ws-primary-light)' }} />
                 : <FolderOpen size={20} strokeWidth={2} style={{ color: 'var(--ws-primary-light)' }} />}
@@ -495,8 +495,8 @@ function DeckDetail({ deck, onBack }: { deck: Deck; onBack: () => void }) {
               aria-label={t('decks.addWord')}
               className="w-10 h-10 rounded-btn flex items-center justify-center"
               style={{
-                background: showAdd ? 'rgba(99,102,241,0.25)' : 'rgba(99,102,241,0.12)',
-                border: '1px solid rgba(99,102,241,0.3)',
+                background: showAdd ? 'rgba(45,155,111,0.25)' : 'rgba(45,155,111,0.12)',
+                border: '1px solid rgba(45,155,111,0.3)',
                 color: 'var(--ws-primary-light)',
               }}
             >
@@ -567,8 +567,8 @@ function DeckDetail({ deck, onBack }: { deck: Deck; onBack: () => void }) {
                         disabled={inDeck || addingId === rw.id}
                         className="flex items-center justify-between rounded-xl px-4 py-3 text-left"
                         style={{
-                          background: 'rgba(255,255,255,0.04)',
-                          border: '1px solid rgba(255,255,255,0.07)',
+                          background: 'rgba(28,42,36,0.04)',
+                          border: '1px solid rgba(28,42,36,0.08)',
                           opacity: inDeck ? 0.55 : 1,
                         }}
                       >
@@ -583,7 +583,7 @@ function DeckDetail({ deck, onBack }: { deck: Deck; onBack: () => void }) {
                             </span>
                           </div>
                           {rw.translations?.[0]?.translation && (
-                            <p className="text-white/40 text-xs truncate mt-0.5">
+                            <p className="text-faint text-xs truncate mt-0.5">
                               {rw.translations[0].translation}
                             </p>
                           )}
@@ -593,7 +593,7 @@ function DeckDetail({ deck, onBack }: { deck: Deck; onBack: () => void }) {
                           style={
                             inDeck
                               ? { color: '#34d399', background: 'rgba(52,211,153,0.12)' }
-                              : { color: '#a5b4fc', background: 'rgba(99,102,241,0.15)' }
+                              : { color: '#2D9B6F', background: 'rgba(45,155,111,0.15)' }
                           }
                         >
                           {inDeck
@@ -627,7 +627,7 @@ function DeckDetail({ deck, onBack }: { deck: Deck; onBack: () => void }) {
             className="flex flex-col items-center gap-4 py-16 text-center"
           >
             <div className="w-20 h-20 rounded-3xl flex items-center justify-center"
-              style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.22)' }}>
+              style={{ background: 'rgba(45,155,111,0.1)', border: '1px solid rgba(45,155,111,0.22)' }}>
               <Inbox size={34} strokeWidth={1.8} style={{ color: 'var(--ws-primary-light)' }} />
             </div>
             <p className="font-semibold" style={{ color: 'var(--ws-text)' }}>Bu deck bo'sh</p>
@@ -666,7 +666,7 @@ function DeckDetail({ deck, onBack }: { deck: Deck; onBack: () => void }) {
                     onClick={e => { e.stopPropagation(); playWordAudio(w.word, undefined) }}
                     aria-label="Play"
                     className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
-                    style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)' }}
+                    style={{ background: 'rgba(45,155,111,0.12)', border: '1px solid rgba(45,155,111,0.25)' }}
                   >
                     <Volume2 size={15} strokeWidth={2} style={{ color: 'var(--ws-primary-light)' }} />
                   </motion.button>
@@ -741,7 +741,7 @@ function DeckDetail({ deck, onBack }: { deck: Deck; onBack: () => void }) {
                         {w.partOfSpeech && (
                           <span
                             className="text-xs font-bold px-3 py-1 rounded-full self-start"
-                            style={{ color: '#a5b4fc', background: 'rgba(99,102,241,0.15)' }}
+                            style={{ color: '#2D9B6F', background: 'rgba(45,155,111,0.15)' }}
                           >
                             {w.partOfSpeech}
                           </span>
@@ -760,8 +760,8 @@ function DeckDetail({ deck, onBack }: { deck: Deck; onBack: () => void }) {
                           <div
                             className="rounded-btn p-3"
                             style={{
-                              background: 'rgba(99,102,241,0.06)',
-                              border: '1px solid rgba(99,102,241,0.15)',
+                              background: 'rgba(45,155,111,0.06)',
+                              border: '1px solid rgba(45,155,111,0.15)',
                             }}
                           >
                             <p className="text-[10px] font-black uppercase tracking-widest mb-1.5" style={{ color: 'var(--ws-primary-light)' }}>
@@ -949,7 +949,7 @@ export function DecksPage({ onBack }: { onBack?: () => void }) {
             <button onClick={create} className="font-bold text-sm shrink-0" style={{ color: 'var(--ws-primary-light)' }}>
               {t('decks.create')}
             </button>
-            <button onClick={() => setShowCreate(false)} aria-label="Cancel" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.06)' }}>
+            <button onClick={() => setShowCreate(false)} aria-label="Cancel" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center" style={{ background: 'rgba(28,42,36,0.06)' }}>
               <X size={14} strokeWidth={2.4} style={{ color: 'var(--ws-muted)' }} />
             </button>
           </motion.div>
@@ -968,7 +968,7 @@ export function DecksPage({ onBack }: { onBack?: () => void }) {
                 /* Inline rename */
                 <div className="px-4 py-4 flex items-center gap-3">
                   <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
-                    style={{ background: 'rgba(99,102,241,0.14)', border: '1px solid rgba(99,102,241,0.28)' }}>
+                    style={{ background: 'rgba(45,155,111,0.14)', border: '1px solid rgba(45,155,111,0.28)' }}>
                     <FolderOpen size={20} strokeWidth={2} style={{ color: 'var(--ws-primary-light)' }} />
                   </div>
                   <input
@@ -982,7 +982,7 @@ export function DecksPage({ onBack }: { onBack?: () => void }) {
                   <button onClick={() => saveRename(deck)} className="font-bold text-sm shrink-0" style={{ color: 'var(--ws-primary-light)' }}>
                     {t('decks.save')}
                   </button>
-                  <button onClick={() => setRenamingId(null)} aria-label="Cancel" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                  <button onClick={() => setRenamingId(null)} aria-label="Cancel" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center" style={{ background: 'rgba(28,42,36,0.06)' }}>
                     <X size={14} strokeWidth={2.4} style={{ color: 'var(--ws-muted)' }} />
                   </button>
                 </div>
@@ -994,7 +994,7 @@ export function DecksPage({ onBack }: { onBack?: () => void }) {
                     className="flex-1 flex items-center gap-3 pl-4 pr-2 py-4 cursor-pointer min-w-0"
                   >
                     <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
-                      style={{ background: 'rgba(99,102,241,0.14)', border: '1px solid rgba(99,102,241,0.28)' }}>
+                      style={{ background: 'rgba(45,155,111,0.14)', border: '1px solid rgba(45,155,111,0.28)' }}>
                       {deck.isDefault
                         ? <Bookmark size={20} strokeWidth={2} style={{ color: 'var(--ws-primary-light)' }} />
                         : <FolderOpen size={20} strokeWidth={2} style={{ color: 'var(--ws-primary-light)' }} />}
@@ -1018,7 +1018,7 @@ export function DecksPage({ onBack }: { onBack?: () => void }) {
                         className="w-9 h-9 rounded-btn flex items-center justify-center"
                         style={
                           menuDeckId === deck.id
-                            ? { background: 'rgba(255,255,255,0.07)', color: 'var(--ws-muted)' }
+                            ? { background: 'rgba(28,42,36,0.07)', color: 'var(--ws-muted)' }
                             : { color: 'var(--ws-faint)' }
                         }
                       >
@@ -1048,16 +1048,16 @@ export function DecksPage({ onBack }: { onBack?: () => void }) {
                   >
                     <div
                       className="flex gap-2 px-4 pb-4 pt-3"
-                      style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
+                      style={{ borderTop: '1px solid rgba(28,42,36,0.08)' }}
                     >
                       <motion.button
                         whileTap={{ scale: 0.96 }}
                         onClick={() => startRename(deck)}
                         className="flex-1 py-2.5 rounded-btn text-sm font-bold flex items-center justify-center gap-1.5"
                         style={{
-                          background: 'rgba(99,102,241,0.12)',
-                          border: '1px solid rgba(99,102,241,0.25)',
-                          color: '#a5b4fc',
+                          background: 'rgba(45,155,111,0.12)',
+                          border: '1px solid rgba(45,155,111,0.25)',
+                          color: '#2D9B6F',
                         }}
                       >
                         <Pencil size={15} strokeWidth={2.2} /> {t('decks.rename')}

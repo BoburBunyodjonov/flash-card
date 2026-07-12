@@ -20,6 +20,8 @@ export interface UserWordDTO {
   reviewCount: number
   lastReviewed: Date | null
   createdAt: Date
+  sharedFromUserId: string | null
+  sharedFromName: string | null
 }
 
 export interface CreateUserWordInput {
@@ -81,6 +83,8 @@ function toDTO(row: any): UserWordDTO {
     reviewCount: row.reviewCount,
     lastReviewed: row.lastReviewed ?? null,
     createdAt: row.createdAt,
+    sharedFromUserId: row.sharedFromUserId ?? null,
+    sharedFromName: row.sharedFromName ?? null,
   }
 }
 

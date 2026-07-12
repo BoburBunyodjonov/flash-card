@@ -35,20 +35,20 @@ export function ProfilePage({ onProgress, onLeaderboard, onMyWords, onSettings, 
   }, [user, setUser])
 
   const entries: Entry[] = [
-    { key: 'progress',    Icon: TrendingUp,   tint: '#6366F1', onPress: onProgress },
-    { key: 'leaderboard', Icon: Trophy,       tint: '#F59E0B', onPress: onLeaderboard },
-    { key: 'myWords',     Icon: NotebookPen,  tint: '#10B981', onPress: onMyWords },
+    { key: 'progress',    Icon: TrendingUp,   tint: '#2D9B6F', onPress: onProgress },
+    { key: 'leaderboard', Icon: Trophy,       tint: '#E5A03C', onPress: onLeaderboard },
+    { key: 'myWords',     Icon: NotebookPen,  tint: '#2D9B6F', onPress: onMyWords },
     ...(user?.isTeacher
-      ? [{ key: 'teacher', Icon: GraduationCap, tint: '#EC4899', onPress: onTeacher }]
+      ? [{ key: 'teacher', Icon: GraduationCap, tint: '#E07060', onPress: onTeacher }]
       : []),
-    { key: 'settings',    Icon: SettingsIcon, tint: '#8B5CF6', onPress: onSettings },
+    { key: 'settings',    Icon: SettingsIcon, tint: '#F0A04B', onPress: onSettings },
   ]
 
   return (
     <div className="h-full overflow-y-auto no-scrollbar pb-24" style={{ background: 'var(--ws-bg)' }}>
       {/* Header */}
       <div className="px-5 pt-6 pb-2">
-        <h1 className="text-3xl font-black" style={{ color: 'var(--ws-text)' }}>{t('profile.title')}</h1>
+        <h1 className="ws-display text-3xl font-semibold" style={{ color: 'var(--ws-text)' }}>{t('profile.title')}</h1>
       </div>
 
       {/* User card */}
@@ -60,7 +60,7 @@ export function ProfilePage({ onProgress, onLeaderboard, onMyWords, onSettings, 
         >
           <div
             className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden"
-            style={{ background: 'var(--ws-gradient)' }}
+            style={{ background: 'var(--ws-primary)' }}
           >
             {user?.avatarUrl ? (
               <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
@@ -80,7 +80,7 @@ export function ProfilePage({ onProgress, onLeaderboard, onMyWords, onSettings, 
             {user?.cefrLevel && (
               <span
                 className="inline-block mt-1 text-[11px] font-black px-2 py-0.5 rounded-md"
-                style={{ color: 'var(--ws-primary-light)', background: 'rgba(99,102,241,0.15)' }}
+                style={{ color: 'var(--ws-primary-light)', background: 'rgba(45,155,111,0.15)' }}
               >
                 {user.cefrLevel}
               </span>

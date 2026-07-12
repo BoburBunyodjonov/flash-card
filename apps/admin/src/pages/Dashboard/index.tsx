@@ -23,11 +23,11 @@ interface Stats {
 }
 
 const STAT_CARDS = (s: Stats) => [
-  { label: 'Total Users', value: s.totalUsers.toLocaleString(), icon: <PeopleAltRoundedIcon />, color: '#6366f1' },
+  { label: 'Total Users', value: s.totalUsers.toLocaleString(), icon: <PeopleAltRoundedIcon />, color: '#2D9B6F' },
   { label: 'Premium Users', value: s.premiumUsers.toLocaleString(), icon: <StarRoundedIcon />, color: '#f59e0b' },
   { label: 'Active Today', value: s.activeToday.toLocaleString(), icon: <LocalFireDepartmentRoundedIcon />, color: '#10b981' },
   { label: 'Total Words', value: s.totalWords.toLocaleString(), icon: <MenuBookRoundedIcon />, color: '#3b82f6' },
-  { label: 'Total Swipes', value: s.totalSwipes.toLocaleString(), icon: <SwipeRoundedIcon />, color: '#8b5cf6' },
+  { label: 'Total Swipes', value: s.totalSwipes.toLocaleString(), icon: <SwipeRoundedIcon />, color: '#F0A04B' },
   { label: 'New This Month', value: s.newUsersThisMonth.toLocaleString(), icon: <TrendingUpRoundedIcon />, color: '#ec4899' },
   { label: 'Conversion Rate', value: `${s.conversionRate}%`, icon: <PaidRoundedIcon />, color: '#f59e0b' },
 ]

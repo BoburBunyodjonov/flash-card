@@ -78,15 +78,15 @@ function GcPlay({ gc, onFinished }: { gc: GroupChallenge; onFinished: (updated: 
     <motion.div key={`gq-${index}`} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -24 }}
       className="flex-1 flex flex-col gap-5">
       <div className="flex items-center gap-3">
-        <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
-          <motion.div className="h-full rounded-full" style={{ background: 'linear-gradient(90deg, #8b5cf6, #6366f1)' }}
+        <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(28,42,36,0.06)' }}>
+          <motion.div className="h-full rounded-full" style={{ background: '#2D9B6F' }}
             animate={{ width: `${(index / questions.length) * 100}%` }} />
         </div>
         <span className="text-xs font-bold shrink-0 tabular-nums" style={{ color: 'var(--ws-faint)' }}>{index + 1} / {questions.length}</span>
       </div>
 
       <div className="rounded-card p-6 flex flex-col items-center gap-3 text-center"
-        style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.1), rgba(99,102,241,0.05))', border: '1px solid rgba(139,92,246,0.2)' }}>
+        style={{ background: 'rgba(45,155,111,0.1)', border: '1px solid rgba(45,155,111,0.2)' }}>
         <p className="text-xs font-black uppercase tracking-widest" style={{ color: 'var(--ws-muted)' }}>{t('groupChallenge.questionPrompt')}</p>
         <h2 className="font-black" style={{ color: 'var(--ws-text)', fontSize: 'clamp(2rem, 8vw, 3.4rem)', lineHeight: 1.1 }}>{q.word}</h2>
         {q.pronunciation && <p className="font-mono text-sm" style={{ color: 'var(--ws-faint)' }}>{q.pronunciation}</p>}
@@ -121,7 +121,7 @@ function Leaderboard({ gc }: { gc: GroupChallenge }) {
     <div className="flex flex-col gap-2">
       {gc.leaderboard.map((row) => (
         <div key={row.user.id} className="flex items-center gap-3 rounded-card px-4 py-2.5"
-          style={row.isMe ? { background: 'rgba(99,102,241,0.16)', border: '1px solid rgba(99,102,241,0.3)' }
+          style={row.isMe ? { background: 'rgba(45,155,111,0.16)', border: '1px solid rgba(45,155,111,0.3)' }
             : { background: 'var(--ws-card)', border: '1px solid var(--ws-border)' }}>
           <span className="w-6 text-center font-black tabular-nums" style={{ color: 'var(--ws-faint)' }}>
             {row.rank === 1 ? <Crown size={16} style={{ color: '#fbbf24' }} className="inline" />
@@ -211,7 +211,7 @@ export function GroupChallengePage({ onBack, deepLinkId }: { onBack: () => void;
           <ArrowLeft size={18} strokeWidth={2.2} style={{ color: 'var(--ws-muted)' }} />
         </motion.button>
         <div className="flex items-center gap-2">
-          <Users size={20} strokeWidth={2} style={{ color: '#8b5cf6' }} />
+          <Users size={20} strokeWidth={2} style={{ color: '#F0A04B' }} />
           <span className="font-black text-base" style={{ color: 'var(--ws-text)' }}>{t('groupChallenge.title')}</span>
         </div>
         <div className="w-9" />
@@ -228,7 +228,7 @@ export function GroupChallengePage({ onBack, deepLinkId }: { onBack: () => void;
               className="flex-1 flex flex-col gap-3 overflow-hidden">
               <motion.button whileTap={{ scale: 0.97 }} onClick={create} disabled={creating}
                 className="w-full py-4 rounded-btn font-black text-base text-white flex items-center justify-center gap-2 shrink-0 disabled:opacity-60"
-                style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', boxShadow: '0 8px 28px rgba(139,92,246,0.25)' }}>
+                style={{ background: '#2D9B6F', boxShadow: '0 8px 28px rgba(45,155,111,0.25)' }}>
                 <Users size={18} strokeWidth={2.4} />
                 {creating ? t('groupChallenge.creating') : t('groupChallenge.createButton')}
               </motion.button>
@@ -242,20 +242,20 @@ export function GroupChallengePage({ onBack, deepLinkId }: { onBack: () => void;
                   </div>
                 ) : list.length === 0 ? (
                   <div className="flex flex-col items-center gap-4 pt-12 text-center">
-                    <div className="w-20 h-20 rounded-3xl flex items-center justify-center" style={{ background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.25)' }}>
-                      <Users size={36} strokeWidth={1.8} style={{ color: '#8b5cf6' }} />
+                    <div className="w-20 h-20 rounded-3xl flex items-center justify-center" style={{ background: 'rgba(45,155,111,0.1)', border: '1px solid rgba(45,155,111,0.25)' }}>
+                      <Users size={36} strokeWidth={1.8} style={{ color: '#F0A04B' }} />
                     </div>
                     <p className="text-sm" style={{ color: 'var(--ws-muted)' }}>{t('groupChallenge.emptyDesc')}</p>
                   </div>
                 ) : (
                   list.map((g) => (
                     <motion.button key={g.id} whileTap={{ scale: 0.98 }} onClick={() => open(g)} className="w-full ws-card p-4 flex items-center gap-3 text-left">
-                      <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0" style={{ background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.3)' }}>
-                        <Users size={18} strokeWidth={2} style={{ color: '#8b5cf6' }} />
+                      <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0" style={{ background: 'rgba(45,155,111,0.12)', border: '1px solid rgba(45,155,111,0.3)' }}>
+                        <Users size={18} strokeWidth={2} style={{ color: '#F0A04B' }} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-bold text-sm truncate" style={{ color: 'var(--ws-text)' }}>{t('groupChallenge.byName', { name: g.creator.firstName })}</p>
-                        <p className="text-xs font-semibold mt-0.5" style={{ color: g.expired ? 'var(--ws-faint)' : '#8b5cf6' }}>
+                        <p className="text-xs font-semibold mt-0.5" style={{ color: g.expired ? 'var(--ws-faint)' : '#F0A04B' }}>
                           {t('groupChallenge.playerCount', { count: g.playerCount })}{g.submitted ? ` · ${g.myScore}/${g.questionCount}` : g.expired ? ` · ${t('groupChallenge.ended')}` : ''}
                         </p>
                       </div>
@@ -271,21 +271,21 @@ export function GroupChallengePage({ onBack, deepLinkId }: { onBack: () => void;
             <motion.div key="lobby" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
               className="flex-1 flex flex-col gap-4 overflow-y-auto no-scrollbar">
               <div className="flex flex-col items-center gap-3 pt-2 text-center">
-                <div className="w-20 h-20 rounded-3xl flex items-center justify-center" style={{ background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.3)' }}>
-                  <Users size={40} strokeWidth={1.8} style={{ color: '#8b5cf6' }} />
+                <div className="w-20 h-20 rounded-3xl flex items-center justify-center" style={{ background: 'rgba(45,155,111,0.12)', border: '1px solid rgba(45,155,111,0.3)' }}>
+                  <Users size={40} strokeWidth={1.8} style={{ color: '#F0A04B' }} />
                 </div>
                 <p className="text-xl font-black" style={{ color: 'var(--ws-text)' }}>{t('groupChallenge.lobbyTitle')}</p>
                 <p className="text-sm max-w-[260px]" style={{ color: 'var(--ws-muted)' }}>{t('groupChallenge.lobbyDesc', { count: active.questionCount })}</p>
               </div>
 
               <button onClick={() => share(active)} className="w-full py-3.5 rounded-btn font-black text-base text-white flex items-center justify-center gap-2"
-                style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)' }}>
+                style={{ background: '#2D9B6F' }}>
                 <Share2 size={18} strokeWidth={2.2} /> {t('groupChallenge.shareTelegram')}
               </button>
 
               {!active.submitted && !active.expired && (
                 <button onClick={() => setView('play')} className="w-full py-3.5 rounded-btn font-bold text-sm flex items-center justify-center gap-2"
-                  style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)', color: 'var(--ws-primary-light)' }}>
+                  style={{ background: 'rgba(45,155,111,0.15)', border: '1px solid rgba(45,155,111,0.3)', color: 'var(--ws-primary-light)' }}>
                   <Play size={17} strokeWidth={2.4} /> {t('groupChallenge.playNow')}
                 </button>
               )}
@@ -317,7 +317,7 @@ export function GroupChallengePage({ onBack, deepLinkId }: { onBack: () => void;
               </div>
 
               <button onClick={() => share(active)} className="w-full py-3.5 rounded-btn font-bold text-sm text-white flex items-center justify-center gap-2"
-                style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)' }}>
+                style={{ background: '#2D9B6F' }}>
                 <Share2 size={17} strokeWidth={2.2} /> {t('groupChallenge.inviteMore')}
               </button>
 

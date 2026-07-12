@@ -15,12 +15,12 @@ interface Props {
 const SWIPE_THRESHOLD = 80
 
 const DIFFICULTY_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  A1: { label: 'A1', color: '#34d399', bg: 'rgba(52,211,153,0.13)' },
-  A2: { label: 'A2', color: '#6ee7b7', bg: 'rgba(110,231,183,0.13)' },
-  B1: { label: 'B1', color: '#fbbf24', bg: 'rgba(251,191,36,0.13)' },
-  B2: { label: 'B2', color: '#f97316', bg: 'rgba(249,115,22,0.13)' },
-  C1: { label: 'C1', color: '#f87171', bg: 'rgba(248,113,113,0.13)' },
-  C2: { label: 'C2', color: '#c084fc', bg: 'rgba(192,132,252,0.13)' },
+  A1: { label: 'A1', color: '#6BAF8D', bg: 'rgba(107,175,141,0.14)' },
+  A2: { label: 'A2', color: '#2D9B6F', bg: 'rgba(92,158,120,0.14)' },
+  B1: { label: 'B1', color: '#E5A03C', bg: 'rgba(212,160,84,0.14)' },
+  B2: { label: 'B2', color: '#2D9B6F', bg: 'rgba(45,155,111,0.16)' },
+  C1: { label: 'C1', color: '#E07060', bg: 'rgba(198,123,102,0.14)' },
+  C2: { label: 'C2', color: '#8FA896', bg: 'rgba(143,168,150,0.16)' },
 }
 
 export function SwipeCard({ word, isTop, onSwipe }: Props) {
@@ -85,9 +85,9 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
         exit={{ scale: 1.04, y: 0, opacity: 0, transition: { duration: 0.15 } }}
         style={{
           zIndex: 0,
-          background: 'linear-gradient(145deg, #15152a, #10101f)',
-          border: '1px solid rgba(255,255,255,0.05)',
-          boxShadow: '0 12px 48px rgba(0,0,0,0.6)',
+          background: 'var(--ws-card)',
+          border: '1px solid var(--ws-border)',
+          boxShadow: 'var(--ws-shadow-card)',
         }}
       />
     )
@@ -153,38 +153,38 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
     >
       {/* ── BACKGROUND LAYERS ── */}
       <div className="absolute inset-0" style={{
-        background: 'linear-gradient(160deg, #13132a 0%, #0c0c1c 55%, #0f0019 100%)',
+        background: 'var(--ws-card)',
       }} />
 
       {/* Difficulty-colored ambient top glow */}
       <div className="absolute inset-0 pointer-events-none" style={{
-        background: `radial-gradient(ellipse at 50% -5%, ${diff.color}1a 0%, transparent 55%)`,
+        background: `transparent`,
       }} />
 
       {/* Category bottom glow */}
       <div className="absolute inset-0 pointer-events-none" style={{
-        background: `radial-gradient(ellipse at 50% 108%, ${word.category?.isPremium ? 'rgba(251,191,36,0.08)' : 'rgba(99,102,241,0.09)'} 0%, transparent 55%)`,
+        background: `transparent`,
       }} />
 
       {/* Subtle inner border */}
       <div className="absolute inset-0 rounded-3xl pointer-events-none" style={{
-        border: '1px solid rgba(255,255,255,0.07)',
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
+        border: '1px solid rgba(28,42,36,0.08)',
+        boxShadow: '0 16px 40px rgba(28,42,36,0.08)',
       }} />
 
       {/* ── DRAG COLOR OVERLAYS ── */}
       <motion.div
         className="absolute inset-0 rounded-3xl pointer-events-none"
-        style={{ opacity: rightOpacity, background: 'linear-gradient(125deg, rgba(16,185,129,0.22) 0%, transparent 55%)', zIndex: 5 }}
+        style={{ opacity: rightOpacity, background: 'rgba(45,155,111,0.14)', zIndex: 5 }}
       />
       <motion.div
         className="absolute inset-0 rounded-3xl pointer-events-none"
-        style={{ opacity: leftOpacity, background: 'linear-gradient(235deg, rgba(239,68,68,0.22) 0%, transparent 55%)', zIndex: 5 }}
+        style={{ opacity: leftOpacity, background: 'rgba(224,112,96,0.14)', zIndex: 5 }}
       />
       {!isPersonal && (
         <motion.div
           className="absolute inset-0 rounded-3xl pointer-events-none"
-          style={{ opacity: saveOpacity, background: 'linear-gradient(180deg, rgba(245,158,11,0.2) 0%, transparent 50%)', zIndex: 5 }}
+          style={{ opacity: saveOpacity, background: 'rgba(240,160,75,0.16)', zIndex: 5 }}
         />
       )}
 
@@ -212,7 +212,7 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
             </span>
           ) : (
             // Personal "My Words" entries have no CEFR level — show an own-word marker instead
-            <span className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full tracking-wide" style={{ color: 'var(--ws-primary-light)', background: 'rgba(99,102,241,0.14)', border: '1px solid rgba(99,102,241,0.3)' }}>
+            <span className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full tracking-wide" style={{ color: 'var(--ws-primary)', background: 'rgba(45,155,111,0.14)', border: '1px solid rgba(45,155,111,0.3)' }}>
               <NotebookPen size={12} strokeWidth={2.2} />
             </span>
           )}
@@ -222,7 +222,7 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
               whileTap={{ scale: 0.85 }}
               onClick={(e) => { e.stopPropagation(); playWordAudio(word.word, word.audioUrl) }}
               className="w-8 h-8 rounded-full flex items-center justify-center"
-              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid var(--ws-border)' }}
+              style={{ background: 'var(--ws-surface)', border: '1px solid var(--ws-border)' }}
             >
               <Volume2 size={16} strokeWidth={2} style={{ color: 'var(--ws-muted)' }} />
             </motion.button>
@@ -230,7 +230,7 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
               whileTap={{ scale: 0.85 }}
               onClick={handleShare}
               className="w-8 h-8 rounded-full flex items-center justify-center"
-              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid var(--ws-border)' }}
+              style={{ background: 'var(--ws-surface)', border: '1px solid var(--ws-border)' }}
             >
               <Share2 size={15} strokeWidth={2} style={{ color: 'var(--ws-muted)' }} />
             </motion.button>
@@ -255,33 +255,33 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
                     alt=""
                     draggable={false}
                     className="w-32 h-32 rounded-2xl object-cover pointer-events-none"
-                    style={{ border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
+                    style={{ border: '1px solid var(--ws-border)', boxShadow: '0 8px 24px rgba(28,42,36,0.1)' }}
                     onError={(e) => { e.currentTarget.style.display = 'none' }}
                   />
                 )}
                 <h1
-                  className="font-black text-white leading-none tracking-tight"
+                  className="font-black leading-none tracking-tight"
                   style={{
                     fontSize: 'clamp(2.8rem, 13vw, 5rem)',
-                    textShadow: '0 0 60px rgba(255,255,255,0.1), 0 4px 24px rgba(0,0,0,0.5)',
+                    color: 'var(--ws-text)',
                   }}
                 >
                   {word.word}
                 </h1>
 
                 {word.pronunciation && (
-                  <p className="text-white/35 text-base font-mono tracking-widest">{word.pronunciation}</p>
+                  <p className="text-base font-mono tracking-widest" style={{ color: 'var(--ws-muted)' }}>{word.pronunciation}</p>
                 )}
 
                 {word.partOfSpeech && (
                   <span className="text-xs font-bold px-4 py-1.5 rounded-full"
-                    style={{ background: 'rgba(99,102,241,0.12)', color: '#a78bfa', border: '1px solid rgba(99,102,241,0.2)' }}>
+                    style={{ background: 'rgba(45,155,111,0.12)', color: 'var(--ws-primary)', border: '1px solid rgba(45,155,111,0.2)' }}>
                     {word.partOfSpeech}
                   </span>
                 )}
 
                 <motion.div
-                  animate={{ opacity: [0.25, 0.55, 0.25] }}
+                  animate={{ opacity: [0.35, 0.7, 0.35] }}
                   transition={{ repeat: Infinity, duration: 3 }}
                   className="flex items-center gap-1.5 mt-1"
                 >
@@ -302,13 +302,12 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
             >
               {word.translation?.translation && (
                 <div className="text-center py-2">
-                  <p className="text-white/30 text-[10px] font-black uppercase tracking-[0.15em] mb-2">{t('feed.translation')}</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.15em] mb-2" style={{ color: 'var(--ws-faint)' }}>{t('feed.translation')}</p>
                   <h2
                     className="font-black leading-tight"
                     style={{
                       fontSize: 'clamp(2rem, 10vw, 3.5rem)',
                       color: diff.color,
-                      textShadow: `0 0 30px ${diff.color}50`,
                     }}
                   >
                     {word.translation.translation}
@@ -318,19 +317,19 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
 
               {word.translation?.definitionEn && (
                 <div className="rounded-2xl p-4"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                  <p className="text-white/30 text-[10px] font-black uppercase tracking-[0.12em] mb-2">{t('feed.definition')}</p>
-                  <p className="text-white/70 text-sm leading-relaxed">{word.translation.definitionEn}</p>
+                  style={{ background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)' }}>
+                  <p className="text-[10px] font-black uppercase tracking-[0.12em] mb-2" style={{ color: 'var(--ws-faint)' }}>{t('feed.definition')}</p>
+                  <p className="text-sm leading-relaxed" style={{ color: 'var(--ws-muted)' }}>{word.translation.definitionEn}</p>
                 </div>
               )}
 
               {word.translation?.exampleEn && (
                 <div className="rounded-2xl p-4"
-                  style={{ background: 'rgba(99,102,241,0.07)', border: '1px solid rgba(99,102,241,0.18)' }}>
+                  style={{ background: 'rgba(45,155,111,0.07)', border: '1px solid rgba(45,155,111,0.18)' }}>
                   <p className="text-primary/50 text-[10px] font-black uppercase tracking-[0.12em] mb-2">{t('feed.example')}</p>
-                  <p className="text-white/65 text-sm italic leading-relaxed">"{word.translation.exampleEn}"</p>
+                  <p className="text-sm italic leading-relaxed" style={{ color: 'var(--ws-text)' }}>"{word.translation.exampleEn}"</p>
                   {word.translation.exampleTranslated && (
-                    <p className="text-white/30 text-xs italic mt-1.5">{word.translation.exampleTranslated}</p>
+                    <p className="text-xs italic mt-1.5" style={{ color: 'var(--ws-muted)' }}>{word.translation.exampleTranslated}</p>
                   )}
                 </div>
               )}
@@ -361,7 +360,7 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
               whileTap={{ scale: 0.96 }}
               onClick={(e) => { e.stopPropagation(); onSwipe('left') }}
               className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-btn font-bold text-sm"
-              style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.28)', color: 'var(--ws-danger)' }}
+              style={{ background: 'rgba(224,112,96,0.12)', border: '1px solid rgba(224,112,96,0.28)', color: 'var(--ws-danger)' }}
             >
               <X size={18} strokeWidth={2.4} />
               {t('feed.dontKnow')}
@@ -370,7 +369,7 @@ export function SwipeCard({ word, isTop, onSwipe }: Props) {
               whileTap={{ scale: 0.96 }}
               onClick={(e) => { e.stopPropagation(); onSwipe('right') }}
               className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-btn font-bold text-sm"
-              style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.28)', color: 'var(--ws-success)' }}
+              style={{ background: 'rgba(45,155,111,0.12)', border: '1px solid rgba(45,155,111,0.28)', color: 'var(--ws-success)' }}
             >
               <Check size={18} strokeWidth={2.4} />
               {t('feed.know')}

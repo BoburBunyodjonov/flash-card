@@ -49,8 +49,8 @@ export default defineConfig({
         name: 'WordSwipe',
         short_name: 'WordSwipe',
         description: 'Learn vocabulary with swipe',
-        theme_color: '#0a0a0a',
-        background_color: '#0a0a0a',
+        theme_color: '#F3F6F4',
+        background_color: '#F3F6F4',
         display: 'standalone',
         icons: [
           { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },

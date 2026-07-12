@@ -94,7 +94,7 @@ function ScoreScreen({
           whileTap={{ scale: 0.96 }}
           onClick={onRetry}
           className="w-full py-4 rounded-btn font-black text-sm text-white flex items-center justify-center gap-2"
-          style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)', boxShadow: '0 6px 20px rgba(245,158,11,0.28)' }}
+          style={{ background: '#f59e0b', boxShadow: '0 6px 20px rgba(245,158,11,0.28)' }}
         >
           <RefreshCw size={17} strokeWidth={2.4} /> {t('challenge.retry')}
         </motion.button>
@@ -168,10 +168,10 @@ function QuestionCard({
     >
       {/* Progress */}
       <div className="flex items-center gap-3">
-        <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+        <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(28,42,36,0.06)' }}>
           <motion.div
             className="h-full rounded-full"
-            style={{ background: 'linear-gradient(90deg, #f59e0b, #f97316)' }}
+            style={{ background: '#f59e0b' }}
             animate={{ width: `${progressPct}%` }}
             transition={{ type: 'spring', stiffness: 160, damping: 26 }}
           />
@@ -185,7 +185,7 @@ function QuestionCard({
       <div
         className="rounded-card p-6 flex flex-col items-center gap-3 text-center"
         style={{
-          background: 'linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(249,115,22,0.05) 100%)',
+          background: 'rgba(245,158,11,0.1)',
           border: '1px solid rgba(245,158,11,0.2)',
         }}
       >
@@ -343,7 +343,7 @@ export function ChallengePage({ onBack }: { onBack: () => void }) {
                 whileTap={{ scale: 0.96 }}
                 onClick={load}
                 className="px-6 py-3 rounded-btn font-bold text-sm text-white flex items-center gap-2"
-                style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}
+                style={{ background: '#f59e0b' }}
               >
                 <RefreshCw size={16} strokeWidth={2.4} /> {t('challenge.retry')}
               </motion.button>

@@ -7,10 +7,11 @@ import { PageHeader } from '../../components/PageHeader'
 import { analyticsApi } from '../../api/analytics.api'
 
 const TOOLTIP_STYLE = {
-  background: '#1e1e30',
-  border: '1px solid rgba(255,255,255,0.08)',
+  background: '#FFFFFF',
+  border: '1px solid rgba(28,42,36,0.10)',
   borderRadius: 10,
-  fontFamily: '"Inter", system-ui, sans-serif',
+  color: '#1C2A24',
+  fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif',
   fontSize: 13,
 }
 
@@ -21,8 +22,8 @@ export function AnalyticsPage() {
 
   const conversionData = stats
     ? [
-        { name: 'Free', value: stats.totalUsers - stats.premiumUsers, fill: 'url(#grayGradient)' },
-        { name: 'Premium', value: stats.premiumUsers, fill: 'url(#indigoGradient)' },
+        { name: 'Free', value: stats.totalUsers - stats.premiumUsers, fill: '#9CA3AF' },
+        { name: 'Premium', value: stats.premiumUsers, fill: '#2D9B6F' },
       ]
     : []
 
@@ -45,21 +46,12 @@ export function AnalyticsPage() {
             <Typography variant="h6" gutterBottom>User Overview</Typography>
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={activityData}>
-                <defs>
-                  <linearGradient id="indigoGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#8b5cf6" />
-                    <stop offset="100%" stopColor="#6366f1" />
-                  </linearGradient>
-                  <linearGradient id="grayGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#9ca3af" />
-                    <stop offset="100%" stopColor="#6b7280" />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
-                <XAxis dataKey="name" tick={{ fill: '#9ca3af', fontSize: 12 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: '#9ca3af', fontSize: 12 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(99,102,241,0.08)' }} />
-                <Bar dataKey="value" fill="url(#indigoGradient)" radius={[6, 6, 0, 0]} maxBarSize={56} />
+                <defs />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(28,42,36,0.08)" vertical={false} />
+                <XAxis dataKey="name" tick={{ fill: '#6b7280', fontSize: 12 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: '#6b7280', fontSize: 12 }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(45,155,111,0.08)' }} />
+                <Bar dataKey="value" fill="#2D9B6F" radius={[6, 6, 0, 0]} maxBarSize={56} />
               </BarChart>
             </ResponsiveContainer>
           </Paper>
@@ -70,30 +62,21 @@ export function AnalyticsPage() {
             <Typography variant="h6" gutterBottom>Free vs Premium</Typography>
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={conversionData}>
-                <defs>
-                  <linearGradient id="indigoGradient2" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#8b5cf6" />
-                    <stop offset="100%" stopColor="#6366f1" />
-                  </linearGradient>
-                  <linearGradient id="grayGradient2" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#9ca3af" />
-                    <stop offset="100%" stopColor="#6b7280" />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
-                <XAxis dataKey="name" tick={{ fill: '#9ca3af', fontSize: 12 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: '#9ca3af', fontSize: 12 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(99,102,241,0.08)' }} />
+                <defs />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(28,42,36,0.08)" vertical={false} />
+                <XAxis dataKey="name" tick={{ fill: '#6b7280', fontSize: 12 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: '#6b7280', fontSize: 12 }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(45,155,111,0.08)' }} />
                 <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={56}>
                   {conversionData.map((_, i) => (
-                    <Cell key={i} fill={i === 0 ? 'url(#grayGradient2)' : 'url(#indigoGradient2)'} />
+                    <Cell key={i} fill={i === 0 ? '#9CA3AF' : '#2D9B6F'} />
                   ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
             {stats && (
               <Typography variant="body2" color="text.secondary" sx={{ mt: 2, textAlign: 'center' }}>
-                Conversion rate: <strong style={{ color: '#10b981' }}>{stats.conversionRate}%</strong>
+                Conversion rate: <strong style={{ color: '#2D9B6F' }}>{stats.conversionRate}%</strong>
               </Typography>
             )}
           </Paper>
@@ -104,13 +87,13 @@ export function AnalyticsPage() {
             <Typography variant="h6" gutterBottom>Content Stats</Typography>
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
               {stats && [
-                { label: 'Total Words', value: stats.totalWords, color: '#3b82f6', icon: <MenuBookRoundedIcon /> },
-                { label: 'Total Swipes', value: stats.totalSwipes, color: '#8b5cf6', icon: <SwipeRoundedIcon /> },
+                { label: 'Total Words', value: stats.totalWords, color: '#2D9B6F', icon: <MenuBookRoundedIcon /> },
+                { label: 'Total Swipes', value: stats.totalSwipes, color: '#F0A04B', icon: <SwipeRoundedIcon /> },
               ].map((item) => (
                 <Paper
                   key={item.label}
                   variant="outlined"
-                  sx={{ p: 2.5, display: 'flex', alignItems: 'center', gap: 2, minWidth: 240, bgcolor: 'rgba(255,255,255,0.02)' }}
+                  sx={{ p: 2.5, display: 'flex', alignItems: 'center', gap: 2, minWidth: 240, bgcolor: '#F7FAF8' }}
                 >
                   <Box
                     sx={{

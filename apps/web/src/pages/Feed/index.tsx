@@ -88,8 +88,8 @@ export function FeedPage({ onChallenge, onMyWords, onDictionary, onProgress }: {
       <div className="h-full flex items-center justify-center animated-gradient">
         <div className="flex flex-col items-center gap-6">
           <div className="relative w-14 h-14">
-            <div className="absolute inset-0 rounded-full" style={{ border: '2px solid rgba(99,102,241,0.15)' }} />
-            <div className="absolute inset-0 rounded-full animate-spin" style={{ border: '2px solid transparent', borderTopColor: '#6366f1' }} />
+            <div className="absolute inset-0 rounded-full" style={{ border: '2px solid rgba(45,155,111,0.15)' }} />
+            <div className="absolute inset-0 rounded-full animate-spin" style={{ border: '2px solid transparent', borderTopColor: '#2D9B6F' }} />
             <div className="absolute inset-0 flex items-center justify-center">
               <Zap size={18} strokeWidth={2.2} style={{ color: 'var(--ws-primary-light)' }} />
             </div>
@@ -110,7 +110,7 @@ export function FeedPage({ onChallenge, onMyWords, onDictionary, onProgress }: {
         <motion.div
           initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 220 }}
           className="w-20 h-20 rounded-3xl flex items-center justify-center"
-          style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)' }}
+          style={{ background: 'rgba(45,155,111,0.12)', border: '1px solid rgba(45,155,111,0.25)' }}
         >
           {isPersonal
             ? <NotebookPen size={34} strokeWidth={1.8} style={{ color: 'var(--ws-primary-light)' }} />
@@ -233,7 +233,7 @@ export function FeedPage({ onChallenge, onMyWords, onDictionary, onProgress }: {
           whileTap={{ scale: 0.96 }}
           onClick={onChallenge}
           className="w-full max-w-xs py-4 rounded-btn font-bold text-base flex items-center justify-center gap-2 text-white"
-          style={{ background: 'linear-gradient(135deg, #F59E0B, #F97316)', boxShadow: '0 8px 28px rgba(245,158,11,0.3)' }}
+          style={{ background: '#F59E0B', boxShadow: '0 8px 28px rgba(245,158,11,0.3)' }}
         >
           <Target size={18} strokeWidth={2.4} /> {t('practice.challenge.title')}
         </motion.button>
@@ -244,7 +244,7 @@ export function FeedPage({ onChallenge, onMyWords, onDictionary, onProgress }: {
           onClick={handleShare}
           className="w-full max-w-xs rounded-btn py-3.5 font-bold text-sm flex items-center justify-center gap-2"
           style={{
-            background: shared ? 'rgba(16,185,129,0.12)' : 'rgba(255,255,255,0.05)',
+            background: shared ? 'rgba(16,185,129,0.12)' : 'rgba(28,42,36,0.05)',
             border: `1px solid ${shared ? 'rgba(16,185,129,0.28)' : 'var(--ws-border)'}`,
             color: shared ? 'var(--ws-success)' : 'var(--ws-muted)',
           }}
@@ -290,7 +290,7 @@ export function FeedPage({ onChallenge, onMyWords, onDictionary, onProgress }: {
         {/* Progress — fills available space */}
         {stats && (
           <div className="flex-1 flex items-center gap-2.5 min-w-0">
-            <div className="relative h-1.5 flex-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+            <div className="relative h-1.5 flex-1 rounded-full overflow-hidden" style={{ background: 'rgba(28,42,36,0.06)' }}>
               <motion.div
                 className="absolute inset-y-0 left-0 rounded-full ws-gradient-bg"
                 animate={{ width: `${progressPct}%` }}
@@ -324,7 +324,7 @@ export function FeedPage({ onChallenge, onMyWords, onDictionary, onProgress }: {
             onClick={() => !selectedCategoryId || setCategory(null)}
             className="shrink-0 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1.5"
             style={!selectedCategoryId
-              ? { background: 'var(--ws-gradient)', color: '#fff', boxShadow: '0 4px 14px rgba(99,102,241,0.3)' }
+              ? { background: 'var(--ws-primary)', color: '#fff', boxShadow: '0 4px 14px rgba(45,155,111,0.3)' }
               : { background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)', color: 'var(--ws-muted)' }
             }
           >
@@ -337,8 +337,8 @@ export function FeedPage({ onChallenge, onMyWords, onDictionary, onProgress }: {
             onClick={() => selectedCategoryId !== 'personal' && setCategory('personal')}
             className="shrink-0 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1.5"
             style={selectedCategoryId === 'personal'
-              ? { background: 'var(--ws-gradient)', color: '#fff', boxShadow: '0 4px 14px rgba(99,102,241,0.3)' }
-              : { background: 'var(--ws-card-2)', border: '1px solid rgba(99,102,241,0.3)', color: 'var(--ws-primary-light)' }
+              ? { background: 'var(--ws-primary)', color: '#fff', boxShadow: '0 4px 14px rgba(45,155,111,0.3)' }
+              : { background: 'var(--ws-card-2)', border: '1px solid rgba(45,155,111,0.3)', color: 'var(--ws-primary)' }
             }
           >
             <NotebookPen size={14} strokeWidth={2.2} />
@@ -353,7 +353,7 @@ export function FeedPage({ onChallenge, onMyWords, onDictionary, onProgress }: {
                 onClick={() => !isActive && setCategory(cat.id)}
                 className="shrink-0 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1.5"
                 style={isActive
-                  ? { background: 'var(--ws-gradient)', color: '#fff', boxShadow: '0 4px 14px rgba(99,102,241,0.3)' }
+                  ? { background: 'var(--ws-primary)', color: '#fff', boxShadow: '0 4px 14px rgba(45,155,111,0.3)' }
                   : { background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)', color: 'var(--ws-muted)' }
                 }
               >
@@ -372,8 +372,8 @@ export function FeedPage({ onChallenge, onMyWords, onDictionary, onProgress }: {
         {afterNext && (
           <div className="absolute inset-0 rounded-3xl pointer-events-none" style={{
             transform: 'scale(0.87) translateY(38px)',
-            background: 'linear-gradient(145deg, #111120, #0d0d1c)',
-            border: '1px solid rgba(255,255,255,0.03)',
+            background: '#EAEFEE',
+            border: '1px solid rgba(28,42,36,0.06)',
             opacity: 0.5,
           }} />
         )}

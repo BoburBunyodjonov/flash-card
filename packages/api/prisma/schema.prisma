@@ -118,6 +118,9 @@ model User {
   shadowingDone ShadowingCompletion[]
   integrationEnrollments IntegrationEnrollment[]
   integrationStaff       IntegrationStaff[]
+  wordSharesSent         WordShare[] @relation("WordShareFrom")
+  wordSharesReceived     WordShare[] @relation("WordShareTo")
+  wordsSharedFromMe      UserWord[]  @relation("SharedWordSource")
 
   @@map("users")
 }
@@ -172,14 +175,65 @@ model UserWord {
   lastReviewed  DateTime?  @map("last_reviewed")
   createdAt     DateTime   @default(now()) @map("created_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Peer share provenance (null = self-added or teacher pack)
+  sharedFromUserId String? @map("shared_from_user_id")
+  sharedFromName   String? @map("shared_from_name")
+  sourceShareId    String? @map("source_share_id")
+
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sharedFromUser User?          @relation("SharedWordSource", fields: [sharedFromUserId], references: [id], onDelete: SetNull)
+  sourceShare    WordShare?     @relation(fields: [sourceShareId], references: [id], onDelete: SetNull)
 
   sourcePackId String?         @map("source_pack_id")
   sourcePack   TeacherWordPack? @relation(fields: [sourcePackId], references: [id], onDelete: SetNull)
 
   @@unique([userId, word])
   @@index([userId])
+  @@index([sourceShareId])
   @@map("user_words")
+}
+
+enum WordShareStatus {
+  pending
+  accepted
+  declined
+}
+
+// Peer-to-peer My Words share invite (one recipient per row).
+model WordShare {
+  id          String          @id @default(uuid())
+  fromUserId  String          @map("from_user_id")
+  toUserId    String          @map("to_user_id")
+  status      WordShareStatus @default(pending)
+  createdAt   DateTime        @default(now()) @map("created_at")
+  respondedAt DateTime?       @map("responded_at")
+
+  fromUser User @relation("WordShareFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser   User @relation("WordShareTo", fields: [toUserId], references: [id], onDelete: Cascade)
+  items    WordShareItem[]
+  acceptedWords UserWord[]
+
+  @@index([toUserId, status])
+  @@index([fromUserId])
+  @@map("word_shares")
+}
+
+model WordShareItem {
+  id            String  @id @default(uuid())
+  shareId       String  @map("share_id")
+  word          String
+  translation   String
+  pronunciation String?
+  audioUrl      String? @map("audio_url")
+  partOfSpeech  String? @map("part_of_speech")
+  definitionEn  String? @map("definition_en")
+  exampleEn     String? @map("example_en")
+  synonyms      String[] @default([])
+
+  share WordShare @relation(fields: [shareId], references: [id], onDelete: Cascade)
+
+  @@index([shareId])
+  @@map("word_share_items")
 }
 
 model SpeakingSession {

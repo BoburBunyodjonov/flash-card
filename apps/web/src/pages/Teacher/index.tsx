@@ -155,7 +155,7 @@ export function TeacherPage({ onBack }: Props) {
               onClick={() => setGroupId(g.external_id)}
               className="px-3 py-1.5 rounded-full text-xs font-bold"
               style={{
-                background: groupId === g.external_id ? 'var(--ws-gradient)' : 'var(--ws-surface)',
+                background: groupId === g.external_id ? 'var(--ws-primary)' : 'var(--ws-surface)',
                 color: groupId === g.external_id ? '#fff' : 'var(--ws-muted)',
               }}
             >
@@ -182,7 +182,7 @@ export function TeacherPage({ onBack }: Props) {
           disabled={busy || !title.trim()}
           onClick={handleCreatePack}
           className="w-full py-3 rounded-btn font-bold text-sm text-white disabled:opacity-50"
-          style={{ background: 'var(--ws-gradient)' }}
+          style={{ background: 'var(--ws-primary)' }}
         >
           <Plus size={16} className="inline mr-1" /> To'plam yaratish
         </button>
@@ -240,7 +240,7 @@ export function TeacherPage({ onBack }: Props) {
                   disabled={busy || !(pack._count?.items ?? pack.items.length)}
                   onClick={() => handlePublish(pack.id)}
                   className="flex-1 py-2 rounded-btn text-xs font-bold text-white flex items-center justify-center gap-1 disabled:opacity-50"
-                  style={{ background: 'var(--ws-gradient)' }}
+                  style={{ background: 'var(--ws-primary)' }}
                 >
                   <Send size={14} /> Guruhga yuborish
                 </button>

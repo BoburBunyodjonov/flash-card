@@ -109,8 +109,8 @@ export function PremiumModal({ open, onClose }: PremiumModalProps) {
             transition={{ type: 'spring', stiffness: 380, damping: 36 }}
             className="w-full max-w-md rounded-t-3xl px-5 pt-5 overflow-y-auto no-scrollbar"
             style={{
-              background: '#141420',
-              border: '1px solid rgba(255,255,255,0.07)',
+              background: 'var(--ws-card)',
+              border: '1px solid rgba(28,42,36,0.08)',
               maxHeight: '92vh',
               // Clear the home indicator / safe area so the pay button is never cut off
               paddingBottom: 'max(2rem, env(safe-area-inset-bottom))',
@@ -118,7 +118,7 @@ export function PremiumModal({ open, onClose }: PremiumModalProps) {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Drag handle */}
-            <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ background: 'rgba(255,255,255,0.15)' }} />
+            <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ background: 'rgba(28,42,36,0.12)' }} />
 
             {paid ? (
               /* ── Success state ── */
@@ -132,12 +132,12 @@ export function PremiumModal({ open, onClose }: PremiumModalProps) {
                   ⭐
                 </motion.span>
                 <p className="text-white font-black text-xl">{t('premium.success')}</p>
-                <p className="text-white/50 text-sm mt-2 max-w-[260px]">{t('premium.successDesc')}</p>
+                <p className="text-muted text-sm mt-2 max-w-[260px]">{t('premium.successDesc')}</p>
                 <motion.button
                   whileTap={{ scale: 0.97 }}
                   onClick={onClose}
                   className="w-full mt-7 py-4 rounded-2xl font-black text-base text-white"
-                  style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', boxShadow: '0 8px 32px rgba(99,102,241,0.35)' }}
+                  style={{ background: '#2D9B6F', boxShadow: '0 8px 32px rgba(45,155,111,0.35)' }}
                 >
                   {t('premium.close')}
                 </motion.button>
@@ -148,18 +148,18 @@ export function PremiumModal({ open, onClose }: PremiumModalProps) {
                 <div className="text-center mb-5">
                   <span className="text-4xl">⚡</span>
                   <h2 className="text-white font-black text-xl mt-2">{t('premium.title')}</h2>
-                  <p className="text-white/45 text-sm mt-1">{t('premium.subtitle')}</p>
+                  <p className="text-faint text-sm mt-1">{t('premium.subtitle')}</p>
                 </div>
 
                 {/* Features */}
                 <div
                   className="rounded-2xl p-4 mb-5"
-                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+                  style={{ background: 'rgba(28,42,36,0.04)', border: '1px solid rgba(28,42,36,0.08)' }}
                 >
                   {featureList.map((f, i) => (
                     <div key={i} className="flex items-center gap-2.5 py-1">
                       <span className="text-sm font-black shrink-0" style={{ color: '#10b981' }}>✓</span>
-                      <span className="text-white/75 text-sm">{f}</span>
+                      <span className="text-muted text-sm">{f}</span>
                     </div>
                   ))}
                 </div>
@@ -168,18 +168,18 @@ export function PremiumModal({ open, onClose }: PremiumModalProps) {
                   <div className="flex justify-center py-8">
                     <div
                       className="w-7 h-7 rounded-full border-2 animate-spin"
-                      style={{ borderColor: 'rgba(99,102,241,0.25)', borderTopColor: '#6366f1' }}
+                      style={{ borderColor: 'rgba(45,155,111,0.25)', borderTopColor: '#2D9B6F' }}
                     />
                   </div>
                 )}
 
                 {!loading && loadError && (
                   <div className="text-center py-6">
-                    <p className="text-white/50 text-sm mb-3">{t('premium.error')}</p>
+                    <p className="text-muted text-sm mb-3">{t('premium.error')}</p>
                     <button
                       onClick={loadPlan}
                       className="px-5 py-2.5 rounded-xl text-sm font-bold text-white"
-                      style={{ background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)' }}
+                      style={{ background: 'rgba(45,155,111,0.2)', border: '1px solid rgba(45,155,111,0.4)' }}
                     >
                       {t('premium.retry')}
                     </button>
@@ -197,23 +197,23 @@ export function PremiumModal({ open, onClose }: PremiumModalProps) {
                           className="relative rounded-2xl p-4 text-center transition-all"
                           style={
                             selected === p.key
-                              ? { background: 'rgba(99,102,241,0.16)', border: '1.5px solid #6366f1' }
-                              : { background: 'rgba(255,255,255,0.03)', border: '1.5px solid rgba(255,255,255,0.08)' }
+                              ? { background: 'rgba(45,155,111,0.16)', border: '1.5px solid #2D9B6F' }
+                              : { background: 'rgba(28,42,36,0.04)', border: '1.5px solid rgba(28,42,36,0.10)' }
                           }
                         >
                           {p.hint && (
                             <span
                               className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-[10px] font-black px-2 py-0.5 rounded-full whitespace-nowrap"
-                              style={{ background: '#10b981', color: '#fff' }}
+                              style={{ background: '#2D9B6F', color: '#fff' }}
                             >
                               {p.hint}
                             </span>
                           )}
-                          <p className="text-white/55 text-xs font-bold uppercase tracking-wider">{p.label}</p>
+                          <p className="text-muted text-xs font-bold uppercase tracking-wider">{p.label}</p>
                           <p className="text-white font-black text-2xl mt-1.5">
                             ⭐ {p.stars}
                           </p>
-                          <p className="text-white/35 text-[11px] mt-0.5">Telegram Stars</p>
+                          <p className="text-faint text-[11px] mt-0.5">Telegram Stars</p>
                         </button>
                       ))}
                     </div>
@@ -225,7 +225,7 @@ export function PremiumModal({ open, onClose }: PremiumModalProps) {
                           onClick={buy}
                           disabled={paying}
                           className="w-full py-4 rounded-2xl font-black text-base text-white disabled:opacity-60"
-                          style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', boxShadow: '0 8px 32px rgba(99,102,241,0.35)' }}
+                          style={{ background: '#2D9B6F', boxShadow: '0 8px 32px rgba(45,155,111,0.35)' }}
                         >
                           {paying
                             ? t('premium.processing')

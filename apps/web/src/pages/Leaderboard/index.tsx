@@ -25,7 +25,7 @@ const TIER_CONFIG: { key: string; Icon: LucideIcon; color: string }[] = [
   { key: 'silver',   Icon: Medal,  color: '#c0c0c0' },
   { key: 'gold',     Icon: Trophy, color: '#fbbf24' },
   { key: 'sapphire', Icon: Shield, color: '#38bdf8' },
-  { key: 'diamond',  Icon: Crown,  color: '#a78bfa' },
+  { key: 'diamond',  Icon: Crown,  color: '#4CB388' },
 ]
 
 function daysLeft(weekEnd: string): number {
@@ -124,7 +124,7 @@ function LeagueView() {
             transition={{ delay: i * 0.03 }}
             className="flex items-center gap-3 rounded-card px-4 py-3"
             style={m.isMe
-              ? { background: 'rgba(99,102,241,0.16)', border: '1px solid rgba(99,102,241,0.3)' }
+              ? { background: 'rgba(45,155,111,0.16)', border: '1px solid rgba(45,155,111,0.3)' }
               : { background: 'var(--ws-card)', border: '1px solid var(--ws-border)' }
             }
           >
@@ -212,7 +212,7 @@ export function LeaderboardPage({ onBack }: { onBack?: () => void }) {
               onClick={() => setTab(key)}
               className="flex-1 py-2.5 rounded-btn text-sm font-bold flex items-center justify-center gap-1.5"
               style={isActive
-                ? { background: 'var(--ws-gradient)', color: '#fff', boxShadow: '0 4px 14px rgba(99,102,241,0.3)' }
+                ? { background: 'var(--ws-primary)', color: '#fff', boxShadow: '0 4px 14px rgba(45,155,111,0.3)' }
                 : { background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)', color: 'var(--ws-muted)' }
               }
             >
@@ -242,7 +242,7 @@ export function LeaderboardPage({ onBack }: { onBack?: () => void }) {
                 transition={{ delay: i * 0.03 }}
                 className="flex items-center gap-3 rounded-card px-4 py-3"
                 style={u.id === user?.id
-                  ? { background: 'rgba(99,102,241,0.16)', border: '1px solid rgba(99,102,241,0.3)' }
+                  ? { background: 'rgba(45,155,111,0.16)', border: '1px solid rgba(45,155,111,0.3)' }
                   : { background: 'var(--ws-card)', border: '1px solid var(--ws-border)' }
                 }
               >
@@ -266,7 +266,7 @@ export function LeaderboardPage({ onBack }: { onBack?: () => void }) {
                     className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center"
                     style={u.isFollowing
                       ? { background: 'rgba(16,185,129,0.14)', border: '1px solid rgba(16,185,129,0.35)', color: 'var(--ws-success)' }
-                      : { background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.3)', color: 'var(--ws-primary-light)' }
+                      : { background: 'rgba(45,155,111,0.12)', border: '1px solid rgba(45,155,111,0.3)', color: 'var(--ws-primary-light)' }
                     }
                   >
                     {u.isFollowing ? <UserCheck size={17} strokeWidth={2.2} /> : <UserPlus size={17} strokeWidth={2.2} />}

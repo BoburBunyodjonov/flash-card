@@ -11,7 +11,7 @@ import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded'
 import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded'
 import { useAuthStore } from '../../store/auth.store'
 
-const GRADIENT = 'linear-gradient(135deg, #6366f1, #8b5cf6)'
+const PRIMARY = '#2D9B6F'
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -60,10 +60,6 @@ export function LoginPage() {
       justifyContent: 'center',
       px: 2,
       bgcolor: 'background.default',
-      backgroundImage: `
-        radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.14) 0%, transparent 55%),
-        radial-gradient(ellipse at 85% 100%, rgba(139,92,246,0.08) 0%, transparent 50%)
-      `,
     }}>
       <Paper
         component="form"
@@ -88,21 +84,18 @@ export function LoginPage() {
             width: 64,
             height: 64,
             borderRadius: 3,
-            background: GRADIENT,
+            background: PRIMARY,
             mb: 2,
-            boxShadow: '0 0 40px rgba(99,102,241,0.35)',
+            boxShadow: '0 0 40px rgba(45,155,111,0.35)',
           }}>
-            <BoltRoundedIcon sx={{ fontSize: 36, color: '#fff' }} />
+            <BoltRoundedIcon sx={{ fontSize: 36, color: '#FFFFFF' }} />
           </Box>
           <Typography
             variant="h5"
             sx={{
               fontWeight: 800,
               letterSpacing: '-0.02em',
-              background: GRADIENT,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
+              color: PRIMARY,
             }}
           >
             WordSwipe Admin

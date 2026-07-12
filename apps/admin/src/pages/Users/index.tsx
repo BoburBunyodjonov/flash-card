@@ -90,7 +90,7 @@ export function UsersPage() {
             src={row.avatarUrl ?? undefined}
             sx={{
               width: 38, height: 38, fontSize: 15, fontWeight: 700,
-              background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+              background: '#2D9B6F',
               border: '2px solid rgba(255,255,255,0.08)',
             }}
           >
@@ -105,7 +105,7 @@ export function UsersPage() {
                 <Chip label="admin" size="small" sx={{ height: 16, fontSize: 10, fontWeight: 700, bgcolor: 'rgba(239,68,68,0.15)', color: '#fca5a5' }} />
               )}
             </Box>
-            <Typography variant="caption" noWrap sx={{ color: row.username ? '#818cf8' : 'text.disabled', display: 'block' }}>
+            <Typography variant="caption" noWrap sx={{ color: row.username ? '#4CB388' : 'text.disabled', display: 'block' }}>
               {row.username ? `@${row.username}` : `id ${row.telegramId}`}
             </Typography>
           </Box>
@@ -151,7 +151,7 @@ export function UsersPage() {
       field: 'xp', headerName: 'XP', width: 110, type: 'number',
       renderCell: ({ value }) => (
         <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
-          <BoltRoundedIcon sx={{ fontSize: 16, color: '#818cf8' }} />
+          <BoltRoundedIcon sx={{ fontSize: 16, color: '#4CB388' }} />
           <Typography variant="body2" sx={{ fontWeight: 650, fontVariantNumeric: 'tabular-nums' }}>
             {value?.toLocaleString()}
           </Typography>
@@ -167,8 +167,8 @@ export function UsersPage() {
           sx={{
             fontWeight: 650, fontVariantNumeric: 'tabular-nums',
             px: 1, py: 0.25, borderRadius: 1,
-            bgcolor: value > 0 ? 'rgba(99,102,241,0.12)' : 'transparent',
-            color: value > 0 ? '#a5b4fc' : 'text.disabled',
+            bgcolor: value > 0 ? 'rgba(45,155,111,0.12)' : 'transparent',
+            color: value > 0 ? '#2D9B6F' : 'text.disabled',
           }}
         >
           {value}
@@ -198,7 +198,7 @@ export function UsersPage() {
       field: 'actions', headerName: '', width: 56, sortable: false, resizable: false,
       renderCell: ({ row }) => (
         <Tooltip title="Manage" arrow>
-          <IconButton size="small" onClick={() => openUser(row)} sx={{ color: 'text.secondary', '&:hover': { color: 'primary.light', bgcolor: 'rgba(99,102,241,0.12)' } }}>
+          <IconButton size="small" onClick={() => openUser(row)} sx={{ color: 'text.secondary', '&:hover': { color: 'primary.light', bgcolor: 'rgba(45,155,111,0.12)' } }}>
             <ManageAccountsRoundedIcon fontSize="small" />
           </IconButton>
         </Tooltip>
@@ -244,7 +244,7 @@ export function UsersPage() {
           {selected && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Avatar sx={{ width: 48, height: 48, fontSize: 20, fontWeight: 700, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
+                <Avatar sx={{ width: 48, height: 48, fontSize: 20, fontWeight: 700, background: '#2D9B6F' }}>
                   {selected.firstName?.[0]}
                 </Avatar>
                 <Box>

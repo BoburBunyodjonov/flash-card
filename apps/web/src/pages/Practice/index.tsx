@@ -24,12 +24,12 @@ export function PracticePage({ onQuiz, onDuel, onChallenge, onMyWords, onGroupCh
 
   // Speaking has its own bottom-nav tab now, so it's not listed here.
   const modes: Mode[] = [
-    { key: 'quiz',           Icon: Brain,       tint: '#6366F1', onPress: onQuiz },
+    { key: 'quiz',           Icon: Brain,       tint: '#2D9B6F', onPress: onQuiz },
     { key: 'shadowing',      Icon: Clapperboard, tint: '#F472B6', onPress: onShadowing },
     { key: 'duel',           Icon: Swords,      tint: '#EF4444', onPress: onDuel },
     { key: 'groupChallenge', Icon: Users,       tint: '#06B6D4', onPress: onGroupChallenge },
     { key: 'challenge',      Icon: Target,      tint: '#F59E0B', onPress: onChallenge },
-    { key: 'myWords',        Icon: NotebookPen, tint: '#8B5CF6', onPress: onMyWords },
+    { key: 'myWords',        Icon: NotebookPen, tint: '#F0A04B', onPress: onMyWords },
   ]
 
   return (

@@ -19,7 +19,7 @@ import BoltRoundedIcon from '@mui/icons-material/BoltRounded'
 import { useAuthStore } from '../../store/auth.store'
 
 const DRAWER_WIDTH = 240
-const GRADIENT = 'linear-gradient(135deg, #6366f1, #8b5cf6)'
+const PRIMARY = '#2D9B6F'
 
 const NAV_ITEMS = [
   { label: 'Dashboard', icon: <DashboardRoundedIcon />, path: '/' },
@@ -47,11 +47,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
         position="fixed"
         sx={{
           zIndex: (t) => t.zIndex.drawer + 1,
-          bgcolor: 'rgba(20,20,32,0.85)',
+          bgcolor: 'rgba(255,255,255,0.92)',
           backdropFilter: 'blur(12px)',
           borderBottom: '1px solid',
           borderColor: 'divider',
           boxShadow: 'none',
+          color: 'text.primary',
         }}
       >
         <Toolbar sx={{ justifyContent: 'space-between' }}>
@@ -61,21 +62,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
               sx={{
                 width: 32, height: 32, borderRadius: 2, flexShrink: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: GRADIENT,
-                boxShadow: '0 0 16px rgba(99,102,241,0.4)',
+                background: PRIMARY,
+                boxShadow: '0 0 16px rgba(45,155,111,0.4)',
               }}
             >
-              <BoltRoundedIcon sx={{ fontSize: 20, color: '#fff' }} />
+              <BoltRoundedIcon sx={{ fontSize: 20, color: '#FFFFFF' }} />
             </Box>
             <Typography
               variant="h6"
               sx={{
                 fontWeight: 800,
                 letterSpacing: '-0.02em',
-                background: GRADIENT,
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
+                color: PRIMARY,
               }}
             >
               WordSwipe
@@ -90,7 +88,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           {/* User + logout */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Avatar sx={{ width: 32, height: 32, fontSize: 14, fontWeight: 700, background: GRADIENT }}>
+              <Avatar sx={{ width: 32, height: 32, fontSize: 14, fontWeight: 700, background: PRIMARY, color: '#FFFFFF' }}>
                 {user?.firstName?.[0]}
               </Avatar>
               <Typography variant="body2" sx={{ fontWeight: 600 }}>{user?.firstName}</Typography>
@@ -142,7 +140,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     transition: 'all 0.15s ease',
                     '&.Mui-selected': {
                       bgcolor: (t) => alpha(t.palette.primary.main, 0.14),
-                      color: '#a5b4fc',
+                      color: '#2D9B6F',
                       '&:hover': { bgcolor: (t) => alpha(t.palette.primary.main, 0.2) },
                       '& .MuiListItemIcon-root': { color: 'primary.light' },
                     },

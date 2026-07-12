@@ -58,7 +58,7 @@ interface WeakWord {
 
 const STAT_CONFIG: { key: string; Icon: LucideIcon; color: string }[] = [
   { key: 'streak',   Icon: Flame,    color: '#f59e0b' },
-  { key: 'xp',       Icon: Zap,      color: '#6366f1' },
+  { key: 'xp',       Icon: Zap,      color: '#2D9B6F' },
   { key: 'total',    Icon: BookOpen, color: '#38bdf8' },
   { key: 'mastered', Icon: Trophy,   color: '#10b981' },
 ]
@@ -90,12 +90,12 @@ function buildHeatmapCells(history: Record<string, { reviewed: number }>, weeks 
 }
 
 function heatColor(count: number, isFuture: boolean) {
-  if (isFuture) return 'rgba(255,255,255,0.03)'
-  if (count === 0) return 'rgba(255,255,255,0.06)'
-  if (count <= 2) return 'rgba(99,102,241,0.3)'
-  if (count <= 5) return 'rgba(99,102,241,0.55)'
-  if (count <= 9) return 'rgba(99,102,241,0.8)'
-  return '#6366f1'
+  if (isFuture) return 'rgba(28,42,36,0.04)'
+  if (count === 0) return 'rgba(28,42,36,0.06)'
+  if (count <= 2) return 'rgba(45,155,111,0.3)'
+  if (count <= 5) return 'rgba(45,155,111,0.55)'
+  if (count <= 9) return 'rgba(45,155,111,0.8)'
+  return '#2D9B6F'
 }
 
 function WeakWordsReview({ words, onClose }: { words: WeakWord[]; onClose: () => void }) {
@@ -125,7 +125,7 @@ function WeakWordsReview({ words, onClose }: { words: WeakWord[]; onClose: () =>
         <motion.div
           initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 220 }}
           className="w-20 h-20 rounded-3xl flex items-center justify-center"
-          style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.28)' }}
+          style={{ background: 'rgba(45,155,111,0.12)', border: '1px solid rgba(45,155,111,0.28)' }}
         >
           <PartyPopper size={36} strokeWidth={1.8} style={{ color: 'var(--ws-primary-light)' }} />
         </motion.div>
@@ -163,7 +163,7 @@ function WeakWordsReview({ words, onClose }: { words: WeakWord[]; onClose: () =>
       </div>
 
       {/* Progress bar */}
-      <div className="h-1.5 rounded-full overflow-hidden mb-6 shrink-0" style={{ background: 'rgba(255,255,255,0.06)' }}>
+      <div className="h-1.5 rounded-full overflow-hidden mb-6 shrink-0" style={{ background: 'rgba(28,42,36,0.06)' }}>
         <motion.div className="h-full rounded-full ws-gradient-bg"
           animate={{ width: `${(index / words.length) * 100}%` }}
           transition={{ type: 'spring', stiffness: 200, damping: 28 }} />
@@ -190,7 +190,7 @@ function WeakWordsReview({ words, onClose }: { words: WeakWord[]; onClose: () =>
                 <h2 className="font-black" style={{ color: 'var(--ws-text)', fontSize: 'clamp(2rem, 7vw, 3.5rem)' }}>{current.word.word}</h2>
                 {current.word.pronunciation && <p className="font-mono text-sm" style={{ color: 'var(--ws-faint)' }}>{current.word.pronunciation}</p>}
                 {current.word.partOfSpeech && (
-                  <span className="text-xs font-bold px-3 py-1 rounded-full" style={{ color: 'var(--ws-primary-light)', background: 'rgba(99,102,241,0.12)' }}>
+                  <span className="text-xs font-bold px-3 py-1 rounded-full" style={{ color: 'var(--ws-primary-light)', background: 'rgba(45,155,111,0.12)' }}>
                     {current.word.partOfSpeech}
                   </span>
                 )}
@@ -262,7 +262,7 @@ export function ProgressPage({ onBack }: { onBack?: () => void }) {
 
   const statusBars = data ? [
     { label: t('progress.mastered'), val: data.mastered, color: '#10b981' },
-    { label: t('progress.learned'),  val: data.learned,  color: '#6366f1' },
+    { label: t('progress.learned'),  val: data.learned,  color: '#2D9B6F' },
     { label: t('progress.learning'), val: data.learning, color: '#f59e0b' },
   ] : []
 
@@ -342,7 +342,7 @@ export function ProgressPage({ onBack }: { onBack?: () => void }) {
           {statusBars.map((item, idx) => (
             <div key={item.label} className="flex items-center gap-3 mb-3 last:mb-0">
               <span className="text-xs w-20 shrink-0" style={{ color: 'var(--ws-muted)' }}>{item.label}</span>
-              <div className="flex-1 rounded-full h-2 overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+              <div className="flex-1 rounded-full h-2 overflow-hidden" style={{ background: 'rgba(28,42,36,0.06)' }}>
                 <motion.div
                   className="h-full rounded-full"
                   style={{ background: item.color }}
@@ -446,7 +446,7 @@ export function ProgressPage({ onBack }: { onBack?: () => void }) {
                 style={{
                   background: heatColor(cell.count, cell.isFuture),
                   borderRadius: '2px',
-                  outline: cell.isToday ? '1.5px solid rgba(99,102,241,0.8)' : 'none',
+                  outline: cell.isToday ? '1.5px solid rgba(45,155,111,0.8)' : 'none',
                 }}
               />
             ))}
@@ -477,7 +477,7 @@ export function ProgressPage({ onBack }: { onBack?: () => void }) {
           <h3 className="font-bold text-xs uppercase tracking-widest flex items-center gap-2" style={{ color: 'var(--ws-faint)' }}>
             <Activity size={14} strokeWidth={2.4} style={{ color: 'var(--ws-muted)' }} /> {t('progress.history')}
           </h3>
-          <div className="flex gap-1 rounded-btn p-1" style={{ background: 'rgba(255,255,255,0.06)' }}>
+          <div className="flex gap-1 rounded-btn p-1" style={{ background: 'rgba(28,42,36,0.06)' }}>
             {(['week', 'month'] as const).map((p) => (
               <button
                 key={p}
@@ -543,7 +543,7 @@ export function ProgressPage({ onBack }: { onBack?: () => void }) {
                     className="w-14 h-14 rounded-2xl flex items-center justify-center relative"
                     style={isUnlocked
                       ? { background: 'rgba(245,158,11,0.14)', border: '1px solid rgba(245,158,11,0.35)' }
-                      : { background: 'rgba(255,255,255,0.04)', border: '1px solid var(--ws-border)', opacity: 0.45 }
+                      : { background: 'rgba(28,42,36,0.04)', border: '1px solid var(--ws-border)', opacity: 0.45 }
                     }
                   >
                     <achievement.Icon size={22} strokeWidth={2} style={{ color: isUnlocked ? 'var(--ws-warning)' : 'var(--ws-faint)' }} />

@@ -413,7 +413,7 @@ export function PartnersPage() {
           <Alert severity="warning" sx={{ mb: 2 }}>
             Kalitni saqlang va markazga <strong>Integratsiya paketi (ZIP)</strong> ni yuboring — ichida API kalit va to'liq hujjat bor.
           </Alert>
-          <Paper sx={{ p: 2, bgcolor: alpha('#6366f1', 0.1), fontFamily: 'monospace', wordBreak: 'break-all' }}>
+          <Paper sx={{ p: 2, bgcolor: alpha('#2D9B6F', 0.1), fontFamily: 'monospace', wordBreak: 'break-all' }}>
             {apiKeyDialog?.apiKey}
           </Paper>
         </DialogContent>
@@ -488,7 +488,7 @@ export function PartnersPage() {
                   { label: 'Xodimlar', value: analytics.overview.staff_count },
                 ].map((card) => (
                   <Grid item xs={6} sm={3} key={card.label}>
-                    <Paper sx={{ p: 2, bgcolor: alpha('#6366f1', 0.08) }}>
+                    <Paper sx={{ p: 2, bgcolor: alpha('#2D9B6F', 0.08) }}>
                       <Typography variant="caption" color="text.secondary">{card.label}</Typography>
                       <Typography variant="h5" fontWeight={800}>{card.value}</Typography>
                     </Paper>

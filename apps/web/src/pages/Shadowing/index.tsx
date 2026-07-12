@@ -22,10 +22,10 @@ const SPEEDS = [0.5, 0.75, 1] as const
 const LEVEL_TINT: Record<CefrLevel, string> = {
   A1: '#10b981',
   A2: '#34d399',
-  B1: '#6366f1',
-  B2: '#818cf8',
-  C1: '#a78bfa',
-  C2: '#8b5cf6',
+  B1: '#2D9B6F',
+  B2: '#4CB388',
+  C1: '#4CB388',
+  C2: '#F0A04B',
 }
 
 function fmtTime(sec: number | null): string {
@@ -96,7 +96,7 @@ function ListView({
           <div className="flex gap-2 overflow-x-auto no-scrollbar pb-3 -mx-1 px-1">
             {[null, ...present].map((lv) => {
               const active = filter === lv
-              const tint = lv ? LEVEL_TINT[lv] : '#6366f1'
+              const tint = lv ? LEVEL_TINT[lv] : '#2D9B6F'
               return (
                 <motion.button
                   key={lv ?? 'all'}
@@ -240,7 +240,7 @@ function DoneOverlay({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ delay: 0.2, type: 'spring', stiffness: 320, damping: 20 }}
           className="rounded-btn px-6 py-4 flex items-center gap-2"
-          style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.25)' }}
+          style={{ background: 'rgba(45,155,111,0.1)', border: '1px solid rgba(45,155,111,0.25)' }}
         >
           <Sparkles size={20} strokeWidth={2.2} style={{ color: 'var(--ws-primary-light)' }} />
           <p className="font-black text-xl" style={{ color: 'var(--ws-primary-light)' }}>+{result.xpEarned} XP</p>
@@ -443,7 +443,7 @@ function PlayerView({
                     className="text-xs font-black px-2.5 py-1.5 rounded-lg tabular-nums"
                     style={{
                       color: active ? '#fff' : 'var(--ws-muted)',
-                      background: active ? 'var(--ws-gradient)' : 'transparent',
+                      background: active ? 'var(--ws-primary)' : 'transparent',
                     }}
                   >
                     {s}x
@@ -469,7 +469,7 @@ function PlayerView({
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-btn text-xs font-bold"
               style={
                 loop
-                  ? { color: 'var(--ws-primary-light)', background: 'rgba(99,102,241,0.14)', border: '1px solid rgba(99,102,241,0.3)' }
+                  ? { color: 'var(--ws-primary-light)', background: 'rgba(45,155,111,0.14)', border: '1px solid rgba(45,155,111,0.3)' }
                   : { color: 'var(--ws-muted)', background: 'var(--ws-card-2)', border: '1px solid var(--ws-border)' }
               }
             >
@@ -479,7 +479,7 @@ function PlayerView({
 
           {/* Transcript */}
           <div className="rounded-card p-4"
-            style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.04))', border: '1px solid rgba(99,102,241,0.16)' }}>
+            style={{ background: 'rgba(45,155,111,0.08)', border: '1px solid rgba(45,155,111,0.16)' }}>
             <div className="flex items-center justify-between mb-3">
               <p className="text-[11px] font-black uppercase tracking-widest" style={{ color: 'var(--ws-faint)' }}>
                 {t('shadowing.transcript')}
@@ -513,8 +513,8 @@ function PlayerView({
                         className="w-full text-left rounded-xl px-3 py-2.5"
                         style={
                           active
-                            ? { background: 'rgba(99,102,241,0.16)', border: '1px solid rgba(99,102,241,0.4)' }
-                            : { background: 'rgba(255,255,255,0.03)', border: '1px solid transparent' }
+                            ? { background: 'rgba(45,155,111,0.16)', border: '1px solid rgba(45,155,111,0.4)' }
+                            : { background: 'rgba(28,42,36,0.04)', border: '1px solid transparent' }
                         }
                       >
                         <p className="font-semibold text-[15px] leading-snug" style={{ color: 'var(--ws-text)' }}>
@@ -568,7 +568,7 @@ function PlayerView({
             style={
               clip.completed
                 ? { background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: 'var(--ws-success)' }
-                : { background: 'linear-gradient(135deg, #10b981, #059669)', boxShadow: '0 8px 24px rgba(16,185,129,0.3)' }
+                : { background: '#10b981', boxShadow: '0 8px 24px rgba(16,185,129,0.3)' }
             }
           >
             {completing

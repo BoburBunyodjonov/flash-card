@@ -19,6 +19,8 @@ export interface UserWord {
   reviewCount: number
   lastReviewed: string | null
   createdAt: string
+  sharedFromUserId: string | null
+  sharedFromName: string | null
 }
 
 /** Result of an English-word dictionary lookup (auto-fill source). */
