@@ -10,4 +10,26 @@ export const wordsApi = {
     api.post('/api/admin/words/fetch-dictionary', { word }).then((r) => r.data.data),
   bulkImport: (words: unknown[]) =>
     api.post('/api/admin/words/import', { words }).then((r) => r.data.data),
+  audioStats: () =>
+    api.get('/api/admin/words/audio-stats').then(
+      (r) =>
+        r.data.data as {
+          total: number
+          with_audio: number
+          missing_audio: number
+          tts_configured: boolean
+        },
+    ),
+  enrichAudio: (data?: { limit?: number; useTts?: boolean }) =>
+    api.post('/api/admin/words/enrich-audio', data ?? {}).then(
+      (r) =>
+        r.data.data as {
+          scanned: number
+          dictionaryAudio: number
+          ttsAudio: number
+          definitionsUpdated: number
+          notFound: number
+          remaining: number
+        },
+    ),
 }

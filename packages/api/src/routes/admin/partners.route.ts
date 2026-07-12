@@ -14,6 +14,10 @@ import {
   sendPartnerWebhookPing,
 } from '../../services/partner-webhook.service'
 import { buildIntegrationKit } from '../../services/integration-kit.service'
+import {
+  getPartnerAnalyticsOverview,
+} from '../../services/partner-analytics.service'
+import { getGroupLearnersProgress } from '../../services/integration-analytics.service'
 
 const connectorMetadataSchema = z.object({
   connector: z.enum(CONNECTOR_TYPES).optional(),
@@ -53,6 +57,27 @@ export async function adminPartnersRoutes(fastify: FastifyInstance) {
     const query = z.object({ limit: z.coerce.number().max(100).default(30) }).parse(req.query)
     const rows = await listWebhookDeliveries(id, query.limit)
     return reply.send({ success: true, data: rows })
+  })
+
+  fastify.get('/:id/analytics', async (req, reply) => {
+    const { id } = req.params as { id: string }
+    const data = await getPartnerAnalyticsOverview(id)
+    if (!data) return reply.code(404).send({ success: false, error: 'Not found' })
+    return reply.send({ success: true, data })
+  })
+
+  fastify.get('/:id/groups/:externalId/learners/progress', async (req, reply) => {
+    const { id, externalId } = req.params as { id: string; externalId: string }
+    const query = z
+      .object({ status: z.enum(['active', 'inactive', 'all']).optional() })
+      .safeParse(req.query)
+    if (!query.success) return reply.code(400).send({ success: false, error: query.error.message })
+
+    const data = await getGroupLearnersProgress(id, decodeURIComponent(externalId), {
+      status: query.data.status,
+    })
+    if (!data) return reply.code(404).send({ success: false, error: 'Group not found' })
+    return reply.send({ success: true, data })
   })
 
   fastify.post('/', async (req, reply) => {

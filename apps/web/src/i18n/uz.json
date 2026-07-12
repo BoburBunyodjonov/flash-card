@@ -3,7 +3,7 @@
     "title": "WordSwipe",
     "subtitle": "So'z yodlashni o'yinga aylantir",
     "button": "Telegram bilan kirish",
-    "connecting": "Telegram'ga ulanmoqda...",
+    "connecting": "Ulanmoqda...",
     "retry": "Qayta urinish",
     "statsWords": "So'zlar",
     "statsLearners": "O'quvchilar",
@@ -11,7 +11,15 @@
     "featStreak": "Streak tizimi",
     "featSrs": "Interval takrorlash",
     "featLeaderboard": "Reyting jadvali",
-    "featOffline": "Oflayn rejim"
+    "featOffline": "Oflayn rejim",
+    "orPhone": "yoki telefon bilan",
+    "tabLogin": "Kirish",
+    "tabRegister": "Ro'yxat",
+    "firstName": "Ism",
+    "phone": "Telefon (90 123 45 67)",
+    "password": "Parol (min 6)",
+    "login": "Kirish",
+    "register": "Ro'yxatdan o'tish"
   },
   "nav": {
     "feed": "Takrorlash",

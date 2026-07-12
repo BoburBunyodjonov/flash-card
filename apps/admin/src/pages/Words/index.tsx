@@ -11,6 +11,7 @@ import EditRoundedIcon from '@mui/icons-material/EditRounded'
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded'
 import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded'
 import AutoFixHighRoundedIcon from '@mui/icons-material/AutoFixHighRounded'
+import GraphicEqRoundedIcon from '@mui/icons-material/GraphicEqRounded'
 import { PageHeader } from '../../components/PageHeader'
 import { wordsApi } from '../../api/words.api'
 import { categoriesApi } from '../../api/categories.api'
@@ -54,6 +55,15 @@ export function WordsPage() {
   const [saving, setSaving] = useState(false)
   const [fetchingDict, setFetchingDict] = useState(false)
   const [error, setError] = useState('')
+  const [enriching, setEnriching] = useState(false)
+  const [audioStats, setAudioStats] = useState<{
+    total: number; with_audio: number; missing_audio: number; tts_configured: boolean
+  } | null>(null)
+  const [enrichMsg, setEnrichMsg] = useState<string | null>(null)
+
+  const loadAudioStats = useCallback(() => {
+    wordsApi.audioStats().then(setAudioStats).catch(console.error)
+  }, [])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -65,7 +75,24 @@ export function WordsPage() {
 
   useEffect(() => { load() }, [load])
   useEffect(() => { categoriesApi.list().then(setCategories).catch(console.error) }, [])
+  useEffect(() => { loadAudioStats() }, [loadAudioStats])
 
+  const runEnrichAudio = async () => {
+    setEnriching(true)
+    setEnrichMsg(null)
+    try {
+      const result = await wordsApi.enrichAudio({ limit: 100, useTts: true })
+      setEnrichMsg(
+        `Enrich: dict ${result.dictionaryAudio}, TTS ${result.ttsAudio}, defs ${result.definitionsUpdated}, qoldi ${result.remaining}`,
+      )
+      load()
+      loadAudioStats()
+    } catch (e: unknown) {
+      setEnrichMsg((e as Error).message)
+    } finally {
+      setEnriching(false)
+    }
+  }
   const openCreate = () => { setForm(emptyForm); setSelected(null); setError(''); setDialog('create') }
   const openEdit = (word: Word) => {
     setSelected(word)
@@ -172,13 +199,32 @@ export function WordsPage() {
     <Box>
       <PageHeader
         title="Words"
-        subtitle={`${total.toLocaleString()} words in the vocabulary database`}
+        subtitle={
+          audioStats
+            ? `${total.toLocaleString()} words · audio ${audioStats.with_audio}/${audioStats.total}` +
+              (audioStats.missing_audio ? ` · ${audioStats.missing_audio} missing` : '')
+            : `${total.toLocaleString()} words in the vocabulary database`
+        }
         action={
-          <Button variant="contained" startIcon={<AddRoundedIcon />} onClick={openCreate}>
-            Add Word
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              variant="outlined"
+              startIcon={enriching ? <CircularProgress size={16} /> : <GraphicEqRoundedIcon />}
+              disabled={enriching || (audioStats?.missing_audio === 0)}
+              onClick={runEnrichAudio}
+            >
+              Enrich audio
+            </Button>
+            <Button variant="contained" startIcon={<AddRoundedIcon />} onClick={openCreate}>
+              Add Word
+            </Button>
+          </Box>
         }
       />
+
+      {enrichMsg && (
+        <Alert severity="info" sx={{ mb: 2 }} onClose={() => setEnrichMsg(null)}>{enrichMsg}</Alert>
+      )}
 
       <Paper sx={{ mb: 2, p: 2 }}>
         <TextField

@@ -2,6 +2,10 @@ import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../../lib/prisma'
 import { fetchDictionaryData } from '../../services/words.service'
+import {
+  enrichMissingAudio,
+  getWordAudioStats,
+} from '../../services/audio-enrichment.service'
 
 const wordSchema = z.object({
   word: z.string().min(1),
@@ -135,5 +139,25 @@ export async function adminWordsRoutes(fastify: FastifyInstance) {
     }
 
     return reply.send({ success: true, data: { created, skipped } })
+  })
+
+  fastify.get('/audio-stats', async (_req, reply) => {
+    return reply.send({ success: true, data: await getWordAudioStats() })
+  })
+
+  fastify.post('/enrich-audio', async (req, reply) => {
+    const body = z
+      .object({
+        limit: z.coerce.number().min(1).max(500).default(100),
+        useTts: z.boolean().optional(),
+      })
+      .safeParse(req.body ?? {})
+    if (!body.success) return reply.code(400).send({ success: false, error: body.error.message })
+
+    const result = await enrichMissingAudio({
+      limit: body.data.limit,
+      useTts: body.data.useTts,
+    })
+    return reply.send({ success: true, data: result })
   })
 }

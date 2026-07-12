@@ -3,7 +3,7 @@
     "title": "WordSwipe",
     "subtitle": "Turn vocabulary learning into a game",
     "button": "Login with Telegram",
-    "connecting": "Connecting to Telegram...",
+    "connecting": "Connecting...",
     "retry": "Retry",
     "statsWords": "Words",
     "statsLearners": "Learners",
@@ -11,7 +11,15 @@
     "featStreak": "Streak system",
     "featSrs": "Spaced repetition",
     "featLeaderboard": "Leaderboard",
-    "featOffline": "Offline mode"
+    "featOffline": "Offline mode",
+    "orPhone": "or continue with phone",
+    "tabLogin": "Log in",
+    "tabRegister": "Sign up",
+    "firstName": "First name",
+    "phone": "Phone (90 123 45 67)",
+    "password": "Password (min 6)",
+    "login": "Log in",
+    "register": "Create account"
   },
   "nav": {
     "feed": "Review",

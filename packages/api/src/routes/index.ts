@@ -30,9 +30,11 @@ import { adminShadowingRoutes } from './admin/shadowing.route'
 import { adminPartnersRoutes } from './admin/partners.route'
 import { integrationsV1Routes } from './integrations/v1.route'
 import { teacherRoutes } from './teacher.route'
+import { mediaRoutes } from './media.route'
 
 export async function registerRoutes(fastify: FastifyInstance) {
   fastify.register(authRoutes, { prefix: '/api/auth' })
+  fastify.register(mediaRoutes, { prefix: '/api/media' })
   fastify.register(feedRoutes, { prefix: '/api/feed' })
   fastify.register(wordsRoutes, { prefix: '/api/words' })
   fastify.register(decksRoutes, { prefix: '/api/decks' })

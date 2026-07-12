@@ -3,7 +3,7 @@
     "title": "WordSwipe",
     "subtitle": "Превратите изучение слов в игру",
     "button": "Войти через Telegram",
-    "connecting": "Подключение к Telegram...",
+    "connecting": "Подключение...",
     "retry": "Повторить",
     "statsWords": "Слова",
     "statsLearners": "Учащиеся",
@@ -11,7 +11,15 @@
     "featStreak": "Система серий",
     "featSrs": "Интервальное повторение",
     "featLeaderboard": "Таблица лидеров",
-    "featOffline": "Офлайн-режим"
+    "featOffline": "Офлайн-режим",
+    "orPhone": "или через телефон",
+    "tabLogin": "Вход",
+    "tabRegister": "Регистрация",
+    "firstName": "Имя",
+    "phone": "Телефон (90 123 45 67)",
+    "password": "Пароль (мин 6)",
+    "login": "Войти",
+    "register": "Создать аккаунт"
   },
   "nav": {
     "feed": "Повтор",

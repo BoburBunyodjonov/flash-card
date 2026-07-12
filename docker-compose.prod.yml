@@ -45,6 +45,8 @@ services:
       PORT: '3000'
     ports:
       - '127.0.0.1:3001:3000'
+    volumes:
+      - wordaudio:/tmp/wordswipe-audio
     depends_on:
       postgres:
         condition: service_healthy
@@ -54,3 +56,4 @@ services:
 volumes:
   pgdata:
   redisdata:
+  wordaudio:

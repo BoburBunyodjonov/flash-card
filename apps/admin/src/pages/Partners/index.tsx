@@ -3,7 +3,7 @@ import {
   Box, Button, Chip, CircularProgress, Dialog, DialogActions, DialogContent,
   DialogTitle, FormControl, FormControlLabel, IconButton, InputLabel,
   MenuItem, Paper, Select, Switch, TextField, Tooltip, Typography, Alert,
-  Divider, alpha,
+  Divider, alpha, Grid,
 } from '@mui/material'
 import { DataGrid, type GridColDef } from '@mui/x-data-grid'
 import AddRoundedIcon from '@mui/icons-material/AddRounded'
@@ -14,6 +14,7 @@ import EditRoundedIcon from '@mui/icons-material/EditRounded'
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded'
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded'
 import HubRoundedIcon from '@mui/icons-material/HubRounded'
+import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded'
 import { PageHeader } from '../../components/PageHeader'
 import { downloadPartnerIntegrationKit } from '../../lib/integrationKitDownload'
 import {
@@ -23,6 +24,8 @@ import {
   type PartnerDetail,
   type PartnerAccessMode,
   type WebhookDelivery,
+  type PartnerAnalytics,
+  type LearnerProgressRow,
 } from '../../api/partners.api'
 
 const CONNECTORS: { value: ConnectorType; label: string; hint: string }[] = [
@@ -88,6 +91,12 @@ export function PartnersPage() {
     partner: Pick<Partner, 'id' | 'name' | 'slug'>
   } | null>(null)
   const [kitDownloading, setKitDownloading] = useState<string | null>(null)
+  const [analyticsPartner, setAnalyticsPartner] = useState<Partner | null>(null)
+  const [analytics, setAnalytics] = useState<PartnerAnalytics | null>(null)
+  const [analyticsLoading, setAnalyticsLoading] = useState(false)
+  const [selectedGroupId, setSelectedGroupId] = useState('')
+  const [learners, setLearners] = useState<LearnerProgressRow[]>([])
+  const [learnersLoading, setLearnersLoading] = useState(false)
   const [webhookRows, setWebhookRows] = useState<WebhookDelivery[]>([])
   const [webhookPartner, setWebhookPartner] = useState<Partner | null>(null)
   const [syncing, setSyncing] = useState<string | null>(null)
@@ -186,6 +195,40 @@ export function PartnersPage() {
     }
   }
 
+  const openAnalytics = async (row: Partner) => {
+    setAnalyticsPartner(row)
+    setAnalytics(null)
+    setSelectedGroupId('')
+    setLearners([])
+    setAnalyticsLoading(true)
+    try {
+      const data = await partnersApi.analytics(row.id)
+      setAnalytics(data)
+      if (data.groups[0]) setSelectedGroupId(data.groups[0].external_id)
+    } catch (e: unknown) {
+      setMessage((e as Error).message)
+      setAnalyticsPartner(null)
+    } finally {
+      setAnalyticsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!analyticsPartner || !selectedGroupId) return
+    let cancelled = false
+    setLearnersLoading(true)
+    partnersApi
+      .groupProgress(analyticsPartner.id, selectedGroupId)
+      .then((data) => {
+        if (!cancelled) setLearners(data.learners)
+      })
+      .catch(console.error)
+      .finally(() => {
+        if (!cancelled) setLearnersLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [analyticsPartner, selectedGroupId])
+
   const runSync = async (id: string) => {
     setSyncing(id)
     setMessage(null)
@@ -224,9 +267,14 @@ export function PartnersPage() {
     { field: 'enrollmentsCount', headerName: 'O\'quvchilar', width: 100 },
     { field: 'apiKeyPrefix', headerName: 'API key', width: 120 },
     {
-      field: 'actions', headerName: '', width: 240, sortable: false,
+      field: 'actions', headerName: '', width: 280, sortable: false,
       renderCell: ({ row }) => (
         <Box sx={{ display: 'flex', gap: 0.5 }}>
+          <Tooltip title="Analitika">
+            <IconButton size="small" onClick={() => openAnalytics(row)}>
+              <InsightsRoundedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
           <Tooltip title="Integratsiya paketi (ZIP)">
             <IconButton size="small" disabled={kitDownloading === row.id}
               onClick={() => downloadKit(row)}>
@@ -412,6 +460,104 @@ export function PartnersPage() {
           )}
         </DialogContent>
         <DialogActions><Button onClick={() => setWebhookPartner(null)}>Yopish</Button></DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={!!analyticsPartner}
+        onClose={() => setAnalyticsPartner(null)}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle>Analitika — {analyticsPartner?.name}</DialogTitle>
+        <DialogContent>
+          {analyticsLoading || !analytics ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
+              <Grid container spacing={2}>
+                {[
+                  { label: 'Aktiv o\'quvchilar', value: analytics.overview.students_active },
+                  { label: 'Bog\'langan', value: analytics.overview.students_linked },
+                  { label: 'Link %', value: `${analytics.overview.link_rate}%` },
+                  { label: '7 kun faol', value: analytics.overview.active_last_7_days },
+                  { label: 'O\'rtacha XP', value: analytics.overview.avg_xp },
+                  { label: 'O\'rtacha streak', value: analytics.overview.avg_streak },
+                  { label: 'Guruhlar', value: analytics.overview.groups_count },
+                  { label: 'Xodimlar', value: analytics.overview.staff_count },
+                ].map((card) => (
+                  <Grid item xs={6} sm={3} key={card.label}>
+                    <Paper sx={{ p: 2, bgcolor: alpha('#6366f1', 0.08) }}>
+                      <Typography variant="caption" color="text.secondary">{card.label}</Typography>
+                      <Typography variant="h5" fontWeight={800}>{card.value}</Typography>
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+
+              <FormControl fullWidth size="small">
+                <InputLabel>Guruh</InputLabel>
+                <Select
+                  label="Guruh"
+                  value={selectedGroupId}
+                  onChange={(e) => setSelectedGroupId(e.target.value)}
+                >
+                  {analytics.groups.map((g) => (
+                    <MenuItem key={g.external_id} value={g.external_id}>
+                      {g.name} ({g.students_linked}/{g.students_total})
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <Paper sx={{ height: 360 }}>
+                <DataGrid
+                  rows={learners.map((l) => ({ ...l, id: l.external_id }))}
+                  columns={[
+                    { field: 'external_id', headerName: 'ID', width: 110 },
+                    {
+                      field: 'name',
+                      headerName: 'Ism',
+                      flex: 1,
+                      minWidth: 140,
+                      valueGetter: (_v, row) =>
+                        [row.first_name, row.last_name].filter(Boolean).join(' ') || '—',
+                    },
+                    { field: 'phone', headerName: 'Telefon', width: 130 },
+                    {
+                      field: 'linked',
+                      headerName: 'Link',
+                      width: 80,
+                      renderCell: ({ value }) => (
+                        <Chip size="small" label={value ? 'Ha' : 'Yo\'q'} color={value ? 'success' : 'default'} />
+                      ),
+                    },
+                    { field: 'xp', headerName: 'XP', width: 80 },
+                    { field: 'streak', headerName: 'Streak', width: 80 },
+                    { field: 'words_count', headerName: 'So\'z', width: 80 },
+                    { field: 'words_due', headerName: 'Due', width: 70 },
+                    {
+                      field: 'last_active',
+                      headerName: 'Faol',
+                      width: 140,
+                      valueGetter: (_v, row) =>
+                        row.last_active ? new Date(row.last_active).toLocaleDateString() : '—',
+                    },
+                  ]}
+                  loading={learnersLoading}
+                  density="compact"
+                  disableRowSelectionOnClick
+                  pageSizeOptions={[10, 25]}
+                  initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
+                />
+              </Paper>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAnalyticsPartner(null)}>Yopish</Button>
+        </DialogActions>
       </Dialog>
     </Box>
   )

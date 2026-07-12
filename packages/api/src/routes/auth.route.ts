@@ -43,6 +43,16 @@ const webAppSchema = z.object({
 })
 
 export async function authRoutes(fastify: FastifyInstance) {
+  fastify.get('/public-config', async (_req, reply) => {
+    return reply.send({
+      success: true,
+      data: {
+        telegram_bot_username: config.telegram.botUsername || null,
+        app_url: config.telegram.appUrl,
+      },
+    })
+  })
+
   fastify.post('/telegram', async (req, reply) => {
     const body = widgetSchema.safeParse(req.body)
     if (!body.success) return reply.code(400).send({ success: false, error: 'Invalid body' })
