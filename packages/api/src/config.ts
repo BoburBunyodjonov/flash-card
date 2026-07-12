@@ -64,6 +64,9 @@ export const config = {
     password: process.env.ADMIN_PASSWORD ?? 'admin123',
   },
 
+  /** AES key material for partner connector secrets (edupage password, REST auth). */
+  partnerSecretsKey: (process.env.PARTNER_SECRETS_KEY ?? '').trim(),
+
   redis: {
     url: process.env.REDIS_URL ?? 'redis://localhost:6379',
   },

@@ -10,6 +10,7 @@ import { prisma } from '../lib/prisma'
 import { normalizePhone } from './auth.service'
 import { applyPartnerBenefitsForUser } from './partner-enrollment.service'
 import { dispatchPartnerWebhook } from './partner-webhook.service'
+import { buildLearnerProgressSnapshot } from './integration-analytics.service'
 
 export interface LearnerRecord {
   external_id: string
@@ -334,42 +335,7 @@ export async function deactivateLearner(
 }
 
 export async function getLearnerProgress(partnerId: string, externalId: string) {
-  const enrollment = await prisma.integrationEnrollment.findUnique({
-    where: { partnerId_externalId: { partnerId, externalId } },
-    include: {
-      user: {
-        select: {
-          id: true,
-          streak: true,
-          xp: true,
-          lastActive: true,
-          _count: { select: { userWords: true } },
-        },
-      },
-    },
-  })
-  if (!enrollment) return null
-
-  const dueCount = enrollment.userId
-    ? await prisma.userWord.count({
-        where: {
-          userId: enrollment.userId,
-          status: { not: 'mastered' },
-          nextReview: { lte: new Date() },
-        },
-      })
-    : 0
-
-  return {
-    external_id: enrollment.externalId,
-    linked: !!enrollment.userId,
-    user_id: enrollment.userId,
-    streak: enrollment.user?.streak ?? 0,
-    xp: enrollment.user?.xp ?? 0,
-    words_count: enrollment.user?._count.userWords ?? 0,
-    words_due: dueCount,
-    last_active: enrollment.user?.lastActive?.toISOString() ?? null,
-  }
+  return buildLearnerProgressSnapshot(partnerId, externalId)
 }
 
 export async function logSync(

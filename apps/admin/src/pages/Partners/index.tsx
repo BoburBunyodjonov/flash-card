@@ -12,8 +12,10 @@ import VpnKeyRoundedIcon from '@mui/icons-material/VpnKeyRounded'
 import WebhookRoundedIcon from '@mui/icons-material/WebhookRounded'
 import EditRoundedIcon from '@mui/icons-material/EditRounded'
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded'
+import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded'
 import HubRoundedIcon from '@mui/icons-material/HubRounded'
 import { PageHeader } from '../../components/PageHeader'
+import { downloadPartnerIntegrationKit } from '../../lib/integrationKitDownload'
 import {
   partnersApi,
   type ConnectorType,
@@ -64,6 +66,16 @@ function buildMetadata(form: ReturnType<typeof emptyForm>) {
   return metadata
 }
 
+function metaHasEdupagePassword(detail: PartnerDetail) {
+  const ed = (detail.metadata?.edupage ?? {}) as Record<string, unknown>
+  return Boolean(ed.password_set)
+}
+
+function metaHasAuthHeader(detail: PartnerDetail) {
+  const gr = (detail.metadata?.generic_rest ?? {}) as Record<string, unknown>
+  return Boolean(gr.auth_header_set)
+}
+
 export function PartnersPage() {
   const [rows, setRows] = useState<Partner[]>([])
   const [loading, setLoading] = useState(true)
@@ -71,7 +83,11 @@ export function PartnersPage() {
   const [editing, setEditing] = useState<PartnerDetail | null>(null)
   const [form, setForm] = useState(emptyForm())
   const [saving, setSaving] = useState(false)
-  const [apiKeyDialog, setApiKeyDialog] = useState<string | null>(null)
+  const [apiKeyDialog, setApiKeyDialog] = useState<{
+    apiKey: string
+    partner: Pick<Partner, 'id' | 'name' | 'slug'>
+  } | null>(null)
+  const [kitDownloading, setKitDownloading] = useState<string | null>(null)
   const [webhookRows, setWebhookRows] = useState<WebhookDelivery[]>([])
   const [webhookPartner, setWebhookPartner] = useState<Partner | null>(null)
   const [syncing, setSyncing] = useState<string | null>(null)
@@ -109,9 +125,9 @@ export function PartnersPage() {
       webhookSecret: '',
       connector: (detail.connector as ConnectorType) ?? 'manual',
       genericBundleUrl: gr.bundle_url ?? '',
-      genericAuthHeader: gr.auth_header ?? '',
+      genericAuthHeader: '',
       edupageUsername: ed.username ?? '',
-      edupagePassword: ed.password ?? '',
+      edupagePassword: '',
       edupageSchool: ed.school_subdomain ?? '',
       edupagePhoneField: ed.student_phone_field ?? 'phone',
     })
@@ -135,7 +151,10 @@ export function PartnersPage() {
         await partnersApi.update(editing.id, payload)
       } else {
         const res = await partnersApi.create(payload)
-        setApiKeyDialog(res.data.apiKey)
+        setApiKeyDialog({
+          apiKey: res.data.apiKey,
+          partner: { id: res.data.id, name: res.data.name, slug: res.data.slug },
+        })
       }
       setFormOpen(false)
       load()
@@ -146,9 +165,25 @@ export function PartnersPage() {
     }
   }
 
-  const rotateKey = async (id: string) => {
-    const res = await partnersApi.rotateKey(id)
-    setApiKeyDialog(res.data.apiKey)
+  const rotateKey = async (row: Partner) => {
+    const res = await partnersApi.rotateKey(row.id)
+    setApiKeyDialog({
+      apiKey: res.data.apiKey,
+      partner: { id: row.id, name: row.name, slug: row.slug },
+    })
+  }
+
+  const downloadKit = async (partner: Pick<Partner, 'id' | 'name' | 'slug'>, apiKey?: string) => {
+    setKitDownloading(partner.id)
+    setMessage(null)
+    try {
+      await downloadPartnerIntegrationKit(partner, apiKey)
+      setMessage(`Integratsiya paketi yuklandi: ${partner.slug}`)
+    } catch (e: unknown) {
+      setMessage((e as Error).message)
+    } finally {
+      setKitDownloading(null)
+    }
   }
 
   const runSync = async (id: string) => {
@@ -189,9 +224,17 @@ export function PartnersPage() {
     { field: 'enrollmentsCount', headerName: 'O\'quvchilar', width: 100 },
     { field: 'apiKeyPrefix', headerName: 'API key', width: 120 },
     {
-      field: 'actions', headerName: '', width: 200, sortable: false,
+      field: 'actions', headerName: '', width: 240, sortable: false,
       renderCell: ({ row }) => (
         <Box sx={{ display: 'flex', gap: 0.5 }}>
+          <Tooltip title="Integratsiya paketi (ZIP)">
+            <IconButton size="small" disabled={kitDownloading === row.id}
+              onClick={() => downloadKit(row)}>
+              {kitDownloading === row.id
+                ? <CircularProgress size={18} />
+                : <DownloadRoundedIcon fontSize="small" />}
+            </IconButton>
+          </Tooltip>
           <Tooltip title="Edit">
             <IconButton size="small" onClick={() => openEdit(row)}><EditRoundedIcon fontSize="small" /></IconButton>
           </Tooltip>
@@ -205,7 +248,7 @@ export function PartnersPage() {
             <IconButton size="small" onClick={() => showWebhooks(row)}><WebhookRoundedIcon fontSize="small" /></IconButton>
           </Tooltip>
           <Tooltip title="Rotate API key">
-            <IconButton size="small" onClick={() => rotateKey(row.id)}><VpnKeyRoundedIcon fontSize="small" /></IconButton>
+            <IconButton size="small" onClick={() => rotateKey(row)}><VpnKeyRoundedIcon fontSize="small" /></IconButton>
           </Tooltip>
         </Box>
       ),
@@ -288,6 +331,8 @@ export function PartnersPage() {
               <TextField label="Bundle URL (JSON: staff, groups, learners)" value={form.genericBundleUrl}
                 onChange={(e) => setForm({ ...form, genericBundleUrl: e.target.value })} fullWidth />
               <TextField label="Auth header (Bearer …)" value={form.genericAuthHeader}
+                type="password"
+                placeholder={editing && metaHasAuthHeader(editing) ? '•••• (o\'zgartirish uchun yozing)' : undefined}
                 onChange={(e) => setForm({ ...form, genericAuthHeader: e.target.value })} fullWidth />
             </>
           )}
@@ -297,6 +342,7 @@ export function PartnersPage() {
               <TextField label="EduPage username" value={form.edupageUsername}
                 onChange={(e) => setForm({ ...form, edupageUsername: e.target.value })} fullWidth />
               <TextField label="EduPage password" type="password" value={form.edupagePassword}
+                placeholder={editing && metaHasEdupagePassword(editing) ? '•••• (o\'zgartirish uchun yozing)' : undefined}
                 onChange={(e) => setForm({ ...form, edupagePassword: e.target.value })} fullWidth />
               <TextField label="School subdomain" placeholder="maktab"
                 value={form.edupageSchool} onChange={(e) => setForm({ ...form, edupageSchool: e.target.value })} fullWidth />
@@ -313,17 +359,28 @@ export function PartnersPage() {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={!!apiKeyDialog} onClose={() => setApiKeyDialog(null)}>
+      <Dialog open={!!apiKeyDialog} onClose={() => setApiKeyDialog(null)} maxWidth="sm" fullWidth>
         <DialogTitle>API kalit — bir marta ko'rsatiladi</DialogTitle>
         <DialogContent>
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            Kalitni saqlang va markazga <strong>Integratsiya paketi (ZIP)</strong> ni yuboring — ichida API kalit va to'liq hujjat bor.
+          </Alert>
           <Paper sx={{ p: 2, bgcolor: alpha('#6366f1', 0.1), fontFamily: 'monospace', wordBreak: 'break-all' }}>
-            {apiKeyDialog}
+            {apiKeyDialog?.apiKey}
           </Paper>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ flexWrap: 'wrap', gap: 1, px: 3, pb: 2 }}>
           <Button startIcon={<ContentCopyRoundedIcon />}
-            onClick={() => apiKeyDialog && navigator.clipboard.writeText(apiKeyDialog)}>
+            onClick={() => apiKeyDialog && navigator.clipboard.writeText(apiKeyDialog.apiKey)}>
             Nusxalash
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={kitDownloading ? <CircularProgress size={16} /> : <DownloadRoundedIcon />}
+            disabled={!apiKeyDialog || kitDownloading === apiKeyDialog.partner.id}
+            onClick={() => apiKeyDialog && downloadKit(apiKeyDialog.partner, apiKeyDialog.apiKey)}
+          >
+            Integratsiya paketi (ZIP)
           </Button>
           <Button variant="contained" onClick={() => setApiKeyDialog(null)}>Tushundim</Button>
         </DialogActions>

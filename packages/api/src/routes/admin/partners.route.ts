@@ -13,6 +13,7 @@ import {
   listWebhookDeliveries,
   sendPartnerWebhookPing,
 } from '../../services/partner-webhook.service'
+import { buildIntegrationKit } from '../../services/integration-kit.service'
 
 const connectorMetadataSchema = z.object({
   connector: z.enum(CONNECTOR_TYPES).optional(),
@@ -28,7 +29,7 @@ const connectorMetadataSchema = z.object({
   edupage: z
     .object({
       username: z.string().min(1),
-      password: z.string().min(1),
+      password: z.string().optional(),
       school_subdomain: z.string().min(1),
       student_phone_field: z.string().optional(),
     })
@@ -104,6 +105,31 @@ export async function adminPartnersRoutes(fastify: FastifyInstance) {
 
     const partner = await updatePartner(id, body.data)
     return reply.send({ success: true, data: partner })
+  })
+
+  fastify.post('/:id/integration-kit', async (req, reply) => {
+    const { id } = req.params as { id: string }
+    const body = z
+      .object({ apiKey: z.string().min(20).optional() })
+      .safeParse(req.body ?? {})
+    if (!body.success) return reply.code(400).send({ success: false, error: body.error.message })
+
+    const partner = await getPartner(id)
+    if (!partner) return reply.code(404).send({ success: false, error: 'Not found' })
+
+    const kit = await buildIntegrationKit(
+      {
+        name: partner.name,
+        slug: partner.slug,
+        accessMode: partner.accessMode,
+        premiumIncluded: partner.premiumIncluded,
+        apiKeyPrefix: partner.apiKeyPrefix,
+        webhookUrl: partner.webhookUrl,
+      },
+      body.data.apiKey,
+    )
+
+    return reply.send({ success: true, data: kit })
   })
 
   fastify.post('/:id/rotate-key', async (req, reply) => {

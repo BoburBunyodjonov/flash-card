@@ -1,4 +1,5 @@
 import type { ConnectorType, SyncMode } from '@wordswipe/shared'
+import { decryptConnectorMetadata } from '../../lib/partner-secrets'
 import { prisma } from '../../lib/prisma'
 import { syncGroups, syncStaff } from '../../services/integration-org.service'
 import { syncLearners } from '../../services/integration.service'
@@ -7,8 +8,7 @@ import { pullGenericRest } from './generic-rest.connector'
 import type { ConnectorPullResult, PartnerConnectorConfig } from './types'
 
 export function parsePartnerConnectorConfig(metadata: unknown): PartnerConnectorConfig {
-  if (!metadata || typeof metadata !== 'object') return { connector: 'manual' }
-  return metadata as PartnerConnectorConfig
+  return decryptConnectorMetadata(metadata)
 }
 
 export async function pullFromConnector(

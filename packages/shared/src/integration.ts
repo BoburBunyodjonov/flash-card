@@ -91,3 +91,54 @@ export interface IntegrationStaffSyncResult {
 }
 
 export interface IntegrationGroupSyncResult extends IntegrationStaffSyncResult {}
+
+/** CRM switch — GET/PATCH /settings */
+export interface IntegrationPartnerSettings {
+  partner_slug: string
+  partner_name: string
+  integration_enabled: boolean
+  premium_included: boolean
+  access_mode: PartnerAccessMode
+}
+
+export interface IntegrationGroupListItem {
+  external_id: string
+  name: string
+  teacher_external_id: string | null
+  teacher_name: string | null
+  students_total: number
+  students_linked: number
+}
+
+export interface IntegrationGroupSummary {
+  group: {
+    external_id: string
+    name: string
+    status: string
+    teacher_external_id: string | null
+    teacher_name: string | null
+  }
+  students_total: number
+  students_linked: number
+  students_unlinked: number
+  active_last_7_days: number
+  avg_xp: number
+  avg_streak: number
+  avg_words_count: number
+  total_words_due: number
+  link_rate: number
+}
+
+export interface IntegrationLearnerProgress {
+  external_id: string
+  first_name: string | null
+  last_name: string | null
+  phone: string
+  linked: boolean
+  user_id: string | null
+  streak: number
+  xp: number
+  words_count: number
+  words_due: number
+  last_active: string | null
+}

@@ -95,6 +95,119 @@ DELETE /api/integrations/v1/learners/STU-10042
 GET /api/integrations/v1/learners/STU-10042/progress
 ```
 
+**Javob:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "external_id": "STU-10042",
+    "first_name": "Ali",
+    "last_name": "Valiyev",
+    "phone": "+998901234567",
+    "linked": true,
+    "user_id": "uuid",
+    "streak": 5,
+    "xp": 340,
+    "words_count": 48,
+    "words_due": 12,
+    "last_active": "2026-07-10T06:00:00.000Z"
+  }
+}
+```
+
+## CRM switch — integratsiya va premium (GET/PATCH /settings)
+
+Markaz o'z CRM ida **switch** orqali WordSwipe integratsiyasini va premiumni boshqaradi.
+Integratsiya o'chirilgan bo'lsa ham `PATCH /settings` ishlaydi (qayta yoqish uchun).
+
+### Holatni o'qish
+
+```http
+GET /api/integrations/v1/settings
+```
+
+```json
+{
+  "success": true,
+  "data": {
+    "partner_slug": "ielts-academy",
+    "partner_name": "IELTS Academy",
+    "integration_enabled": true,
+    "premium_included": true,
+    "access_mode": "benefit_only"
+  }
+}
+```
+
+### Switch orqali boshqarish
+
+```http
+PATCH /api/integrations/v1/settings
+Content-Type: application/json
+
+{
+  "integration_enabled": true,
+  "premium_included": true
+}
+```
+
+| Maydon | Ta'sir |
+|--------|--------|
+| `integration_enabled: false` | Sync/progress bloklanadi; premium o'chadi |
+| `integration_enabled: true` | API qayta ishlaydi |
+| `premium_included: false` | Ro'yxatdagi o'quvchilardan markaz premiumi olib tashlanadi |
+| `premium_included: true` | Aktiv o'quvchilarga premium beriladi |
+
+**Eslatma:** `integration_enabled=false` bo'lganda faqat `/settings`, `/ping`, `/schema` ishlaydi.
+
+## Guruh bo'yicha analitika (CRM dashboard)
+
+### Guruhlar ro'yxati
+
+```http
+GET /api/integrations/v1/groups
+```
+
+### Guruh summary (o'rtacha XP, faollik, link %)
+
+```http
+GET /api/integrations/v1/groups/GRP-IELTS-3/summary
+```
+
+```json
+{
+  "success": true,
+  "data": {
+    "group": {
+      "external_id": "GRP-IELTS-3",
+      "name": "IELTS Group 3",
+      "status": "active",
+      "teacher_external_id": "EMP-55",
+      "teacher_name": "Sardor Karimov"
+    },
+    "students_total": 25,
+    "students_linked": 18,
+    "students_unlinked": 7,
+    "active_last_7_days": 12,
+    "avg_xp": 340,
+    "avg_streak": 4.2,
+    "avg_words_count": 45,
+    "total_words_due": 86,
+    "link_rate": 72
+  }
+}
+```
+
+### Guruhdagi barcha o'quvchilar progressi
+
+```http
+GET /api/integrations/v1/groups/GRP-IELTS-3/learners/progress
+GET /api/integrations/v1/groups/GRP-IELTS-3/learners/progress?status=all
+```
+
+`status`: `active` (default) | `inactive` | `all`
+
 ## O'quvchi tomonda qanday ishlaydi
 
 1. Markaz ERP o'quvchi telefonini WordSwipe ga yuboradi
@@ -169,6 +282,12 @@ Authorization: Bearer <admin-jwt>
 
 Javobda `apiKey` bir marta ko'rsatiladi — saqlang.
 
+**Admin panel:** `/admin/partners` → yangi markaz yaratganda yoki jadvaldagi ⬇️ tugmasi orqali **Integratsiya paketi (ZIP)** yuklab oling. Paket ichida:
+- `README.md` — markaz uchun qisqa yo'riqnoma + API kalit
+- `credentials.env` / `credentials.json` — dasturchi uchun
+- `curl-test.sh` — tayyor test buyruqlari
+- `INTEGRATIONS.md` — to'liq API hujjati
+
 ## Integratsiya usullari (ERP qaysi darajada bo'lishidan qat'i nazar)
 
 | ERP imkoniyati | Usul |
@@ -202,6 +321,7 @@ Admin panelda **Webhook URL** + **secret** sozlang. Har event POST qilinadi:
 | `webhook.test` | Admin “Test webhook” bosganda |
 | `learner.linked` | O'quvchi birinchi marta ilovaga kirdi |
 | `learner.deactivated` | O'quvchi ro'yxatdan chiqarildi |
+| `learner.progress.snapshot` | Har kuni 02:00 UTC — bog'langan o'quvchilar progressi (batch) |
 | `staff.linked` | O'qituvchi birinchi marta kirdi |
 | `word_pack.published` | O'qituvchi guruhga so'z to'plami yubordi |
 
@@ -217,6 +337,10 @@ Admin → **ERP Partners** → connector tanlang → **Sync** tugmasi yoki `POST
 | `manual` | ERP o'zi `POST /integrations/v1/*` qiladi (default) |
 | `generic_rest` | Sizning ERP URL dan JSON tortadi (`staff`, `groups`, `learners`) |
 | `edupage` | EduPage login → sinflar, o'qituvchilar, o'quvchilar (telefon kerak) |
+
+**Avtomatik sync:** `edupage` / `generic_rest` partnerlar har **6 soatda** avtomatik tortiladi (BullMQ cron).
+
+**Credentials:** EduPage parol va REST `auth_header` DB da `PARTNER_SECRETS_KEY` bilan AES-256-GCM shifrlangan holda saqlanadi.
 
 ## Qo'llab-quvvatlash
 

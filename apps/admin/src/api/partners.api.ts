@@ -60,4 +60,8 @@ export const partnersApi = {
     api.post(`/api/admin/partners/${id}/sync`, { mode }).then((r) => r.data.data),
   webhooks: (id: string) =>
     api.get(`/api/admin/partners/${id}/webhooks`).then((r) => r.data.data as WebhookDelivery[]),
+  integrationKit: (id: string, apiKey?: string) =>
+    api
+      .post(`/api/admin/partners/${id}/integration-kit`, apiKey ? { apiKey } : {})
+      .then((r) => r.data.data as { filename: string; files: Record<string, string> }),
 }

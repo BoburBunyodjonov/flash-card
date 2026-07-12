@@ -7,6 +7,7 @@ declare module 'fastify' {
       id: string
       name: string
       slug: string
+      status: string
       accessMode: string
       premiumIncluded: boolean
       webhookUrl: string | null
@@ -36,9 +37,20 @@ export async function requirePartnerAuth(req: FastifyRequest, reply: FastifyRepl
     id: partner.id,
     name: partner.name,
     slug: partner.slug,
+    status: partner.status,
     accessMode: partner.accessMode,
     premiumIncluded: partner.premiumIncluded,
     webhookUrl: partner.webhookUrl,
     webhookSecret: partner.webhookSecret,
+  }
+}
+
+/** Blocks sync/progress when markaz integratsiyani o'chirgan (status=suspended). */
+export async function requireActivePartner(req: FastifyRequest, reply: FastifyReply) {
+  if (req.partner?.status !== 'active') {
+    return reply.code(403).send({
+      success: false,
+      error: 'Integration disabled for this organization. Enable via PATCH /settings.',
+    })
   }
 }

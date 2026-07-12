@@ -1,5 +1,10 @@
 import type { Prisma } from '@prisma/client'
 import { generateApiKey, hashApiKey } from '../lib/partner-auth'
+import {
+  encryptConnectorMetadata,
+  mergeConnectorSecrets,
+  redactConnectorMetadataForAdmin,
+} from '../lib/partner-secrets'
 import { prisma } from '../lib/prisma'
 
 function slugify(name: string): string {
@@ -28,6 +33,7 @@ export async function createPartner(data: {
   }
 
   const { raw, hash, prefix } = generateApiKey()
+  const metadata = encryptConnectorMetadata(data.metadata)
   const partner = await prisma.partner.create({
     data: {
       name: data.name.trim(),
@@ -38,7 +44,7 @@ export async function createPartner(data: {
       premiumIncluded: data.premiumIncluded ?? true,
       webhookUrl: data.webhookUrl ?? null,
       webhookSecret: data.webhookSecret ?? null,
-      metadata: (data.metadata ?? undefined) as Prisma.InputJsonValue | undefined,
+      metadata: (metadata ?? undefined) as Prisma.InputJsonValue | undefined,
     },
   })
 
@@ -88,7 +94,7 @@ export async function getPartner(partnerId: string) {
     include: { _count: { select: { enrollments: true, staff: true, groups: true } } },
   })
   if (!p) return null
-  const meta = (p.metadata ?? {}) as Record<string, unknown>
+  const meta = redactConnectorMetadataForAdmin(p.metadata)
   return {
     id: p.id,
     name: p.name,
@@ -123,7 +129,12 @@ export async function updatePartner(
   const { metadata, ...rest } = data
   const patch: Prisma.PartnerUpdateInput = { ...rest }
   if (metadata !== undefined) {
-    patch.metadata = metadata as Prisma.InputJsonValue
+    const existing = await prisma.partner.findUnique({
+      where: { id: partnerId },
+      select: { metadata: true },
+    })
+    const merged = mergeConnectorSecrets(metadata, existing?.metadata)
+    patch.metadata = (merged ?? metadata) as Prisma.InputJsonValue
   }
   return prisma.partner.update({ where: { id: partnerId }, data: patch })
 }

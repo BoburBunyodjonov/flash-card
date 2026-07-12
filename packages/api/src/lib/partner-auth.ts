@@ -12,13 +12,11 @@ export function generateApiKey(): { raw: string; hash: string; prefix: string } 
   return { raw, hash: hashApiKey(raw), prefix: raw.slice(0, 12) }
 }
 
+/** Suspended partners can still call GET/PATCH /settings to re-enable integration. */
 export async function resolvePartnerFromApiKey(rawKey: string) {
   if (!rawKey.startsWith(KEY_PREFIX)) return null
   const hash = hashApiKey(rawKey)
-  const partner = await prisma.partner.findFirst({
-    where: { apiKeyHash: hash, status: 'active' },
-  })
-  return partner
+  return prisma.partner.findFirst({ where: { apiKeyHash: hash } })
 }
 
 export function extractApiKey(authHeader?: string, apiKeyHeader?: string): string | null {

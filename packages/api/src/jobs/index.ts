@@ -7,6 +7,8 @@ import { sendPushToUser } from '../lib/fcm'
 import { finalizeLastWeek } from '../services/league.service'
 import { expireStaleDuels } from '../services/duel.service'
 import { countDueUserWords } from '../services/my-words.service'
+import { dispatchAllPartnerProgressSnapshots } from '../services/partner-progress-snapshot.service'
+import { runScheduledPartnerConnectorSyncs } from '../services/partner-connector-sync.service'
 import { REVIEW_REMINDER_THRESHOLD } from '@wordswipe/shared'
 
 const connection = { host: new URL(config.redis.url).hostname, port: parseInt(new URL(config.redis.url).port || '6379') }
@@ -30,6 +32,14 @@ const LEAGUE_FINALIZE_PATTERN = '5 0 * * 1' // Monday 00:05
 // Proactively expires stale duels (pending unaccepted + abandoned active).
 const DUEL_EXPIRE_JOB = 'duel-expire'
 const DUEL_EXPIRE_PATTERN = '10 * * * *' // hourly at :10
+
+// ERP → WordSwipe pull sync for edupage / generic_rest partners
+const CONNECTOR_SYNC_JOB = 'partner-connector-sync'
+const CONNECTOR_SYNC_PATTERN = '0 */6 * * *' // every 6 hours
+
+// WordSwipe → ERP progress webhooks for linked learners
+const PROGRESS_SNAPSHOT_JOB = 'partner-progress-snapshot'
+const PROGRESS_SNAPSHOT_PATTERN = '0 2 * * *' // daily 02:00 UTC
 
 // Same UTC date key used by feed.service for the daily swipe counter.
 function todayKey() {
@@ -270,6 +280,16 @@ export function startWorkers() {
         await dispatchDuelExpiry()
       }
 
+      if (job.name === CONNECTOR_SYNC_JOB) {
+        const result = await runScheduledPartnerConnectorSyncs()
+        console.log('[Queue] Partner connector sync:', result)
+      }
+
+      if (job.name === PROGRESS_SNAPSHOT_JOB) {
+        const result = await dispatchAllPartnerProgressSnapshots()
+        console.log('[Queue] Partner progress snapshots:', result)
+      }
+
       if (job.name === 'daily-reminder') {
         const { userId, telegramId, language, streak, dueCount } = job.data
         // Both channels fire independently: Telegram if linked, push if any device.
@@ -312,5 +332,17 @@ export async function setupRecurringJobs() {
     { pattern: DUEL_EXPIRE_PATTERN },
     { name: DUEL_EXPIRE_JOB, data: {}, opts: { removeOnComplete: true, removeOnFail: 50 } },
   )
-  console.log('[Queue] Schedulers ready: daily reminders, due-word reminders, league finalize, duel expiry')
+  await notificationQueue.upsertJobScheduler(
+    CONNECTOR_SYNC_JOB,
+    { pattern: CONNECTOR_SYNC_PATTERN },
+    { name: CONNECTOR_SYNC_JOB, data: {}, opts: { removeOnComplete: true, removeOnFail: 50 } },
+  )
+  await notificationQueue.upsertJobScheduler(
+    PROGRESS_SNAPSHOT_JOB,
+    { pattern: PROGRESS_SNAPSHOT_PATTERN },
+    { name: PROGRESS_SNAPSHOT_JOB, data: {}, opts: { removeOnComplete: true, removeOnFail: 50 } },
+  )
+  console.log(
+    '[Queue] Schedulers ready: reminders, leagues, duels, partner connector sync, progress snapshots',
+  )
 }
