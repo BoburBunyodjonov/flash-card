@@ -34,6 +34,21 @@ export interface WordPack {
   _count?: { items: number }
 }
 
+export interface AssignablePlaylist {
+  id: string
+  title: string
+  type: 'cinema' | 'shadowing' | 'mixed'
+  level: string | null
+  item_count: number
+}
+
+export interface PlaylistAssignment {
+  id: string
+  group_external_id: string
+  playlist_id: string
+  created_at: string
+}
+
 export const teacherApi = {
   context: () =>
     api.get('/api/teacher/context').then((r) => r.data.data as { profiles: TeacherProfile[] }),
@@ -49,4 +64,17 @@ export const teacherApi = {
 
   publish: (packId: string) =>
     api.post(`/api/teacher/packs/${packId}/publish`).then((r) => r.data.data),
+
+  playlists: (staffId: string) =>
+    api
+      .get('/api/teacher/playlists', { params: { staff_id: staffId } })
+      .then((r) => r.data.data as { playlists: AssignablePlaylist[]; assignments: PlaylistAssignment[] }),
+
+  assignPlaylist: (data: { staff_id: string; group_external_id: string; playlist_id: string }) =>
+    api.post('/api/teacher/playlists/assign', data).then((r) => r.data.data),
+
+  unassignPlaylist: (assignmentId: string, staffId: string) =>
+    api
+      .delete(`/api/teacher/playlists/assign/${assignmentId}`, { params: { staff_id: staffId } })
+      .then((r) => r.data.data),
 }

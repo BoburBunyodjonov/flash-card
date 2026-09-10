@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Send, Plus, Users, BookOpen } from 'lucide-react'
-import { teacherApi, type TeacherProfile, type WordPack } from '../../api/teacher.api'
+import { ArrowLeft, Send, Plus, Users, BookOpen, ListVideo, X } from 'lucide-react'
+import {
+  teacherApi,
+  type TeacherProfile,
+  type WordPack,
+  type AssignablePlaylist,
+  type PlaylistAssignment,
+} from '../../api/teacher.api'
 
 interface Props {
   onBack: () => void
@@ -21,6 +27,10 @@ export function TeacherPage({ onBack }: Props) {
   const [activePackId, setActivePackId] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [publishResult, setPublishResult] = useState<string | null>(null)
+
+  const [playlists, setPlaylists] = useState<AssignablePlaylist[]>([])
+  const [assignments, setAssignments] = useState<PlaylistAssignment[]>([])
+  const [selectedPlaylist, setSelectedPlaylist] = useState('')
 
   const profile = profiles.find((p) => p.staff_id === staffId) ?? profiles[0]
 
@@ -43,7 +53,46 @@ export function TeacherPage({ onBack }: Props) {
   useEffect(() => {
     if (!staffId) return
     teacherApi.packs(staffId).then(setPacks).catch(console.error)
+    teacherApi
+      .playlists(staffId)
+      .then((d) => {
+        setPlaylists(d.playlists)
+        setAssignments(d.assignments)
+      })
+      .catch(console.error)
   }, [staffId])
+
+  const handleAssignPlaylist = async () => {
+    if (!staffId || !groupId || !selectedPlaylist) return
+    setBusy(true)
+    try {
+      await teacherApi.assignPlaylist({
+        staff_id: staffId,
+        group_external_id: groupId,
+        playlist_id: selectedPlaylist,
+      })
+      const d = await teacherApi.playlists(staffId)
+      setAssignments(d.assignments)
+      setSelectedPlaylist('')
+    } catch (e: unknown) {
+      setError((e as Error).message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const handleUnassignPlaylist = async (assignmentId: string) => {
+    if (!staffId) return
+    setBusy(true)
+    try {
+      await teacherApi.unassignPlaylist(assignmentId, staffId)
+      setAssignments((prev) => prev.filter((a) => a.id !== assignmentId))
+    } catch (e: unknown) {
+      setError((e as Error).message)
+    } finally {
+      setBusy(false)
+    }
+  }
 
   const drafts = packs.filter((p) => p.status === 'draft')
   const published = packs.filter((p) => p.status === 'published')
@@ -186,6 +235,70 @@ export function TeacherPage({ onBack }: Props) {
         >
           <Plus size={16} className="inline mr-1" /> To'plam yaratish
         </button>
+      </div>
+
+      {/* Media playlist assignment */}
+      <div className="ws-card p-4 mb-4">
+        <div className="flex items-center gap-2 mb-3">
+          <ListVideo size={18} style={{ color: '#8B5CF6' }} />
+          <span className="font-bold text-sm" style={{ color: 'var(--ws-text)' }}>Seriya biriktirish</span>
+        </div>
+        {playlists.length === 0 ? (
+          <p className="text-xs" style={{ color: 'var(--ws-muted)' }}>Hozircha seriyalar yo'q</p>
+        ) : (
+          <>
+            <select
+              className="w-full p-3 rounded-btn mb-2 text-sm ws-card"
+              value={selectedPlaylist}
+              onChange={(e) => setSelectedPlaylist(e.target.value)}
+              style={{ color: 'var(--ws-text)' }}
+            >
+              <option value="">Seriya tanlang…</option>
+              {playlists.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.title} ({p.item_count})
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              disabled={busy || !selectedPlaylist || !groupId}
+              onClick={handleAssignPlaylist}
+              className="w-full py-2.5 rounded-btn font-bold text-sm text-white disabled:opacity-50"
+              style={{ background: '#8B5CF6' }}
+            >
+              <Plus size={16} className="inline mr-1" /> Guruhga biriktirish
+            </button>
+          </>
+        )}
+
+        {assignments.length > 0 && (
+          <div className="mt-3 flex flex-col gap-1.5">
+            {assignments.map((a) => {
+              const pl = playlists.find((p) => p.id === a.playlist_id)
+              const grp = profile?.groups.find((g) => g.external_id === a.group_external_id)
+              return (
+                <div
+                  key={a.id}
+                  className="flex items-center justify-between gap-2 px-3 py-2 rounded-btn"
+                  style={{ background: 'var(--ws-surface)' }}
+                >
+                  <span className="text-xs font-semibold truncate" style={{ color: 'var(--ws-text)' }}>
+                    {pl?.title ?? a.playlist_id} → {grp?.name ?? a.group_external_id}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleUnassignPlaylist(a.id)}
+                    className="shrink-0 p-1 rounded-full"
+                    style={{ color: 'var(--ws-muted)' }}
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {activePackId && (

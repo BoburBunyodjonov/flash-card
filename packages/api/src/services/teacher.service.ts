@@ -242,6 +242,86 @@ export async function publishWordPack(userId: string, packId: string) {
   return result
 }
 
+// ---------------------------------------------------------------------------
+// Media playlist assignment (attach an admin playlist to a class/group)
+// ---------------------------------------------------------------------------
+
+/** Published playlists a teacher can attach, plus their current group assignments. */
+export async function listPlaylistAssignments(userId: string, staffId: string) {
+  const staff = await assertStaffAccess(userId, staffId)
+
+  const [playlists, assignments] = await Promise.all([
+    prisma.mediaPlaylist.findMany({
+      where: { isPublished: true },
+      orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
+      include: { _count: { select: { items: true } } },
+    }),
+    prisma.teacherPlaylistAssignment.findMany({
+      where: { staffId: staff.id },
+      orderBy: { createdAt: 'desc' },
+    }),
+  ])
+
+  return {
+    playlists: playlists.map((p) => ({
+      id: p.id,
+      title: p.title,
+      type: p.type,
+      level: p.level,
+      item_count: p._count.items,
+    })),
+    assignments: assignments.map((a) => ({
+      id: a.id,
+      group_external_id: a.groupExternalId,
+      playlist_id: a.playlistId,
+      created_at: a.createdAt.toISOString(),
+    })),
+  }
+}
+
+export async function assignPlaylist(
+  userId: string,
+  staffId: string,
+  data: { groupExternalId: string; playlistId: string },
+) {
+  const staff = await assertStaffAccess(userId, staffId)
+  await assertGroupAccess(staff, data.groupExternalId)
+
+  const playlist = await prisma.mediaPlaylist.findFirst({
+    where: { id: data.playlistId, isPublished: true },
+  })
+  if (!playlist) throw new TeacherAuthError('Playlist not found', 404)
+
+  return prisma.teacherPlaylistAssignment.upsert({
+    where: {
+      staffId_groupExternalId_playlistId: {
+        staffId: staff.id,
+        groupExternalId: data.groupExternalId,
+        playlistId: data.playlistId,
+      },
+    },
+    create: {
+      partnerId: staff.partnerId,
+      staffId: staff.id,
+      groupExternalId: data.groupExternalId,
+      playlistId: data.playlistId,
+    },
+    update: {},
+  })
+}
+
+export async function unassignPlaylist(userId: string, staffId: string, assignmentId: string) {
+  const staff = await assertStaffAccess(userId, staffId)
+  const assignment = await prisma.teacherPlaylistAssignment.findUnique({
+    where: { id: assignmentId },
+  })
+  if (!assignment || assignment.staffId !== staff.id) {
+    throw new TeacherAuthError('Assignment not found', 404)
+  }
+  await prisma.teacherPlaylistAssignment.delete({ where: { id: assignmentId } })
+  return { deleted: true }
+}
+
 export async function isTeacher(userId: string): Promise<boolean> {
   const count = await prisma.integrationStaff.count({
     where: { userId, status: 'active', partner: { status: 'active' } },

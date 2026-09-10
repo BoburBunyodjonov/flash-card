@@ -21,19 +21,21 @@ import { SpeakingPage } from './pages/Speaking'
 import { MyWordsPage } from './pages/MyWords'
 import { MyWordsStudyPage } from './pages/MyWordsStudy'
 import { ShadowingPage } from './pages/Shadowing'
+import { CinemaPage } from './pages/Cinema'
+import { SeriesPage } from './pages/Series'
 import { ProfilePage } from './pages/Profile'
 import { TeacherPage } from './pages/Teacher'
 import { flushPendingSwipes } from './store/feed.store'
 import { flushOfflineQueue } from './lib/offlineQueue'
-import { WORD_SHARE_PREFIX } from '@wordswipe/shared'
+import { WORD_SHARE_PREFIX, CINEMA_SHARE_PREFIX, SHADOW_SHARE_PREFIX } from '@wordswipe/shared'
 
-type Page = 'feed' | 'practice' | 'dictionary' | 'progress' | 'leaderboard' | 'settings' | 'challenge' | 'quiz' | 'duel' | 'groupchallenge' | 'speaking' | 'mywords' | 'mywordsstudy' | 'shadowing' | 'profile' | 'teacher'
+type Page = 'feed' | 'practice' | 'dictionary' | 'progress' | 'leaderboard' | 'settings' | 'challenge' | 'quiz' | 'duel' | 'groupchallenge' | 'speaking' | 'mywords' | 'mywordsstudy' | 'shadowing' | 'cinema' | 'series' | 'profile' | 'teacher'
 
 const NAV_PAGES: Page[] = ['feed', 'practice', 'speaking', 'dictionary', 'profile']
 const PROFILE_SUBPAGES: Page[] = ['progress', 'leaderboard', 'mywords', 'settings']
 // Focused, full-screen sessions hide the (fixed) tab bar — otherwise it overlaps
 // their bottom-anchored action buttons. Each has its own in-page back button.
-const IMMERSIVE_PAGES: Page[] = ['quiz', 'duel', 'groupchallenge', 'challenge', 'shadowing', 'mywordsstudy', 'teacher']
+const IMMERSIVE_PAGES: Page[] = ['quiz', 'duel', 'groupchallenge', 'challenge', 'shadowing', 'cinema', 'series', 'mywordsstudy', 'teacher']
 
 const DUEL_PREFIX = 'duel_'
 const GC_PREFIX = 'gc_'
@@ -44,6 +46,8 @@ export default function App() {
   const [duelId, setDuelId] = useState<string | null>(null)
   const [gcId, setGcId] = useState<string | null>(null)
   const [wordShareId, setWordShareId] = useState<string | null>(null)
+  const [cinemaClipId, setCinemaClipId] = useState<string | null>(null)
+  const [shadowClipId, setShadowClipId] = useState<string | null>(null)
   const [myWordsShareMode, setMyWordsShareMode] = useState(false)
   const [speakingAuto, setSpeakingAuto] = useState(false)
   const [onboardingDone, setOnboardingDone] = useState(() => !!localStorage.getItem('ws_onboarding_done'))
@@ -81,6 +85,12 @@ export default function App() {
     } else if (startParam?.startsWith(WORD_SHARE_PREFIX)) {
       setWordShareId(startParam.slice(WORD_SHARE_PREFIX.length))
       setPage('mywords')
+    } else if (startParam?.startsWith(CINEMA_SHARE_PREFIX)) {
+      setCinemaClipId(startParam.slice(CINEMA_SHARE_PREFIX.length))
+      setPage('cinema')
+    } else if (startParam?.startsWith(SHADOW_SHARE_PREFIX)) {
+      setShadowClipId(startParam.slice(SHADOW_SHARE_PREFIX.length))
+      setPage('shadowing')
     } else if (startParam === 'speaking') {
       // Opened from the bot's "Start Practice" speaking ping → auto-find a partner
       setSpeakingAuto(true)
@@ -150,6 +160,8 @@ export default function App() {
               onMyWords={() => setPage('mywords')}
               onGroupChallenge={() => setPage('groupchallenge')}
               onShadowing={() => setPage('shadowing')}
+              onCinema={() => setPage('cinema')}
+              onSeries={() => setPage('series')}
             />
           )}
           {page === 'speaking' && (
@@ -167,7 +179,19 @@ export default function App() {
             <MyWordsStudyPage onBack={() => setPage('mywords')} />
           )}
           {page === 'shadowing' && (
-            <ShadowingPage onBack={() => setPage('practice')} />
+            <ShadowingPage
+              onBack={() => { setShadowClipId(null); setPage('practice') }}
+              deepLinkClipId={shadowClipId}
+            />
+          )}
+          {page === 'cinema' && (
+            <CinemaPage
+              onBack={() => { setCinemaClipId(null); setPage('practice') }}
+              deepLinkClipId={cinemaClipId}
+            />
+          )}
+          {page === 'series' && (
+            <SeriesPage onBack={() => setPage('practice')} />
           )}
           {page === 'challenge' && (
             <ChallengePage onBack={() => setPage('feed')} />

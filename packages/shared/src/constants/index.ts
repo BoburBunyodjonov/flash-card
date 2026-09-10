@@ -21,6 +21,11 @@ export const PLAN_SETTING_KEYS = {
   FREE_AUDIO_ENABLED: 'free_audio_enabled',
   FREE_OFFLINE_ENABLED: 'free_offline_enabled',
   FREE_FRIENDS_LEADERBOARD: 'free_friends_leaderboard_enabled',
+  // Cinema / Shadowing (video) free-tier limits
+  FREE_DAILY_VIDEO_LIMIT: 'free_daily_video_limit',
+  FREE_DAILY_WORD_SAVE_LIMIT: 'free_daily_word_save_limit',
+  FREE_HD_ENABLED: 'free_hd_enabled',
+  FREE_AI_GLOSS_ENABLED: 'free_ai_gloss_enabled',
   PREMIUM_MONTHLY_UZS: 'premium_monthly_price_uzs',
   PREMIUM_MONTHLY_USD: 'premium_monthly_price_usd',
   PREMIUM_ANNUAL_UZS: 'premium_annual_price_uzs',
@@ -42,6 +47,11 @@ export const DEFAULT_PLAN_SETTINGS: Record<string, number | boolean> = {
   free_audio_enabled: false,
   free_offline_enabled: false,
   free_friends_leaderboard_enabled: false,
+  // Cinema / Shadowing free-tier limits (0 = unlimited for counts)
+  free_daily_video_limit: 3,
+  free_daily_word_save_limit: 10,
+  free_hd_enabled: false,
+  free_ai_gloss_enabled: false,
   premium_monthly_price_uzs: 35000,
   premium_monthly_price_usd: 2.99,
   premium_annual_price_uzs: 230000,
@@ -96,6 +106,10 @@ export const DUEL_EXPIRE_HOURS = 48
 // Group challenges (multiplayer quiz race among friends)
 export const GC_PREFIX = 'gc_'
 export const WORD_SHARE_PREFIX = 'wshare_'
+
+// Media share deep-links (Cinema / Shadowing clips)
+export const CINEMA_SHARE_PREFIX = 'cinema_'
+export const SHADOW_SHARE_PREFIX = 'shadow_'
 export const GC_QUESTION_COUNT = 7
 export const GC_EXPIRE_HOURS = 72
 export const GC_BASE_XP = 10 // flat participation reward
@@ -118,3 +132,13 @@ export const SPEAKING_DAILY_XP_CAP = 30
 export const XP_PER_SHADOWING = 8 // per clip completed (first time), capped daily
 export const SHADOWING_DAILY_XP_CAP = 60
 export const SHADOWING_PLAYBACK_RATES = [0.5, 0.75, 1] as const
+// Speak-along: record yourself repeating a segment, server STT scores it.
+export const SHADOWING_SPEAK_PASS_SCORE = 70 // % word-similarity to "pass" a segment
+export const XP_PER_SHADOWING_SPEAK = 12 // once all segments of a clip pass, capped daily
+export const SHADOWING_SPEAK_DAILY_XP_CAP = 60
+export const SHADOWING_SPEAK_MAX_AUDIO_BYTES = 8 * 1024 * 1024
+
+// Cinema (watch clips with level-aware smart subtitles)
+export const XP_PER_CINEMA = 6
+export const CINEMA_DAILY_XP_CAP = 48
+export const CINEMA_PLAYBACK_RATES = [0.75, 1, 1.25] as const

@@ -39,6 +39,13 @@ const FREE_FEATURES: FieldDef[] = [
   { key: 'free_friends_leaderboard_enabled', label: 'Friends leaderboard', type: 'boolean', description: 'Allow free users to see friends ranking' },
 ]
 
+const VIDEO_LIMITS: FieldDef[] = [
+  { key: 'free_daily_video_limit', label: 'Daily video limit', type: 'number', unit: 'videos', description: 'Distinct Cinema/Shadowing videos a free user can open per day (0 = unlimited)' },
+  { key: 'free_daily_word_save_limit', label: 'Daily word saves', type: 'number', unit: 'words', description: 'Words a free user can save from videos per day (0 = unlimited)' },
+  { key: 'free_hd_enabled', label: 'HD playback', type: 'boolean', description: 'Allow free users to stream in HD' },
+  { key: 'free_ai_gloss_enabled', label: 'AI context gloss', type: 'boolean', description: 'Show context-aware example sentences to free users' },
+]
+
 const PRICES: FieldDef[] = [
   { key: 'premium_monthly_price_uzs', label: 'Monthly (UZS)', type: 'number', unit: 'UZS' },
   { key: 'premium_monthly_price_usd', label: 'Monthly (USD)', type: 'number', unit: '$' },
@@ -192,6 +199,23 @@ export function PlanSettingsPage() {
             {FREE_FEATURES.map((f) => (
               <Box key={f.key}>
                 <SettingRow field={f} value={settings[f.key] ?? false} onChange={handleChange} />
+                <Divider sx={{ my: 0.5 }} />
+              </Box>
+            ))}
+          </Paper>
+        </Grid>
+
+        {/* Cinema / Shadowing limits */}
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3, height: '100%' }}>
+            <SectionTitle icon={<ToggleOnRoundedIcon />} color="#8b5cf6">Cinema & Shadowing — Free Limits</SectionTitle>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+              Daily video/word caps and premium-only playback features
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            {VIDEO_LIMITS.map((f) => (
+              <Box key={f.key}>
+                <SettingRow field={f} value={settings[f.key] ?? (f.type === 'boolean' ? false : 0)} onChange={handleChange} />
                 <Divider sx={{ my: 0.5 }} />
               </Box>
             ))}

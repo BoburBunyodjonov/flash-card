@@ -98,6 +98,14 @@ ADMIN_PASSWORD=yourpassword
 - First completion → `XP_PER_SHADOWING` (daily-capped, feeds leagues); repeats award 0
 - Setup: `TELEGRAM_API_ID/HASH/SESSION` + `SHADOWING_CHANNEL_ID` in `.env`; generate session via `pnpm --filter api tg:login`
 
+**Cinema (watch + level-aware smart subtitles — separate from Shadowing):**
+- `packages/api/src/services/cinema.service.ts` + `apps/web/src/pages/Cinema` + admin `apps/admin/src/pages/Cinema`
+- Same Telegram/MTProto storage pattern; dedicated channel `CINEMA_CHANNEL_ID` + cache `cinema-cache.ts`
+- User upload → always `visibility: private` (only uploader + admin); admin can promote to `global`
+- Upload switch `hasEmbeddedSubtitles`: if true, skip STT (translation-focused); if false, Whisper STT
+- Player shows subtle inline Uzbek only for words harder than the viewer's `cefrLevel` (matched against `words` table)
+- Stream: `GET /api/cinema/:id/stream?token=` with JWT `typ: 'cinema'`
+
 **Auth:**
 - Web app: Telegram WebApp `initData` → `validateWebAppInitData` (HMAC-SHA256 "WebAppData")
 - Admin panel: `POST /api/auth/admin-login` → validates against `ADMIN_USERNAME`/`ADMIN_PASSWORD` env vars

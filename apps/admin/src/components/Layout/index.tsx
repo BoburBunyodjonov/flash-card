@@ -13,6 +13,8 @@ import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded'
 import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded'
 import RecordVoiceOverRoundedIcon from '@mui/icons-material/RecordVoiceOverRounded'
 import VideocamRoundedIcon from '@mui/icons-material/VideocamRounded'
+import MovieRoundedIcon from '@mui/icons-material/MovieRounded'
+import PlaylistPlayRoundedIcon from '@mui/icons-material/PlaylistPlayRounded'
 import HubRoundedIcon from '@mui/icons-material/HubRounded'
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded'
 import BoltRoundedIcon from '@mui/icons-material/BoltRounded'
@@ -31,6 +33,8 @@ const NAV_ITEMS = [
   { label: 'Notifications', icon: <NotificationsRoundedIcon />, path: '/notifications' },
   { label: 'Speaking Reports', icon: <RecordVoiceOverRoundedIcon />, path: '/speaking' },
   { label: 'Shadowing', icon: <VideocamRoundedIcon />, path: '/shadowing' },
+  { label: 'Cinema', icon: <MovieRoundedIcon />, path: '/cinema' },
+  { label: 'Playlists', icon: <PlaylistPlayRoundedIcon />, path: '/playlists' },
   { label: 'ERP Partners', icon: <HubRoundedIcon />, path: '/partners' },
 ]
 

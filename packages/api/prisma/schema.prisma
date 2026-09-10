@@ -116,6 +116,8 @@ model User {
   gcEntries    GroupChallengeEntry[] @relation("GcEntrant")
   pushTokens   PushToken[]
   shadowingDone ShadowingCompletion[]
+  cinemaClips   CinemaClip[]
+  cinemaDone    CinemaCompletion[]
   integrationEnrollments IntegrationEnrollment[]
   integrationStaff       IntegrationStaff[]
   wordSharesSent         WordShare[] @relation("WordShareFrom")
@@ -361,6 +363,7 @@ model Category {
 
   words          Word[]
   shadowingClips ShadowingClip[]
+  cinemaClips    CinemaClip[]
 
   @@map("categories")
 }
@@ -505,6 +508,8 @@ model ShadowingClip {
   // Optional line-by-line timing for A-B segment repeat:
   // [{ start: number, end: number, text: string, translation?: string }]
   segments      Json?
+  // Extracted unique content words: [{ word, level, translationUz, count }]
+  vocabulary    Json?
   level         Difficulty @default(A1)
   categoryId    String?    @map("category_id")
   order         Int        @default(0)
@@ -536,6 +541,127 @@ model ShadowingCompletion {
   @@unique([userId, clipId])
   @@index([userId])
   @@map("shadowing_completions")
+}
+
+// Cinema: movie / clip watching with level-aware smart subtitles.
+// Videos live in a private Telegram channel (separate from Shadowing).
+// User uploads are private (only uploader + admin); admin can promote to global.
+enum CinemaVisibility {
+  private
+  global
+}
+
+model CinemaClip {
+  id                   String           @id @default(uuid())
+  title                String
+  tgChannelId          String           @map("tg_channel_id")
+  tgMessageId          Int              @map("tg_message_id")
+  durationSec          Int?             @map("duration_sec")
+  transcript           String           @default("")
+  translationUz        String           @default("") @map("translation_uz")
+  // [{ start, end, text, translation?, words?: [{ text, difficulty?, translation? }] }]
+  segments             Json?
+  // Extracted unique content words: [{ word, level, translationUz, count }]
+  vocabulary           Json?
+  level                Difficulty       @default(A1)
+  categoryId           String?          @map("category_id")
+  order                Int              @default(0)
+  isPublished          Boolean          @default(true) @map("is_published")
+  visibility           CinemaVisibility @default(private)
+  // When true, video already has its own subtitles — STT optional; focus on translation.
+  hasEmbeddedSubtitles Boolean          @default(false) @map("has_embedded_subtitles")
+  uploadedByUserId     String?          @map("uploaded_by_user_id")
+  createdAt            DateTime         @default(now()) @map("created_at")
+
+  uploadedBy  User?              @relation(fields: [uploadedByUserId], references: [id], onDelete: SetNull)
+  category    Category?          @relation(fields: [categoryId], references: [id])
+  completions CinemaCompletion[]
+
+  @@unique([tgChannelId, tgMessageId])
+  @@index([visibility, isPublished])
+  @@index([uploadedByUserId])
+  @@index([level])
+  @@map("cinema_clips")
+}
+
+model CinemaCompletion {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  clipId    String   @map("clip_id")
+  count     Int      @default(1)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clip CinemaClip @relation(fields: [clipId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, clipId])
+  @@index([userId])
+  @@map("cinema_completions")
+}
+
+// ---------------------------------------------------------------------------
+// Media playlists / series — an ordered list of Cinema and/or Shadowing clips.
+// Items reference clips loosely (by kind + clipId) so a playlist can mix both.
+// ---------------------------------------------------------------------------
+enum MediaKind {
+  cinema
+  shadowing
+}
+
+enum PlaylistType {
+  cinema
+  shadowing
+  mixed
+}
+
+model MediaPlaylist {
+  id          String       @id @default(uuid())
+  title       String
+  description String?
+  coverUrl    String?      @map("cover_url")
+  type        PlaylistType @default(mixed)
+  level       Difficulty?
+  isPublished Boolean      @default(true) @map("is_published")
+  order       Int          @default(0)
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  items       MediaPlaylistItem[]
+  assignments TeacherPlaylistAssignment[]
+
+  @@index([isPublished])
+  @@map("media_playlists")
+}
+
+/// O'qituvchi guruhga biriktirgan media playlist — talabalarga "Sizga biriktirilgan" bo'limida chiqadi
+model TeacherPlaylistAssignment {
+  id              String   @id @default(uuid())
+  partnerId       String   @map("partner_id")
+  staffId         String   @map("staff_id")
+  groupExternalId String   @map("group_external_id")
+  playlistId      String   @map("playlist_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  playlist MediaPlaylist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+
+  @@unique([staffId, groupExternalId, playlistId])
+  @@index([partnerId, groupExternalId])
+  @@map("teacher_playlist_assignments")
+}
+
+model MediaPlaylistItem {
+  id         String    @id @default(uuid())
+  playlistId String    @map("playlist_id")
+  kind       MediaKind
+  clipId     String    @map("clip_id")
+  order      Int       @default(0)
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  playlist MediaPlaylist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+
+  @@index([playlistId])
+  @@map("media_playlist_items")
 }
 
 // ---------------------------------------------------------------------------

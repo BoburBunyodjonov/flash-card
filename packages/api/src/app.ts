@@ -15,6 +15,8 @@ declare module 'fastify' {
 
 export async function buildApp() {
   const fastify = Fastify({
+    // Cinema / media uploads exceed the default 1MB body limit.
+    bodyLimit: 220 * 1024 * 1024,
     logger: config.isDev
       ? { transport: { target: 'pino-pretty', options: { colorize: true } } }
       : true,

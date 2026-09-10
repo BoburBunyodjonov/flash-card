@@ -3,16 +3,12 @@ import path from 'node:path'
 import { config } from '../config'
 
 /**
- * Transient on-disk cache for shadowing videos. The clip library lives in
- * Telegram; this only holds recently-watched files so we don't re-download from
- * Telegram on every view/seek. It is bounded (LRU-evicted) by
- * `config.shadowing.cacheMaxBytes` — it is NOT permanent storage.
+ * Transient on-disk cache for Cinema videos (separate from Shadowing so the two
+ * features don't thrash each other's LRU).
  */
 
-const dir = config.shadowing.cacheDir
-const maxBytes = config.shadowing.cacheMaxBytes
-
-// One download per clip at a time — concurrent viewers of a cold clip share it.
+const dir = config.cinema.cacheDir
+const maxBytes = config.cinema.cacheMaxBytes
 const inflight = new Map<string, Promise<string>>()
 
 function filePath(clipId: string): string {
@@ -32,7 +28,6 @@ async function exists(p: string): Promise<boolean> {
   }
 }
 
-/** Deletes least-recently-used files until the cache is under its size cap. */
 async function evict(keep: string): Promise<void> {
   try {
     const names = await fs.readdir(dir)
@@ -50,7 +45,6 @@ async function evict(keep: string): Promise<void> {
     const files = stats.filter((s): s is NonNullable<typeof s> => s !== null)
     let total = files.reduce((sum, f) => sum + f.size, 0)
     if (total <= maxBytes) return
-    // Oldest first.
     files.sort((a, b) => a.mtime - b.mtime)
     for (const f of files) {
       if (total <= maxBytes) break
@@ -59,20 +53,15 @@ async function evict(keep: string): Promise<void> {
         await fs.unlink(f.full)
         total -= f.size
       } catch {
-        /* someone else may be reading/deleting it */
+        /* ignore */
       }
     }
   } catch {
-    /* eviction is best-effort */
+    /* best-effort */
   }
 }
 
-/**
- * Returns a local path to the fully-downloaded clip, fetching it from Telegram
- * (via `download`) on a cache miss. `download` must write the whole file to the
- * temp path it is given.
- */
-export async function getCachedClip(
+export async function getCachedCinemaClip(
   clipId: string,
   download: (destPath: string) => Promise<void>,
 ): Promise<string> {
@@ -80,7 +69,6 @@ export async function getCachedClip(
   const dest = filePath(clipId)
 
   if (await exists(dest)) {
-    // Touch so LRU treats it as recently used.
     const now = new Date()
     fs.utimes(dest, now, now).catch(() => {})
     return dest
@@ -108,14 +96,13 @@ export async function getCachedClip(
   return task
 }
 
-/** Removes a clip's cached file (e.g. after admin deletes/replaces it). */
-export async function dropCachedClip(clipId: string): Promise<void> {
+export async function dropCachedCinemaClip(clipId: string): Promise<void> {
   await fs.unlink(filePath(clipId)).catch(() => {})
   await fs.unlink(`${filePath(clipId)}.playable.mp4`).catch(() => {})
   await fs.unlink(`${filePath(clipId)}.playable.hd.mp4`).catch(() => {})
 }
 
 /** True when the raw clip is already on disk (used for status reporting). */
-export async function isClipCached(clipId: string): Promise<boolean> {
+export async function isCinemaClipCached(clipId: string): Promise<boolean> {
   return exists(filePath(clipId))
 }

@@ -14,6 +14,24 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/admin/, /^\/api/],
         runtimeCaching: [
           {
+            // Cinema / Shadowing video streams. Range-aware so a cached full
+            // response (added explicitly via "Save offline") can serve the
+            // partial 206s the <video> element requests. Must precede the
+            // generic /api rule below (Workbox uses the first match).
+            urlPattern: ({ url }) => /^\/api\/(cinema|shadowing)\/[^/]+\/stream/.test(url.pathname),
+            handler: 'CacheFirst',
+            options: {
+              // Only full 200s are cacheable — 206 partials from live streaming
+              // are never stored (avoids the "Partial response unsupported"
+              // error). Offline saves fetch the full file explicitly; the
+              // RangeRequestsPlugin then serves partials from that cached 200.
+              cacheName: 'media-video-cache',
+              rangeRequests: true,
+              cacheableResponse: { statuses: [200] },
+              expiration: { maxEntries: 8, maxAgeSeconds: 14 * 86400 },
+            },
+          },
+          {
             // Same-origin API GETs (feed, categories, progress…) — fresh when online,
             // cached fallback when offline
             urlPattern: ({ url, request }) =>

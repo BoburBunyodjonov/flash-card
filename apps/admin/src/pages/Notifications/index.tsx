@@ -64,12 +64,12 @@ export function NotificationsPage() {
           <TextField
             label="Message"
             multiline
-            rows={4}
+            rows={8}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Don't forget to practice today!"
-            inputProps={{ maxLength: 500 }}
-            helperText={`${message.length}/500`}
+            inputProps={{ maxLength: 4000 }}
+            helperText={`${message.length}/4000 (Telegram max ~4096)`}
           />
 
           <Button

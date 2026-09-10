@@ -1,12 +1,17 @@
 import bigInt from 'big-integer'
 import { createWriteStream, statSync } from 'node:fs'
 import { once } from 'node:events'
+import { execFile } from 'node:child_process'
+import { promisify } from 'node:util'
+import path from 'node:path'
 import { config } from '../config'
 
+const execFileAsync = promisify(execFile)
+
 /**
- * Lazily-connected GramJS (MTProto) **user** client, used ONLY by the Shadowing
- * feature to read video files out of a private Telegram channel — which bypasses
- * the Bot API's 20 MB download cap (MTProto allows up to ~2 GB).
+ * Lazily-connected GramJS (MTProto) **user** client, used by Shadowing / Cinema
+ * to read (and upload) video files in private Telegram channels — bypasses the
+ * Bot API's 20 MB download cap (MTProto allows up to ~2 GB).
  *
  * If MTProto isn't configured (no api id/hash/session) every call returns null
  * and the rest of the API keeps working untouched — same philosophy as the bot.
@@ -17,7 +22,7 @@ type TgClient = any
 type TgMessage = any
 
 let clientPromise: Promise<TgClient | null> | null = null
-let cachedChannel: any = null
+const channelCache = new Map<string, any>()
 
 export function isMtprotoConfigured(): boolean {
   return !!(config.telegram.apiId && config.telegram.apiHash && config.telegram.session)
@@ -45,7 +50,6 @@ async function createClient(): Promise<TgClient | null> {
 export async function getTgClient(): Promise<TgClient | null> {
   if (!clientPromise) {
     clientPromise = createClient().catch((err) => {
-      // Reset so a later request can retry the connection.
       clientPromise = null
       console.error('[mtproto] connect failed:', err?.message ?? err)
       return null
@@ -54,28 +58,36 @@ export async function getTgClient(): Promise<TgClient | null> {
   return clientPromise
 }
 
-function channelRef(): string | ReturnType<typeof bigInt> {
-  const raw = config.shadowing.channel
-  // Numeric channel id (e.g. -1001234567890) → bigInt; else @username / t.me link.
+function channelRef(channelId: string): string | ReturnType<typeof bigInt> {
+  const raw = channelId.trim()
   if (/^-?\d+$/.test(raw)) return bigInt(raw)
   return raw
 }
 
 /**
- * Resolves the configured shadowing channel to a GramJS entity, warming the
- * dialog cache once if a private-channel id can't be resolved directly.
+ * Resolves a channel (@username or numeric id) to a GramJS entity.
+ * Cached per channel id string.
  */
-export async function getShadowingChannel(client: TgClient): Promise<any> {
-  if (cachedChannel) return cachedChannel
-  const ref = channelRef()
+export async function getChannel(client: TgClient, channelId: string): Promise<any> {
+  const key = channelId.trim()
+  if (!key) throw new Error('Channel id is empty')
+  if (channelCache.has(key)) return channelCache.get(key)
+
+  const ref = channelRef(key)
+  let entity: any
   try {
-    cachedChannel = await client.getEntity(ref)
+    entity = await client.getEntity(ref)
   } catch {
-    // Private channels by numeric id may not be in the entity cache yet.
     await client.getDialogs({ limit: 500 })
-    cachedChannel = await client.getEntity(ref)
+    entity = await client.getEntity(ref)
   }
-  return cachedChannel
+  channelCache.set(key, entity)
+  return entity
+}
+
+/** @deprecated Prefer getChannel(client, config.shadowing.channel) */
+export async function getShadowingChannel(client: TgClient): Promise<any> {
+  return getChannel(client, config.shadowing.channel)
 }
 
 export interface VideoMeta {
@@ -90,6 +102,12 @@ export interface VideoMeta {
   size: number // bytes
 }
 
+function looksLikeVideoFile(fileName: string | null | undefined, mime: string): boolean {
+  const name = (fileName ?? '').toLowerCase()
+  const extOk = /\.(mp4|webm|mov|mkv|m4v|avi)$/i.test(name)
+  return mime.startsWith('video/') || extOk
+}
+
 /** Pulls the video document + its attributes off a channel message. */
 export function extractVideoMeta(msg: TgMessage): VideoMeta | null {
   const doc = msg?.media?.document
@@ -98,8 +116,9 @@ export function extractVideoMeta(msg: TgMessage): VideoMeta | null {
   const video = attrs.find((a) => a.className === 'DocumentAttributeVideo')
   const file = attrs.find((a) => a.className === 'DocumentAttributeFilename')
   const mime: string = doc.mimeType ?? ''
-  // Only treat actual videos as shadowing candidates.
-  if (!video && !mime.startsWith('video/')) return null
+  const fileName: string | null = file?.fileName ?? null
+  // Accept native videos AND files uploaded as Telegram "documents" (.mp4 etc.).
+  if (!video && !looksLikeVideoFile(fileName, mime)) return null
   return {
     messageId: msg.id,
     caption: msg.message ?? '',
@@ -107,28 +126,76 @@ export function extractVideoMeta(msg: TgMessage): VideoMeta | null {
     durationSec: video ? Math.round(video.duration) : null,
     width: video?.w ?? null,
     height: video?.h ?? null,
-    fileName: file?.fileName ?? null,
-    mimeType: mime || 'video/mp4',
+    fileName,
+    mimeType: mime.startsWith('video/') ? mime : 'video/mp4',
     size: doc.size ? bigInt(doc.size).toJSNumber() : 0,
   }
 }
 
-/** Recent video messages from the channel (for the admin picker). */
-export async function listChannelVideos(client: TgClient, limit = 30): Promise<VideoMeta[]> {
+async function probeVideo(filePath: string): Promise<{ duration: number; w: number; h: number } | null> {
+  try {
+    const { stdout } = await execFileAsync(
+      'ffprobe',
+      [
+        '-v', 'error',
+        '-select_streams', 'v:0',
+        '-show_entries', 'stream=width,height:format=duration',
+        '-of', 'json',
+        filePath,
+      ],
+      { timeout: 30_000 },
+    )
+    const data = JSON.parse(stdout)
+    const stream = data?.streams?.[0] ?? {}
+    const duration = Math.max(1, Math.round(Number(data?.format?.duration) || 1))
+    const w = Math.max(1, Number(stream.width) || 720)
+    const h = Math.max(1, Number(stream.height) || 1280)
+    return { duration, w, h }
+  } catch {
+    return null
+  }
+}
+
+/** Recent video messages from a channel (for admin / user pickers). */
+export async function listChannelVideos(
+  client: TgClient,
+  limit = 30,
+  channelId: string = config.shadowing.channel,
+): Promise<VideoMeta[]> {
   const { Api } = await import('telegram')
-  const channel = await getShadowingChannel(client)
-  const messages: TgMessage[] = await client.getMessages(channel, {
+  const channel = await getChannel(client, channelId)
+
+  const byId = new Map<number, VideoMeta>()
+
+  // Native Telegram "video" posts
+  const videoMsgs: TgMessage[] = await client.getMessages(channel, {
     limit,
     filter: new Api.InputMessagesFilterVideo(),
   })
-  return messages
-    .map((m) => extractVideoMeta(m))
-    .filter((m): m is VideoMeta => m !== null)
+  for (const m of videoMsgs) {
+    const meta = extractVideoMeta(m)
+    if (meta) byId.set(meta.messageId, meta)
+  }
+
+  // Fallback: recent messages (videos often arrive as documents / files)
+  if (byId.size === 0) {
+    const recent: TgMessage[] = await client.getMessages(channel, { limit: Math.max(limit, 50) })
+    for (const m of recent) {
+      const meta = extractVideoMeta(m)
+      if (meta) byId.set(meta.messageId, meta)
+    }
+  }
+
+  return [...byId.values()].sort((a, b) => b.messageId - a.messageId).slice(0, limit)
 }
 
 /** Fetches a single channel message by id (throws if missing). */
-export async function getChannelMessage(client: TgClient, messageId: number): Promise<TgMessage> {
-  const channel = await getShadowingChannel(client)
+export async function getChannelMessage(
+  client: TgClient,
+  messageId: number,
+  channelId: string = config.shadowing.channel,
+): Promise<TgMessage> {
+  const channel = await getChannel(client, channelId)
   const messages: TgMessage[] = await client.getMessages(channel, { ids: [messageId] })
   const msg = messages?.[0]
   if (!msg || !msg.media) throw new Error(`Message ${messageId} not found or has no media`)
@@ -147,15 +214,63 @@ export async function getVideoThumbDataUri(client: TgClient, msg: TgMessage): Pr
 }
 
 /**
- * A GramJS "writer" backed by a real fs stream. Two reasons we don't just pass a
- * string path to downloadMedia:
- *  1. Backpressure — GramJS awaits `write()`, so awaiting `drain` here bounds
- *     memory instead of buffering the whole file.
- *  2. Flush guarantee — GramJS resolves without waiting for the fd to flush, so
- *     we expose `whenDone()` (the stream's `finish`) to await a complete file
- *     before we stat/serve it. Without this a fast reader could see a truncated
- *     video.
+ * Uploads a local video file to a Telegram channel and returns its VideoMeta.
+ * Forces DocumentAttributeVideo so Telegram treats it as a streamable video
+ * (otherwise GramJS often posts it as a generic document → extractVideoMeta fails).
  */
+export async function uploadVideoToChannel(
+  client: TgClient,
+  channelId: string,
+  filePath: string,
+  caption = '',
+): Promise<VideoMeta> {
+  const { Api } = await import('telegram')
+  const channel = await getChannel(client, channelId)
+  const probe = await probeVideo(filePath)
+  const base = path.basename(filePath)
+  const fileName = /\.(mp4|webm|mov|mkv|m4v|avi)$/i.test(base) ? base : `${base}.mp4`
+
+  const result: TgMessage = await client.sendFile(channel, {
+    file: filePath,
+    caption: caption.slice(0, 1024),
+    supportsStreaming: true,
+    forceDocument: false,
+    attributes: [
+      new Api.DocumentAttributeVideo({
+        roundMessage: false,
+        supportsStreaming: true,
+        duration: probe?.duration ?? 1,
+        w: probe?.w ?? 720,
+        h: probe?.h ?? 1280,
+      }),
+      new Api.DocumentAttributeFilename({ fileName }),
+    ],
+  })
+
+  let meta = extractVideoMeta(result)
+  if (!meta && result?.id) {
+    const again: TgMessage[] = await client.getMessages(channel, { ids: [result.id] })
+    meta = extractVideoMeta(again?.[0])
+  }
+  // Last resort: we know we uploaded a video file — accept the document row.
+  if (!meta && result?.id && result?.media?.document) {
+    const doc = result.media.document
+    meta = {
+      messageId: result.id,
+      caption: result.message ?? caption,
+      date: typeof result.date === 'number' ? result.date : Number(result.date ?? 0),
+      durationSec: probe?.duration ?? null,
+      width: probe?.w ?? null,
+      height: probe?.h ?? null,
+      fileName,
+      mimeType: 'video/mp4',
+      size: doc.size ? bigInt(doc.size).toJSNumber() : 0,
+    }
+  }
+  if (!meta) throw new Error('Uploaded file is not a video')
+  return meta
+}
+
 class FileWriter {
   private stream: ReturnType<typeof createWriteStream>
   private ended = false
@@ -170,7 +285,6 @@ class FileWriter {
   async write(chunk: Buffer): Promise<void> {
     if (!this.stream.write(chunk)) await once(this.stream, 'drain')
   }
-  // GramJS calls this in its `finally`; guarded so our extra call is a no-op.
   close(): void {
     if (this.ended) return
     this.ended = true
@@ -192,7 +306,7 @@ export async function downloadMessageToFile(
 ): Promise<number> {
   const writer = new FileWriter(destPath)
   await client.downloadMedia(msg, { outputFile: writer as any })
-  writer.close() // insurance in case GramJS didn't
+  writer.close()
   await writer.whenDone()
   return statSync(destPath).size
 }

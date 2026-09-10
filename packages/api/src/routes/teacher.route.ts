@@ -9,6 +9,9 @@ import {
   isTeacher,
   listWordPacks,
   publishWordPack,
+  listPlaylistAssignments,
+  assignPlaylist,
+  unassignPlaylist,
 } from '../services/teacher.service'
 
 const wordSchema = z.object({
@@ -109,6 +112,62 @@ export async function teacherRoutes(fastify: FastifyInstance) {
     try {
       const result = await publishWordPack(user.userId, id)
       return reply.send({ success: true, data: result })
+    } catch (err) {
+      if (err instanceof TeacherAuthError) {
+        return reply.code(err.statusCode).send({ success: false, error: err.message })
+      }
+      throw err
+    }
+  })
+
+  // ── Media playlist assignment ─────────────────────────────────────────────
+  fastify.get('/playlists', async (req, reply) => {
+    const user = req.user as { userId: string }
+    const query = z.object({ staff_id: z.string().uuid() }).safeParse(req.query)
+    if (!query.success) return reply.code(400).send({ success: false, error: query.error.message })
+    try {
+      const data = await listPlaylistAssignments(user.userId, query.data.staff_id)
+      return reply.send({ success: true, data })
+    } catch (err) {
+      if (err instanceof TeacherAuthError) {
+        return reply.code(err.statusCode).send({ success: false, error: err.message })
+      }
+      throw err
+    }
+  })
+
+  fastify.post('/playlists/assign', async (req, reply) => {
+    const user = req.user as { userId: string }
+    const body = z
+      .object({
+        staff_id: z.string().uuid(),
+        group_external_id: z.string().min(1).max(120),
+        playlist_id: z.string().uuid(),
+      })
+      .safeParse(req.body)
+    if (!body.success) return reply.code(400).send({ success: false, error: body.error.message })
+    try {
+      const data = await assignPlaylist(user.userId, body.data.staff_id, {
+        groupExternalId: body.data.group_external_id,
+        playlistId: body.data.playlist_id,
+      })
+      return reply.code(201).send({ success: true, data })
+    } catch (err) {
+      if (err instanceof TeacherAuthError) {
+        return reply.code(err.statusCode).send({ success: false, error: err.message })
+      }
+      throw err
+    }
+  })
+
+  fastify.delete('/playlists/assign/:id', async (req, reply) => {
+    const user = req.user as { userId: string }
+    const { id } = req.params as { id: string }
+    const query = z.object({ staff_id: z.string().uuid() }).safeParse(req.query)
+    if (!query.success) return reply.code(400).send({ success: false, error: query.error.message })
+    try {
+      const data = await unassignPlaylist(user.userId, query.data.staff_id, id)
+      return reply.send({ success: true, data })
     } catch (err) {
       if (err instanceof TeacherAuthError) {
         return reply.code(err.statusCode).send({ success: false, error: err.message })

@@ -48,6 +48,10 @@ export async function getFreeLimits() {
     audioEnabled: settings['free_audio_enabled'] as boolean,
     offlineEnabled: settings['free_offline_enabled'] as boolean,
     friendsLeaderboard: settings['free_friends_leaderboard_enabled'] as boolean,
+    dailyVideoLimit: settings['free_daily_video_limit'] as number,
+    dailyWordSaveLimit: settings['free_daily_word_save_limit'] as number,
+    hdEnabled: settings['free_hd_enabled'] as boolean,
+    aiGlossEnabled: settings['free_ai_gloss_enabled'] as boolean,
   }
 }
 

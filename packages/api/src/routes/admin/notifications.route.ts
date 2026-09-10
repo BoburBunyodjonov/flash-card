@@ -6,7 +6,8 @@ import { notificationQueue } from '../../jobs'
 export async function adminNotificationsRoutes(fastify: FastifyInstance) {
   fastify.post('/send', async (req, reply) => {
     const body = z.object({
-      message: z.string().min(1),
+      // Telegram Bot API hard cap is 4096; keep a small buffer for formatting.
+      message: z.string().min(1).max(4000),
       target: z.enum(['all', 'premium', 'free']).default('all'),
     }).safeParse(req.body)
     if (!body.success) return reply.code(400).send({ success: false, error: body.error.message })

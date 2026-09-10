@@ -23,6 +23,7 @@ rsync -az --delete \
   --exclude 'packages/api/dist' \
   --exclude 'packages/shared/dist' \
   --exclude backups \
+  --exclude data \
   ./ "$SERVER:$DIR/"
 
 echo "── 3/5 Building and starting containers on the server..."

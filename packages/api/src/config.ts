@@ -59,6 +59,15 @@ export const config = {
     cacheMaxBytes: parseInt(process.env.SHADOWING_CACHE_MAX_MB ?? '2048') * 1024 * 1024,
   },
 
+  // Cinema — same Telegram/MTProto pattern as Shadowing, separate channel + cache.
+  cinema: {
+    channel: (process.env.CINEMA_CHANNEL_ID ?? '').trim(),
+    cacheDir: process.env.CINEMA_CACHE_DIR ?? '/tmp/wordswipe-cinema',
+    cacheMaxBytes: parseInt(process.env.CINEMA_CACHE_MAX_MB ?? '2048') * 1024 * 1024,
+    // Max video size for user multipart upload (bytes).
+    maxUploadBytes: parseInt(process.env.CINEMA_MAX_UPLOAD_MB ?? '200') * 1024 * 1024,
+  },
+
   admin: {
     username: process.env.ADMIN_USERNAME ?? 'admin',
     password: process.env.ADMIN_PASSWORD ?? 'admin123',
